@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/application-exit.png</file>
+        <file>images/applications-other.png</file>
+        <file>images/document-new.png</file>
+        <file>images/document-open.png</file>
+        <file>images/document-save.png</file>
+        <file>images/edit-clear.png</file>
+        <file>images/edit-copy.png</file>
+        <file>images/edit-cut.png</file>
+        <file>images/edit-paste.png</file>
+        <file>images/printer.png</file>
+        <file>images/SNS.png</file>
+        <file>images/system-run.png</file>
+        <file>images/text-x-generic.png</file>
+    </qresource>
+</RCC>
