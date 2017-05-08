@@ -4,9 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui widgets xlsx svg
 
 TARGET = DemandCalculatorQt
 TEMPLATE = app
@@ -24,8 +22,55 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    aboutdialog.cpp \
+    creditsdialog.cpp \
+    fitworker.cpp \
+    graphicaloutputdialog.cpp \
+    licensedialog.cpp \
+    resultsdialog.cpp \
+    rworker.cpp \
+    sheetselectdialog.cpp \
+    sheetwidget.cpp \
+    statusdialog.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    aboutdialog.h \
+    creditsdialog.h \
+    fitworker.h \
+    graphicaloutputdialog.h \
+    licensedialog.h \
+    resultsdialog.h \
+    rworker.h \
+    sheetselectdialog.h \
+    sheetwidget.h \
+    statusdialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    aboutdialog.ui \
+    creditsdialog.ui \
+    graphicaloutputdialog.ui \
+    licensedialog.ui \
+    resultsdialog.ui \
+    sheetselectdialog.ui \
+    statusdialog.ui
+
+RESOURCES += \
+    spreadsheet.qrc
+
+DISTFILES += \
+    License_base64enc.txt \
+    License_BDS.txt \
+    License_gnome_icons.txt \
+    License_jsonlite.txt \
+    License_NLS.txt \
+    License_Qt.txt \
+    License_R.txt \
+    License_reshape.txt \
+    COPYING \
+    README.md \
+    scripts/DiscountingAreaComputation.R \
+    scripts/DiscountingED50Computation.R \
+    scripts/installDependencyBase64.R \
+    scripts/installDependencyJsonlite.R \
+    scripts/installDependencyReshape.R

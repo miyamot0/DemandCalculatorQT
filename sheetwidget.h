@@ -78,8 +78,8 @@
 #include <QtGui>
 
 #include "sheetselectdialog.h"
-#include "discountingmodelselectioned50dialog.h"
-#include "discountingmodelselectionareadialog.h"
+//#include "discountingmodelselectioned50dialog.h"
+//#include "discountingmodelselectionareadialog.h"
 
 #include "resultsdialog.h"
 #include "statusdialog.h"
@@ -179,8 +179,8 @@ private:
     QAction *pasteInvertedAction;
     QAction *clearAction;
 
-    QAction *openDiscountingAreaWindow;
-    QAction *openDiscountingED50Window;
+//    QAction *openDiscountingAreaWindow;
+//    QAction *openDiscountingED50Window;
 
     QAction *openLicenseDMS;
     QAction *openLicenseR;
@@ -203,8 +203,8 @@ private:
 
     SheetSelectDialog *sheetSelectDialog;
 
-    DiscountingModelSelectionAreaDialog *discountingAreaDialog;
-    DiscountingModelSelectionED50Dialog *discountingED50Dialog;
+    //DiscountingModelSelectionAreaDialog *discountingAreaDialog;
+    //DiscountingModelSelectionED50Dialog *discountingED50Dialog;
 
     StatusDialog *statusDialog;
     LicenseDialog *licenseDialog;
