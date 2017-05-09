@@ -178,15 +178,9 @@ void SheetWidget::buildMenus()
      * @brief
      */
 
-    /*
-    openDiscountingAreaWindow = new QAction("M&odel Selection (AUC)", this);
-    openDiscountingAreaWindow->setIcon(QIcon(":/images/applications-other.png"));
-    connect(openDiscountingAreaWindow, &QAction::triggered, this, &SheetWidget::showDiscountingAreaWindow);
-
-    openDiscountingED50Window = new QAction("M&odel Selection (ED50)", this);
-    openDiscountingED50Window->setIcon(QIcon(":/images/applications-other.png"));
-    connect(openDiscountingED50Window, &QAction::triggered, this, &SheetWidget::showDiscountingED50Window);
-    */
+    openDemandWindow = new QAction("D&emand Curve Analysis", this);
+    openDemandWindow->setIcon(QIcon(":/images/applications-other.png"));
+    connect(openDemandWindow, &QAction::triggered, this, &SheetWidget::showDemandWindow);
 
     /** Edit actions
      * @brief
@@ -221,9 +215,7 @@ void SheetWidget::buildMenus()
      * @brief
      */
 
-    //discountingAreaDialog = new DiscountingModelSelectionAreaDialog(this);
-
-    //discountingED50Dialog = new DiscountingModelSelectionED50Dialog(this);
+    demandWindowDialog = new DemandSettingsDialog(this);
 
     openLicenseDMS = new QAction("DMS License (GPL-V3)", this);
     openLicenseDMS->setIcon(QIcon(":/images/text-x-generic.png"));
@@ -273,17 +265,13 @@ void SheetWidget::buildMenus()
      * @brief
      */
 
-    delayAction = new QAction("Set Delays", this);
-    delayAction->setIcon(QIcon(":/images/system-run.png"));
-    connect(delayAction, &QAction::triggered, this, &SheetWidget::updateDelayModalWindow);
+    priceAction = new QAction("Set Prices", this);
+    priceAction->setIcon(QIcon(":/images/system-run.png"));
+    connect(priceAction, &QAction::triggered, this, &SheetWidget::updatePriceModalWindow);
 
-    valueAction = new QAction("Set Values", this);
-    valueAction->setIcon(QIcon(":/images/system-run.png"));
-    connect(valueAction, &QAction::triggered, this, &SheetWidget::updateValueModalWindow);
-
-    maxValueAction = new QAction("Set Max Value", this);
-    maxValueAction->setIcon(QIcon(":/images/system-run.png"));
-    connect(maxValueAction, &QAction::triggered, this, &SheetWidget::updateMaxValueModalWindow);
+    consumptionAction = new QAction("Set Consumption", this);
+    consumptionAction->setIcon(QIcon(":/images/system-run.png"));
+    connect(consumptionAction, &QAction::triggered, this, &SheetWidget::updateConsumptionModalWindow);
 
     for (int i = 0; i < MaxRecentFiles; ++i) {
         recentFileActs[i] = new QAction(this);
@@ -321,9 +309,8 @@ void SheetWidget::buildMenus()
     sheetEditMenu->addSeparator();
     sheetEditMenu->addAction(clearAction);
 
-    QMenu *sheetCalculationsMenu = menuBar()->addMenu(tr("&Discounting"));
-    //sheetCalculationsMenu->addAction(openDiscountingAreaWindow);
-    //sheetCalculationsMenu->addAction(openDiscountingED50Window);
+    QMenu *sheetCalculationsMenu = menuBar()->addMenu(tr("&Demand"));
+    sheetCalculationsMenu->addAction(openDemandWindow);
 
     QMenu *sheetLicensesMenu = menuBar()->addMenu(tr("&Licenses"));
     sheetLicensesMenu->addAction(openLicenseDMS);
@@ -344,9 +331,8 @@ void SheetWidget::buildMenus()
      * @brief
      */
 
-    addAction(delayAction);
-    addAction(valueAction);
-    addAction(maxValueAction);
+    addAction(priceAction);
+    addAction(consumptionAction);
 
     QAction *separatorTwo = new QAction(this);
     separatorTwo->setSeparator(true);
@@ -634,7 +620,7 @@ void SheetWidget::showSaveFileDialog()
     }
 }
 
-void SheetWidget::showDiscountingAreaWindow()
+void SheetWidget::showDemandWindow()
 {
     if (!isCoreRPresent)
     {
@@ -668,50 +654,9 @@ void SheetWidget::showDiscountingAreaWindow()
         return;
     }
 
-    //discountingAreaDialog = new DiscountingModelSelectionAreaDialog(this);
-    //discountingAreaDialog->setModal(false);
-
-    //discountingAreaDialog->show();
-}
-
-void SheetWidget::showDiscountingED50Window()
-{
-    if (!isCoreRPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup up");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program was not found on your machine (at least within the normal path). If installed already, please add the binary to your path. If not yet installed, you can download the R program from this location:<br/><br/> <a href='https://www.r-project.org//'>The R Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-
-        return;
-    }
-
-    if (!isCoreSVGSupportPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup xQuartz");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program uses xQuartz on OSX to to generate high quality images. This was not found "
-                            "on your machine (at least within the normal path). If not yet installed, you "
-                            "can download and install xQuartz from this location:<br/><br/> <a href='https://www.xquartz.org/'>"
-                            "The xQuartz Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-
-        return;
-    }
-
-    if (isToolWindowShown())
-    {
-        return;
-    }
-
-    //discountingED50Dialog = new DiscountingModelSelectionED50Dialog(this);
-    //discountingED50Dialog->setModal(false);
-
-    //discountingED50Dialog->show();
+    demandWindowDialog = new DemandSettingsDialog(this);
+    demandWindowDialog->setModal(false);
+    demandWindowDialog->show();
 }
 
 void SheetWidget::showDMSLicenseWindow()
@@ -1081,7 +1026,7 @@ void SheetWidget::clear()
  * @brief
  */
 
-void SheetWidget::updateDelayModalWindow()
+void SheetWidget::updatePriceModalWindow()
 {
     if (!isToolWindowShown())
     {
@@ -1116,19 +1061,13 @@ void SheetWidget::updateDelayModalWindow()
         return;
     }
 
-    /*
-    if (discountingAreaDialog->isVisible())
+    if (demandWindowDialog->isVisible())
     {
-        discountingAreaDialog->UpdateDelays(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
+        demandWindowDialog->UpdatePrices(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
     }
-    else if (discountingED50Dialog->isVisible())
-    {
-        discountingED50Dialog->UpdateDelays(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
-    }
-    */
 }
 
-void SheetWidget::updateValueModalWindow()
+void SheetWidget::updateConsumptionModalWindow()
 {
     if (!isToolWindowShown())
     {
@@ -1149,52 +1088,18 @@ void SheetWidget::updateValueModalWindow()
     mLeft.append(mRight);
     mLeft.append(QString::number(range.bottomRow() + 1));
 
-    /*
-    if (discountingAreaDialog->isVisible())
+    if (demandWindowDialog->isVisible())
     {
-        discountingAreaDialog->UpdateValues(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
+        demandWindowDialog->UpdateConsumption(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
     }
-    else if (discountingED50Dialog->isVisible())
-    {
-        discountingED50Dialog->UpdateValues(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
-    }
-    */
-}
-
-void SheetWidget::updateMaxValueModalWindow()
-{
-    if (!isToolWindowShown())
-    {
-        return;
-    }
-
-    if (table->currentItem() != NULL)
-    {
-        /*
-        if (discountingAreaDialog->isVisible())
-        {
-            discountingAreaDialog->UpdateMaxValue(table->currentItem()->data(Qt::DisplayRole).toString());
-        }
-        else if (discountingED50Dialog->isVisible())
-        {
-            discountingED50Dialog->UpdateMaxValue(table->currentItem()->data(Qt::DisplayRole).toString());
-        }
-        */
-    }   
 }
 
 bool SheetWidget::isToolWindowShown()
 {
-    /*
-    if (discountingAreaDialog->isVisible())
+    if (demandWindowDialog->isVisible())
     {
         return true;
     }
-    else if (discountingED50Dialog->isVisible())
-    {
-        return true;
-    }
-    */
 
     return false;
 }
@@ -1203,55 +1108,56 @@ bool SheetWidget::isToolWindowShown()
  * @brief
  */
 
-void SheetWidget::Calculate(QString scriptName,
-                            int topDelay, int leftDelay, int bottomDelay, int rightDelay,
-                            int topValue, int leftValue, int bottomValue, int rightValue,
-                            double maxValue,
-                            bool cbBIC, bool cbAIC, bool cbRMSE, bool cbBF, bool cbRachlin,
-                            bool modelExponential, bool modelHyperbolic, bool modelQuasiHyperbolic, bool modelMyersonGreen, bool modelRachlin,
-                            bool showCharts, bool logNormalParameters)
+void SheetWidget::Calculate(QString scriptName, QString model,
+                            int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                            int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
+                            bool showCharts)
 {
-
-    tripAIC = cbAIC;
-    tripBIC = cbBIC;
-    tripBF = cbBF;
-    tripRMSE = cbRMSE;
-    tripLogNormal = logNormalParameters;
-
-    /*
-    if (discountingAreaDialog->isVisible())
-    {
-        discountingAreaDialog->ToggleButton(false);
-    }
-    else if (discountingED50Dialog->isVisible())
-    {
-        discountingED50Dialog->ToggleButton(false);
-    }
-    */
 
     displayFigures = showCharts;
 
-    bool isRowData = (rightDelay - leftDelay == 0) ? false : true;
-    int nSeries = (isRowData) ? bottomValue - topValue + 1 : nSeries = rightValue - leftValue + 1;
+    /**
+     * @brief isRowData
+     * Check if is row-based data
+     */
+    bool isRowData = (rightPrice - leftPrice == 0) ? false : true;
 
-    int dWidth = rightDelay - leftDelay + 1;
-    int dLength = bottomDelay - topDelay + 1;
+    /**
+     * @brief nSeries
+     * Count how many series are in data set
+     */
+    int nSeries = (isRowData) ? bottomConsumption - topConsumption + 1 : nSeries = rightConsumption - leftConsumption + 1;
 
-    int vWidth = rightValue - leftValue + 1;
-    int vLength = bottomValue - topValue + 1;
+    int dWidth = rightPrice - leftPrice + 1;
+    int dLength = bottomPrice - topPrice + 1;
+
+    int vWidth = rightConsumption - leftConsumption + 1;
+    int vLength = bottomConsumption - topConsumption + 1;
 
     if (!areDimensionsValid(isRowData, dWidth, vWidth, dLength, vLength))
     {
         return;
     }
 
-    QStringList delayPoints;
+    QStringList pricePoints, consumptionPoints, idValues;
 
-    if(!areDelayPointsValid(delayPoints, isRowData, topDelay, leftDelay, bottomDelay, rightDelay))
+    ConstructFrameElements(pricePoints, consumptionPoints, idValues, isRowData,
+                           topPrice, leftPrice, bottomPrice, rightPrice,
+                           topConsumption, leftConsumption, bottomConsumption, rightConsumption,
+                           nSeries);
+
+    qDebug() << pricePoints;
+    qDebug() << consumptionPoints;
+    qDebug() << idValues;
+
+    /*
+    if (!areDelayPointsValid(pricePoints, consumptionPoints, isRowData, topDelay, leftDelay, bottomDelay, rightDelay))
     {
         return;
     }
+    */
 
+    /*
     resultsDialog = new ResultsDialog(this);
     resultsDialog->setModal(false);
 
@@ -1267,7 +1173,7 @@ void SheetWidget::Calculate(QString scriptName,
         valuePoints.clear();
         delayPointsTemp.clear();
 
-        areValuePointsValid(valuePoints, delayPointsTemp, delayPoints, isRowData, topValue, leftValue, bottomValue, rightValue, i, maxValue);
+        areValuePointsValid(valuePoints, delayPointsTemp, delayPoints, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption, i);
 
         QStringList modelArgs;
         modelArgs << "1";
@@ -1298,6 +1204,7 @@ void SheetWidget::Calculate(QString scriptName,
         mArgList << modelArgs.join(",");
 
         mSeriesCommands << mArgList.join(" ");
+
     }
 
     allResults.clear();
@@ -1324,16 +1231,204 @@ void SheetWidget::Calculate(QString scriptName,
 
     statusBar()->showMessage("Beginning calculations...", 3000);
 
-    /*
-    if (discountingAreaDialog->isVisible())
+    if (demandWindowDialog->isVisible())
     {
-        discountingAreaDialog->setEnabled(false);
-    }
-    else if (discountingED50Dialog->isVisible())
-    {
-        discountingED50Dialog->setEnabled(false);
+        demandWindowDialog->setEnabled(false);
     }
     */
+}
+
+void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData,
+                                         int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                                         int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, int nSeries)
+{
+    QStringList mTempPriceList;
+
+    pricePoints.clear();
+    consumptionPoints.clear();
+    idValues.clear();
+
+    QString holder;
+    bool valueCheck;
+
+    if (isRowData)
+    {
+        int r = topPrice;
+
+        /**
+          Loop through delays, confirm THESE are valid first
+          */
+        for (int c = leftPrice; c <= rightPrice; c++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            mTempPriceList << table->item(r, c)->data(Qt::DisplayRole).toString();
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+        }
+
+        /**
+
+          */
+
+        for (int r2 = topConsumption; r2 <= bottomConsumption; r2++)
+        {
+            for (int c = leftConsumption; c <= rightConsumption; c++)
+            {
+                if (table->item(r2, c) != NULL)
+                {
+                    holder = table->item(r2, c)->data(Qt::DisplayRole).toString();
+                    holder = holder.toDouble(&valueCheck);
+
+                    if (valueCheck)
+                    {
+                        holder = holder;
+
+                        pricePoints << mTempPriceList[c - leftConsumption];
+                        consumptionPoints << table->item(r2, c)->data(Qt::DisplayRole).toString();
+                        idValues << QString::number(r2 - topConsumption + 1);
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        int c = leftPrice;
+
+        /**
+          Loop through delays, confirm THESE are valid first
+          */
+        for (int r = topPrice; r <= bottomPrice; r++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            mTempPriceList << table->item(r, c)->data(Qt::DisplayRole).toString();
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+        }
+
+        /**
+
+          */
+
+        for (int c2 = leftConsumption; c2 <= rightConsumption; c2++)
+        {
+            for (int r = topConsumption; r <= bottomConsumption; r++)
+            {
+                if (table->item(r, c2) != NULL)
+                {
+                    holder = table->item(r, c2)->data(Qt::DisplayRole).toString();
+                    holder = holder.toDouble(&valueCheck);
+
+                    if (valueCheck)
+                    {
+                        holder = holder;
+
+                        pricePoints << mTempPriceList[c2 - leftConsumption];
+                        consumptionPoints << table->item(r, c2)->data(Qt::DisplayRole).toString();
+                        idValues << QString::number(c2 - leftConsumption + 1);
+                    }
+                }
+            }
+        }
+
+
+
+        /*
+ */
+
+        /**
+
+          */
+
+
+        /*
+        for (int r = topPrice; r <= bottomPrice; r++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            mTempPriceList << holder;
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+        }
+        */
+    }
 }
 
 void SheetWidget::WorkUpdate(QStringList status)
@@ -1357,25 +1452,13 @@ void SheetWidget::WorkFinished()
         graphicalOutputDialog->show();
     }
 
-    /*
-    if (discountingAreaDialog->isVisible())
+    if (demandWindowDialog->isVisible())
     {
-        discountingAreaDialog->ToggleButton(true);
-        discountingAreaDialog->setEnabled(true);
-        resultsDialog->ImportDataAndShow(tripBIC, tripAIC, tripRMSE, tripBF, tripLogNormal, "AUC.mostprob");
-
+        return;
     }
-    else if (discountingED50Dialog->isVisible())
-    {
-        discountingED50Dialog->ToggleButton(true);
-        discountingED50Dialog->setEnabled(true);
-        resultsDialog->ImportDataAndShow(tripBIC, tripAIC, tripRMSE, tripBF, tripLogNormal, "lnED50.mostprob");
-
-    }
-    */
 }
 
-bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
+bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, QStringList &consumptionPoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
 {
     delayPoints.clear();
 
@@ -1393,16 +1476,10 @@ bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, bool isRowData, 
                 QMessageBox::critical(this, "Error",
                                       "One of your delay measures doesn't look correct. Please re-check these values or selections.");
 
-                /*
-                if (discountingAreaDialog->isVisible())
+                if (demandWindowDialog->isVisible())
                 {
-                    discountingAreaDialog->ToggleButton(true);
+                    demandWindowDialog->ToggleButton(true);
                 }
-                else if (discountingED50Dialog->isVisible())
-                {
-                    discountingED50Dialog->ToggleButton(true);
-                }
-                */
 
                 return false;
             }
@@ -1417,16 +1494,10 @@ bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, bool isRowData, 
                 QMessageBox::critical(this, "Error",
                                       "One of your delay measures doesn't look correct. Please re-check these values or selections.");
 
-                /*
-                if (discountingAreaDialog->isVisible())
+                if (demandWindowDialog->isVisible())
                 {
-                    discountingAreaDialog->ToggleButton(true);
+                    demandWindowDialog->ToggleButton(true);
                 }
-                else if (discountingED50Dialog->isVisible())
-                {
-                    discountingED50Dialog->ToggleButton(true);
-                }
-                */
 
                 return false;
             }
@@ -1443,16 +1514,10 @@ bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, bool isRowData, 
                 QMessageBox::critical(this, "Error",
                                       "One of your delay measures doesn't look correct. Please re-check these values or selections.");
 
-                /*
-                if (discountingAreaDialog->isVisible())
+                if (demandWindowDialog->isVisible())
                 {
-                    discountingAreaDialog->ToggleButton(true);
+                    demandWindowDialog->ToggleButton(true);
                 }
-                else if (discountingED50Dialog->isVisible())
-                {
-                    discountingED50Dialog->ToggleButton(true);
-                }
-                */
 
                 return false;
             }
@@ -1467,16 +1532,10 @@ bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, bool isRowData, 
                 QMessageBox::critical(this, "Error",
                                       "One of your delay measures doesn't look correct. Please re-check these values or selections.");
 
-                /*
-                if (discountingAreaDialog->isVisible())
+                if (demandWindowDialog->isVisible())
                 {
-                    discountingAreaDialog->ToggleButton(true);
+                    demandWindowDialog->ToggleButton(true);
                 }
-                else if (discountingED50Dialog->isVisible())
-                {
-                    discountingED50Dialog->ToggleButton(true);
-                }
-                */
 
                 return false;
             }
@@ -1495,16 +1554,10 @@ bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int
             QMessageBox::critical(this, "Error",
                                   "You have row-based data, but the data selected appears to have different column counts. Please correct.");
 
-            /*
-            if (discountingAreaDialog->isVisible())
+            if (demandWindowDialog->isVisible())
             {
-                discountingAreaDialog->ToggleButton(true);
+                demandWindowDialog->ToggleButton(true);
             }
-            else if (discountingED50Dialog->isVisible())
-            {
-                discountingED50Dialog->ToggleButton(true);
-            }
-            */
 
             return false;
         }
@@ -1516,16 +1569,10 @@ bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int
             QMessageBox::critical(this, "Error",
                                   "You have column-based data, but the data selected appears to have different row counts. Please correct.");
 
-            /*
-            if (discountingAreaDialog->isVisible())
+            if (demandWindowDialog->isVisible())
             {
-                discountingAreaDialog->ToggleButton(true);
+                demandWindowDialog->ToggleButton(true);
             }
-            else if (discountingED50Dialog->isVisible())
-            {
-                discountingED50Dialog->ToggleButton(true);
-            }
-            */
 
             return false;
         }
@@ -1534,7 +1581,7 @@ bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int
     return true;
 }
 
-void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i, double maxValue)
+void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
 {
     valuePoints.clear();
     tempDelayPoints.clear();
@@ -1558,7 +1605,7 @@ void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tem
 
                 if (valueCheck)
                 {
-                    valHolder = valHolder / maxValue;
+                    valHolder = valHolder;
 
                     valuePoints << QString::number(valHolder);
                     tempDelayPoints << delayPoints.at(index);
@@ -1581,7 +1628,7 @@ void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tem
 
                 if (valueCheck)
                 {
-                    valHolder = valHolder / maxValue;
+                    valHolder = valHolder;
 
                     valuePoints << QString::number(valHolder);
                     tempDelayPoints << delayPoints.at(index);

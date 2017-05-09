@@ -78,8 +78,7 @@
 #include <QtGui>
 
 #include "sheetselectdialog.h"
-//#include "discountingmodelselectioned50dialog.h"
-//#include "discountingmodelselectionareadialog.h"
+#include "demandsettingsdialog.h"
 
 #include "resultsdialog.h"
 #include "statusdialog.h"
@@ -99,6 +98,7 @@ class SheetWidget : public QMainWindow
 public:
     SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandString, QWidget *parent = 0);
 
+    void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, int nSeries);
     void convertExcelColumn(QString &mString, int column);
     QString convert_bool(bool value);
 
@@ -121,9 +121,8 @@ public slots:
 
     bool eventFilter(QObject *object, QEvent *event);
 
-    void updateDelayModalWindow();
-    void updateValueModalWindow();
-    void updateMaxValueModalWindow();
+    void updatePriceModalWindow();
+    void updateConsumptionModalWindow();
 
     void saveSettings();
 
@@ -131,8 +130,7 @@ public slots:
     void showOpenFileDialog();
     void showSaveFileDialog();
 
-    void showDiscountingAreaWindow();
-    void showDiscountingED50Window();
+    void showDemandWindow();
 
     void showCreditsWindow();
     void showFAQWindow();
@@ -150,15 +148,12 @@ public slots:
 
     bool isToolWindowShown();
 
-    bool areDelayPointsValid(QStringList &delayPoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay);
+    bool areDelayPointsValid(QStringList &delayPoints, QStringList &consumptionPoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay);
     bool areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength);
-    void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i, double maxValue);
+    void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i);
 
-    void Calculate(QString scriptName, int topDelay, int leftDelay, int bottomDelay, int rightDelay,
-                   int topValue, int leftValue, int bottomValue, int rightValue,
-                   double maxValue, bool cbBIC, bool cbAIC, bool cbRMSE, bool cbBF, bool cbRachlin,
-                   bool modelExponential, bool modelHyperbolic, bool modelQuasiHyperbolic,
-                   bool modelMyersonGreen, bool modelRachlin, bool showCharts, bool logNormalParameters);
+    void Calculate(QString scriptName, QString model,int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                   int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, bool showCharts);
 
     void WorkUpdate(QStringList status);
     void WorkFinished();
@@ -179,8 +174,7 @@ private:
     QAction *pasteInvertedAction;
     QAction *clearAction;
 
-//    QAction *openDiscountingAreaWindow;
-//    QAction *openDiscountingED50Window;
+    QAction *openDemandWindow;
 
     QAction *openLicenseDMS;
     QAction *openLicenseR;
@@ -195,16 +189,14 @@ private:
     QAction *openAbout;
     QAction *openFAQ;
 
-    QAction *delayAction;
-    QAction *valueAction;
-    QAction *maxValueAction;
+    QAction *priceAction;
+    QAction *consumptionAction;
 
     QTableWidget *table;
 
     SheetSelectDialog *sheetSelectDialog;
 
-    //DiscountingModelSelectionAreaDialog *discountingAreaDialog;
-    //DiscountingModelSelectionED50Dialog *discountingED50Dialog;
+    DemandSettingsDialog *demandWindowDialog;
 
     StatusDialog *statusDialog;
     LicenseDialog *licenseDialog;
@@ -233,12 +225,6 @@ private:
     int finalVar;
 
     QStringList mSeriesCommands;
-
-    bool tripAIC;
-    bool tripBIC;
-    bool tripBF;
-    bool tripRMSE;
-    bool tripLogNormal;
 
     bool displayFigures;
 

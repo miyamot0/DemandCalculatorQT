@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     rworker.cpp \
     sheetselectdialog.cpp \
     sheetwidget.cpp \
-    statusdialog.cpp
+    statusdialog.cpp \
+    demandsettingsdialog.cpp
 
 HEADERS  += mainwindow.h \
     aboutdialog.h \
@@ -44,7 +45,8 @@ HEADERS  += mainwindow.h \
     rworker.h \
     sheetselectdialog.h \
     sheetwidget.h \
-    statusdialog.h
+    statusdialog.h \
+    demandsettingsdialog.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
@@ -53,10 +55,51 @@ FORMS    += mainwindow.ui \
     licensedialog.ui \
     resultsdialog.ui \
     sheetselectdialog.ui \
-    statusdialog.ui
+    statusdialog.ui \
+    demandsettingsdialog.ui
 
 RESOURCES += \
     spreadsheet.qrc
+
+win32 {
+    DMS_FILES.files = scripts/DiscountingAreaComputation.R \
+                    scripts/DiscountingED50Computation.R scripts/installDependencyBase64.R \
+                    scripts/installDependencyJsonlite.R scripts/installDependencyReshape.R \
+                    License_base64enc.txt \
+                    License_BDS.txt \
+                    License_gnome_icons.txt \
+                    License_jsonlite.txt \
+                    License_NLS.txt \
+                    License_Qt.txt \
+                    License_R.txt \
+                    License_reshape.txt \
+                    COPYING
+
+    release: DESTDIR = $$OUT_PWD/build/release
+    debug:   DESTDIR = $$OUT_PWD/build/debug
+
+    DMS_FILES.path = $$DESTDIR
+
+    INSTALLS += DMS_FILES
+}
+macx {
+    DMS_FILES.files = scripts/DiscountingAreaComputation.R \
+                    scripts/DiscountingED50Computation.R scripts/installDependencyBase64.R \
+                    scripts/installDependencyJsonlite.R scripts/installDependencyReshape.R \
+                    License_base64enc.txt \
+                    License_BDS.txt \
+                    License_gnome_icons.txt \
+                    License_jsonlite.txt \
+                    License_NLS.txt \
+                    License_Qt.txt \
+                    License_R.txt \
+                    License_reshape.txt \
+                    COPYING
+
+    DMS_FILES.path = Contents/Resources
+
+    QMAKE_BUNDLE_DATA += DMS_FILES
+}
 
 DISTFILES += \
     License_base64enc.txt \

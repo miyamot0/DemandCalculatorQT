@@ -24,7 +24,6 @@
 #include <QProcess>
 #include <QDesktopWidget>
 #include <QDir>
-#include <QDebug>
 #include "statusdialog.h"
 #include "ui_statusdialog.h"
 
