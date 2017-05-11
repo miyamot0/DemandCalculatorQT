@@ -63,8 +63,14 @@ RESOURCES += \
 
 win32 {
     DMS_FILES.files = scripts/DiscountingAreaComputation.R \
-                    scripts/DiscountingED50Computation.R scripts/installDependencyBase64.R \
-                    scripts/installDependencyJsonlite.R scripts/installDependencyReshape.R \
+                    scripts/DiscountingED50Computation.R \
+                    scripts/calculateDemand.R \
+                    scripts/installDependencyBase64.R \
+                    scripts/installDependencyJsonlite.R \
+                    scripts/installDependencyReshape.R \
+                    scripts/installDependencyBeezdemand.R \
+                    scripts/installDependencyDevtools.R \
+                    scripts/installDependencyDigest.R \
                     License_base64enc.txt \
                     License_BDS.txt \
                     License_gnome_icons.txt \
@@ -84,8 +90,14 @@ win32 {
 }
 macx {
     DMS_FILES.files = scripts/DiscountingAreaComputation.R \
-                    scripts/DiscountingED50Computation.R scripts/installDependencyBase64.R \
-                    scripts/installDependencyJsonlite.R scripts/installDependencyReshape.R \
+                    scripts/DiscountingED50Computation.R \
+                    scripts/calculateDemand.R \
+                    scripts/installDependencyBase64.R \
+                    scripts/installDependencyJsonlite.R \
+                    scripts/installDependencyReshape.R \
+                    scripts/installDependencyBeezdemand.R \
+                    scripts/installDependencyDevtools.R \
+                    scripts/installDependencyDigest.R \
                     License_base64enc.txt \
                     License_BDS.txt \
                     License_gnome_icons.txt \
@@ -116,4 +128,8 @@ DISTFILES += \
     scripts/DiscountingED50Computation.R \
     scripts/installDependencyBase64.R \
     scripts/installDependencyJsonlite.R \
-    scripts/installDependencyReshape.R
+    scripts/installDependencyReshape.R \
+    scripts/installDependencyBeezdemand.R \
+    scripts/installDependencyDevtools.R \
+    scripts/installDependencyDigest.R \
+    scripts/checkSystematic.R

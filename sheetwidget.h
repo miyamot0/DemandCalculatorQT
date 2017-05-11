@@ -152,8 +152,8 @@ public slots:
     bool areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength);
     void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i);
 
-    void Calculate(QString scriptName, QString model,int topPrice, int leftPrice, int bottomPrice, int rightPrice,
-                   int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, bool showCharts);
+    void Calculate(QString scriptName, QString model, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                   int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, bool checkValues, bool notify, bool showCharts);
 
     void WorkUpdate(QStringList status);
     void WorkFinished();

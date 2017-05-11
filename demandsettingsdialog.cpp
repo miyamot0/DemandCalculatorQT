@@ -75,9 +75,11 @@ void DemandSettingsDialog::on_pushButton_clicked()
         mModel = "koff";
     }
 
+    // add "check" and "notify" based on entries
+
     SheetWidget *temp = qobject_cast <SheetWidget *>(parent());
-    temp->Calculate("DiscountingED50Computation.R", mModel,
+    temp->Calculate("calculateDemand.R", mModel,
                     topPrice, leftPrice, bottomPrice, rightPrice,
                     topConsumption, leftConsumption, bottomConsumption, rightConsumption,
-                    ui->figuresEnable->isChecked());
+                    true, true, ui->figuresEnable->isChecked());
 }

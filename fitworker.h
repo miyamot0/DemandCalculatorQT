@@ -64,7 +64,7 @@ public:
      * @param mCommandArgs - Arguments to pass to Rscript
      * @param boundRachlin - Rachlin, special case conditions
      */
-    explicit FitWorker(QString mCommand, QStringList mCommandArgs, bool boundRachlin, bool isLogNormal);
+    explicit FitWorker(QString mCommand, QStringList mCommandArgs);
 
 private:
     bool boundRachlinS;

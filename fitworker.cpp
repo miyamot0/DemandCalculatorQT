@@ -50,12 +50,10 @@
 
 #include "fitworker.h"
 
-FitWorker::FitWorker(QString mCommand, QStringList mCommandArgs, bool boundRachlin, bool isLogNormal)
+FitWorker::FitWorker(QString mCommand, QStringList mCommandArgs)
 {
     command = mCommand;
     commandParameterList = mCommandArgs;
-    boundRachlinS = boundRachlin;
-    transformNormal = isLogNormal;
 }
 
 void FitWorker::startWork()
@@ -96,6 +94,16 @@ void FitWorker::working()
         output = process.readAllStandardOutput();
         error = process.readAllStandardError();
 
+        qDebug() << "OUTPUT: " << output;
+        qDebug() << "ERROR: " << error;
+
+        QStringList resultsList;
+
+        resultsList << "1";
+
+
+        /*
+
         QString mOutput(output);
         jsonDoc = QJsonDocument::fromJson(mOutput.toUtf8(), &err);
         jsonArr = jsonDoc.array();
@@ -135,7 +143,6 @@ void FitWorker::working()
             jsonObj = jsonVal.toObject();
         }
 
-        QStringList resultsList;
 
         resultsList << QString::number(i+1);
         resultsList << formatStringResult(jsonObj["Mazur.lnk"].toDouble(), transformNormal);
@@ -211,6 +218,7 @@ void FitWorker::working()
         }
 
         resultsList << jsonObj["chart"].toString();
+        */
 
         emit workingResult(resultsList);
     }

@@ -1111,7 +1111,7 @@ bool SheetWidget::isToolWindowShown()
 void SheetWidget::Calculate(QString scriptName, QString model,
                             int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                             int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
-                            bool showCharts)
+                            bool checkValues, bool notify, bool showCharts)
 {
 
     displayFigures = showCharts;
@@ -1146,9 +1146,53 @@ void SheetWidget::Calculate(QString scriptName, QString model,
                            topConsumption, leftConsumption, bottomConsumption, rightConsumption,
                            nSeries);
 
-    qDebug() << pricePoints;
-    qDebug() << consumptionPoints;
-    qDebug() << idValues;
+    //qDebug() << pricePoints;
+    //qDebug() << consumptionPoints;
+    //qDebug() << idValues;
+
+    QStringList mArgList;
+
+    #ifdef _WIN32
+
+    mArgList << scriptName;
+
+    #elif TARGET_OS_MAC
+
+    runDirectory.cdUp();
+    runDirectory.cd("Resources");
+    QString scriptDir = "\"" + runDirectory.path() + "/";
+
+    mArgList << scriptDir + scriptName + "\"";
+
+    #endif
+
+    mArgList << model;
+    mArgList << idValues.join(",");
+    mArgList << pricePoints.join(",");
+    mArgList << consumptionPoints.join(",");
+
+    mSeriesCommands << mArgList.join(" ");
+
+    qDebug() << mSeriesCommands;
+
+    allResults.clear();
+
+    thread = new QThread();
+    worker = new FitWorker(commandParameter, mSeriesCommands);
+
+    worker->moveToThread(thread);
+
+    connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+    connect(thread, SIGNAL(started()), worker, SLOT(working()));
+    connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
+    connect(worker, SIGNAL(workFinished()), thread, SLOT(quit()), Qt::DirectConnection);
+    connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
+
+    orderVar = 0;
+    finalVar = nSeries;
+
+    thread->wait();
+    worker->startWork();
 
     /*
     if (!areDelayPointsValid(pricePoints, consumptionPoints, isRowData, topDelay, leftDelay, bottomDelay, rightDelay))
@@ -1433,6 +1477,9 @@ void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &
 
 void SheetWidget::WorkUpdate(QStringList status)
 {
+    qDebug() << "UPDATE: " << status;
+
+    /*
     statusBar()->showMessage("Calculating set " + QString::number(orderVar + 1) + " of " + QString::number(finalVar), 3000);
 
     orderVar++;
@@ -1443,10 +1490,14 @@ void SheetWidget::WorkUpdate(QStringList status)
     {
         graphicalOutputDialog->appendBase64(status.at(status.count() - 1));
     }
+    */
 }
 
 void SheetWidget::WorkFinished()
 {
+    qDebug() << "FINISHED: ";
+
+    /*
     if (displayFigures)
     {
         graphicalOutputDialog->show();
@@ -1456,6 +1507,7 @@ void SheetWidget::WorkFinished()
     {
         return;
     }
+    */
 }
 
 bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, QStringList &consumptionPoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
