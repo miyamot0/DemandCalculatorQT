@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     sheetselectdialog.cpp \
     sheetwidget.cpp \
     statusdialog.cpp \
-    demandsettingsdialog.cpp
+    demandsettingsdialog.cpp \
+    steincheckdialog.cpp
 
 HEADERS  += mainwindow.h \
     aboutdialog.h \
@@ -46,7 +47,8 @@ HEADERS  += mainwindow.h \
     sheetselectdialog.h \
     sheetwidget.h \
     statusdialog.h \
-    demandsettingsdialog.h
+    demandsettingsdialog.h \
+    steincheckdialog.h
 
 FORMS    += mainwindow.ui \
     aboutdialog.ui \
@@ -56,7 +58,8 @@ FORMS    += mainwindow.ui \
     resultsdialog.ui \
     sheetselectdialog.ui \
     statusdialog.ui \
-    demandsettingsdialog.ui
+    demandsettingsdialog.ui \
+    steincheckdialog.ui
 
 RESOURCES += \
     spreadsheet.qrc

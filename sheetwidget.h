@@ -80,6 +80,7 @@
 #include "sheetselectdialog.h"
 #include "demandsettingsdialog.h"
 
+#include "steincheckdialog.h"
 #include "resultsdialog.h"
 #include "statusdialog.h"
 
@@ -156,7 +157,7 @@ public slots:
                    int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, bool checkValues, bool notify, bool showCharts);
 
     void WorkUpdate(QStringList status);
-    void WorkFinished();
+    void WorkFinished(QStringList status);
 
     void closeEvent(QCloseEvent* event);
     void setCurrentFile(const QString &fileName);
@@ -195,8 +196,8 @@ private:
     QTableWidget *table;
 
     SheetSelectDialog *sheetSelectDialog;
-
     DemandSettingsDialog *demandWindowDialog;
+    SteinCheckDialog *steinCheckDialog;
 
     StatusDialog *statusDialog;
     LicenseDialog *licenseDialog;

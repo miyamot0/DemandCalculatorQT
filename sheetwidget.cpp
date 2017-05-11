@@ -1146,10 +1146,6 @@ void SheetWidget::Calculate(QString scriptName, QString model,
                            topConsumption, leftConsumption, bottomConsumption, rightConsumption,
                            nSeries);
 
-    //qDebug() << pricePoints;
-    //qDebug() << consumptionPoints;
-    //qDebug() << idValues;
-
     QStringList mArgList;
 
     #ifdef _WIN32
@@ -1184,9 +1180,8 @@ void SheetWidget::Calculate(QString scriptName, QString model,
 
     connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
     connect(thread, SIGNAL(started()), worker, SLOT(working()));
-    connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
-    connect(worker, SIGNAL(workFinished()), thread, SLOT(quit()), Qt::DirectConnection);
-    connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
+    connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+    connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
 
     orderVar = 0;
     finalVar = nSeries;
@@ -1493,9 +1488,21 @@ void SheetWidget::WorkUpdate(QStringList status)
     */
 }
 
-void SheetWidget::WorkFinished()
+void FinishedUp(QStringList mFinal)
+{
+
+}
+
+void SheetWidget::WorkFinished(QStringList status)
 {
     qDebug() << "FINISHED: ";
+
+    steinCheckDialog = new SteinCheckDialog(this, status.at(1));
+    steinCheckDialog->setModal(true);
+    steinCheckDialog->exec();
+
+    qDebug() << "PASSED";
+
 
     /*
     if (displayFigures)

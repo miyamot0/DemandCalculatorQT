@@ -91,7 +91,7 @@ signals:
     /** Signal work completed
      * @brief workFinished
      */
-    void workFinished();
+    void workFinished(const QStringList &value);
 
 public slots:
     /** Slot, begin job

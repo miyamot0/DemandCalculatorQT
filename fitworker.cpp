@@ -78,15 +78,15 @@ void FitWorker::working()
     QJsonObject jsonObj;
     QString cmdParameterString;
 
-    for (int i=0; i<commandParameterList.count(); i++)
-    {
+    //for (int i=0; i<commandParameterList.count(); i++)
+    //{
         rachlinNotation = false;
 
         mArgList.clear();
         mArgList << command;
-        mArgList << commandParameterList.at(i);
+        mArgList << commandParameterList.at(0);
 
-        cmdParameterString = QString(commandParameterList.at(i));
+        cmdParameterString = QString(commandParameterList.at(0));
 
         process.start(mArgList.join(" "));
         process.waitForFinished(-1);
@@ -99,7 +99,8 @@ void FitWorker::working()
 
         QStringList resultsList;
 
-        resultsList << "1";
+        resultsList << command;
+        resultsList << output;
 
 
         /*
@@ -220,10 +221,10 @@ void FitWorker::working()
         resultsList << jsonObj["chart"].toString();
         */
 
-        emit workingResult(resultsList);
-    }
+        //emit workingResult(resultsList);
+    //}
 
-    emit workFinished();
+    emit workFinished(resultsList);
 }
 
 QString FitWorker::formatStringResult(double value, bool returnLogNormal)
