@@ -1115,6 +1115,9 @@ void SheetWidget::Calculate(QString scriptName, QString model,
 {
 
     displayFigures = showCharts;
+    mModel = model;
+    isChecking = checkValues;
+    isConditional = notify;
 
     /**
      * @brief isRowData
@@ -1138,8 +1141,6 @@ void SheetWidget::Calculate(QString scriptName, QString model,
     {
         return;
     }
-
-    QStringList pricePoints, consumptionPoints, idValues;
 
     ConstructFrameElements(pricePoints, consumptionPoints, idValues, isRowData,
                            topPrice, leftPrice, bottomPrice, rightPrice,
@@ -1167,9 +1168,8 @@ void SheetWidget::Calculate(QString scriptName, QString model,
     mArgList << pricePoints.join(",");
     mArgList << consumptionPoints.join(",");
 
+    mSeriesCommands.clear();
     mSeriesCommands << mArgList.join(" ");
-
-    qDebug() << mSeriesCommands;
 
     allResults.clear();
 
@@ -1188,93 +1188,6 @@ void SheetWidget::Calculate(QString scriptName, QString model,
 
     thread->wait();
     worker->startWork();
-
-    /*
-    if (!areDelayPointsValid(pricePoints, consumptionPoints, isRowData, topDelay, leftDelay, bottomDelay, rightDelay))
-    {
-        return;
-    }
-    */
-
-    /*
-    resultsDialog = new ResultsDialog(this);
-    resultsDialog->setModal(false);
-
-    QStringList valuePoints;
-    QStringList delayPointsTemp;
-
-    mSeriesCommands.clear();
-
-    QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
-
-    for (int i = 0; i < nSeries; i++)
-    {
-        valuePoints.clear();
-        delayPointsTemp.clear();
-
-        areValuePointsValid(valuePoints, delayPointsTemp, delayPoints, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption, i);
-
-        QStringList modelArgs;
-        modelArgs << "1";
-        modelArgs << convert_bool(modelHyperbolic);
-        modelArgs << convert_bool(modelExponential);
-        modelArgs << convert_bool(modelRachlin);
-        modelArgs << convert_bool(modelMyersonGreen);
-        modelArgs << convert_bool(modelQuasiHyperbolic);
-
-        QStringList mArgList;
-
-        #ifdef _WIN32
-
-        mArgList << scriptName;
-
-        #elif TARGET_OS_MAC
-
-        runDirectory.cdUp();
-        runDirectory.cd("Resources");
-        QString scriptDir = "\"" + runDirectory.path() + "/";
-
-        mArgList << scriptDir + scriptName + "\"";
-
-        #endif
-
-        mArgList << delayPointsTemp.join(",");
-        mArgList << valuePoints.join(",");
-        mArgList << modelArgs.join(",");
-
-        mSeriesCommands << mArgList.join(" ");
-
-    }
-
-    allResults.clear();
-
-    thread = new QThread();
-    worker = new FitWorker(commandParameter, mSeriesCommands, cbRachlin, logNormalParameters);
-
-    worker->moveToThread(thread);
-
-    connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-    connect(thread, SIGNAL(started()), worker, SLOT(working()));
-    connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
-    connect(worker, SIGNAL(workFinished()), thread, SLOT(quit()), Qt::DirectConnection);
-    connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
-
-    orderVar = 0;
-    finalVar = nSeries;
-
-    thread->wait();
-    worker->startWork();
-
-    graphicalOutputDialog = new GraphicalOutputDialog(this);
-    graphicalOutputDialog->mDisplayData.clear();
-
-    statusBar()->showMessage("Beginning calculations...", 3000);
-
-    if (demandWindowDialog->isVisible())
-    {
-        demandWindowDialog->setEnabled(false);
-    }
-    */
 }
 
 void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData,
@@ -1495,13 +1408,198 @@ void FinishedUp(QStringList mFinal)
 
 void SheetWidget::WorkFinished(QStringList status)
 {
-    qDebug() << "FINISHED: ";
+    QStringList mSplitCommand = status.first().split(" ");
 
-    steinCheckDialog = new SteinCheckDialog(this, status.at(1));
-    steinCheckDialog->setModal(true);
-    steinCheckDialog->exec();
+    if (mSplitCommand.first() == "checkSystematic.R")
+    {
+        if (isChecking)
+        {
+            steinCheckDialog = new SteinCheckDialog(this, status.at(1));
+            steinCheckDialog->setModal(true);
+            steinCheckDialog->exec();
 
-    qDebug() << "PASSED";
+            if (steinCheckDialog->canProceed)
+            {
+                QStringList mArgList;
+
+                #ifdef _WIN32
+
+                mArgList << "fitDemand.R";
+
+                #elif TARGET_OS_MAC
+
+                runDirectory.cdUp();
+                runDirectory.cd("Resources");
+                QString scriptDir = "\"" + runDirectory.path() + "/";
+
+                mArgList << scriptDir + scriptName + "\"";
+
+                #endif
+
+                mArgList << mModel;
+                mArgList << idValues.join(",");
+                mArgList << pricePoints.join(",");
+                mArgList << consumptionPoints.join(",");
+
+                mSeriesCommands.clear();
+                mSeriesCommands << mArgList.join(" ");
+
+                allResults.clear();
+
+                thread = new QThread();
+                worker = new FitWorker(commandParameter, mSeriesCommands);
+
+                worker->moveToThread(thread);
+
+                connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+                connect(thread, SIGNAL(started()), worker, SLOT(working()));
+                connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+                connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+
+                thread->wait();
+                worker->startWork();
+            }
+        }
+        else if (isConditional)
+        {
+            steinCheckDialog = new SteinCheckDialog(this, status.at(1));
+
+            if (steinCheckDialog->flagRaised)
+            {
+                steinCheckDialog->setModal(true);
+                steinCheckDialog->exec();
+
+                if (steinCheckDialog->canProceed)
+                {
+                    QStringList mArgList;
+
+                    #ifdef _WIN32
+
+                    mArgList << "fitDemand.R";
+
+                    #elif TARGET_OS_MAC
+
+                    runDirectory.cdUp();
+                    runDirectory.cd("Resources");
+                    QString scriptDir = "\"" + runDirectory.path() + "/";
+
+                    mArgList << scriptDir + scriptName + "\"";
+
+                    #endif
+
+                    mArgList << mModel;
+                    mArgList << idValues.join(",");
+                    mArgList << pricePoints.join(",");
+                    mArgList << consumptionPoints.join(",");
+
+                    mSeriesCommands.clear();
+                    mSeriesCommands << mArgList.join(" ");
+
+                    allResults.clear();
+
+                    thread = new QThread();
+                    worker = new FitWorker(commandParameter, mSeriesCommands);
+
+                    worker->moveToThread(thread);
+
+                    connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+                    connect(thread, SIGNAL(started()), worker, SLOT(working()));
+                    connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+                    connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+
+                    thread->wait();
+                    worker->startWork();
+                }
+            }
+            else
+            {
+                QStringList mArgList;
+
+                #ifdef _WIN32
+
+                mArgList << "fitDemand.R";
+
+                #elif TARGET_OS_MAC
+
+                runDirectory.cdUp();
+                runDirectory.cd("Resources");
+                QString scriptDir = "\"" + runDirectory.path() + "/";
+
+                mArgList << scriptDir + scriptName + "\"";
+
+                #endif
+
+                mArgList << mModel;
+                mArgList << idValues.join(",");
+                mArgList << pricePoints.join(",");
+                mArgList << consumptionPoints.join(",");
+
+                mSeriesCommands.clear();
+                mSeriesCommands << mArgList.join(" ");
+
+                allResults.clear();
+
+                thread = new QThread();
+                worker = new FitWorker(commandParameter, mSeriesCommands);
+
+                worker->moveToThread(thread);
+
+                connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+                connect(thread, SIGNAL(started()), worker, SLOT(working()));
+                connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+                connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+
+                thread->wait();
+                worker->startWork();
+            }
+        }
+        else
+        {
+            QStringList mArgList;
+
+            #ifdef _WIN32
+
+            mArgList << "fitDemand.R";
+
+            #elif TARGET_OS_MAC
+
+            runDirectory.cdUp();
+            runDirectory.cd("Resources");
+            QString scriptDir = "\"" + runDirectory.path() + "/";
+
+            mArgList << scriptDir + scriptName + "\"";
+
+            #endif
+
+            mArgList << mModel;
+            mArgList << idValues.join(",");
+            mArgList << pricePoints.join(",");
+            mArgList << consumptionPoints.join(",");
+
+            mSeriesCommands.clear();
+            mSeriesCommands << mArgList.join(" ");
+
+            allResults.clear();
+
+            thread = new QThread();
+            worker = new FitWorker(commandParameter, mSeriesCommands);
+
+            worker->moveToThread(thread);
+
+            connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+            connect(thread, SIGNAL(started()), worker, SLOT(working()));
+            connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+            connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+
+            thread->wait();
+            worker->startWork();
+        }
+    }
+    else if (mSplitCommand.first() == "fitDemand.R")
+    {
+        qDebug() << status.at(1);
+    }
+
 
 
     /*

@@ -10,6 +10,9 @@ SteinCheckDialog::SteinCheckDialog(QWidget *parent, QString jsonString) :
     ui->setupUi(this);
 
     canProceed = false;
+    flagRaised = false;
+
+    ui->tableWidget->clearContents();
 
     ui->tableWidget->insertColumn(ui->tableWidget->columnCount());
     ui->tableWidget->setHorizontalHeaderItem(ui->tableWidget->columnCount() - 1, new QTableWidgetItem("Participant"));
@@ -58,6 +61,10 @@ SteinCheckDialog::SteinCheckDialog(QWidget *parent, QString jsonString) :
 
         item = new QTableWidgetItem(jsonObj["BouncePass"].toString());
         item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+        if (!item->text().contains("Pass", Qt::CaseInsensitive))
+        {
+            flagRaised = true;
+        }
         ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 2, item);
 
         item = new QTableWidgetItem(QString::number(jsonObj["DeltaQ"].toInt()));
@@ -66,6 +73,10 @@ SteinCheckDialog::SteinCheckDialog(QWidget *parent, QString jsonString) :
 
         item = new QTableWidgetItem(jsonObj["DeltaQPass"].toString());
         item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+        if (!item->text().contains("Pass", Qt::CaseInsensitive))
+        {
+            flagRaised = true;
+        }
         ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 4, item);
 
         item = new QTableWidgetItem(QString::number(jsonObj["Reversals"].toInt()));
@@ -74,6 +85,10 @@ SteinCheckDialog::SteinCheckDialog(QWidget *parent, QString jsonString) :
 
         item = new QTableWidgetItem(jsonObj["ReversalsPass"].toString());
         item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+        if (!item->text().contains("Pass", Qt::CaseInsensitive))
+        {
+            flagRaised = true;
+        }
         ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, 6, item);
 
         item = new QTableWidgetItem(QString::number(jsonObj["NumPosValues"].toInt()));

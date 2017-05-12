@@ -195,6 +195,10 @@ private:
 
     QTableWidget *table;
 
+    QStringList pricePoints;
+    QStringList consumptionPoints;
+    QStringList idValues;
+
     SheetSelectDialog *sheetSelectDialog;
     DemandSettingsDialog *demandWindowDialog;
     SteinCheckDialog *steinCheckDialog;
@@ -208,10 +212,14 @@ private:
     ResultsDialog *resultsDialog;
     GraphicalOutputDialog *graphicalOutputDialog;
 
+    QString mModel;
     QString commandParameter;
     QStringList mInstallCommands;
     bool isCoreRPresent;
     bool isCoreSVGSupportPresent;
+
+    bool isChecking;
+    bool isConditional;
 
     /**
      * @brief Thread object which will let us manipulate the running thread

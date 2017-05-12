@@ -67,7 +67,8 @@ RESOURCES += \
 win32 {
     DMS_FILES.files = scripts/DiscountingAreaComputation.R \
                     scripts/DiscountingED50Computation.R \
-                    scripts/calculateDemand.R \
+                    scripts/checkSystematic.R \
+                    scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
                     scripts/installDependencyJsonlite.R \
                     scripts/installDependencyReshape.R \
@@ -94,7 +95,8 @@ win32 {
 macx {
     DMS_FILES.files = scripts/DiscountingAreaComputation.R \
                     scripts/DiscountingED50Computation.R \
-                    scripts/calculateDemand.R \
+                    scripts/checkSystematic.R \
+                    scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
                     scripts/installDependencyJsonlite.R \
                     scripts/installDependencyReshape.R \
@@ -135,4 +137,5 @@ DISTFILES += \
     scripts/installDependencyBeezdemand.R \
     scripts/installDependencyDevtools.R \
     scripts/installDependencyDigest.R \
-    scripts/checkSystematic.R
+    scripts/checkSystematic.R \
+    scripts/fitDemand.R

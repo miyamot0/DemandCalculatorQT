@@ -67,14 +67,8 @@ public:
     explicit FitWorker(QString mCommand, QStringList mCommandArgs);
 
 private:
-    bool boundRachlinS;
-    bool transformNormal;
-
     QString command;
-
     QStringList commandParameterList;
-
-    QString formatStringResult(double value, bool returnLogNormal);
 
 signals:
     /** Begin work signal

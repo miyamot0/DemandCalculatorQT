@@ -17,6 +17,7 @@ public:
     explicit SteinCheckDialog(QWidget *parent = 0, QString jsonString = "");
     ~SteinCheckDialog();
     bool canProceed;
+    bool flagRaised;
 
 private slots:
     void on_proceedButton_clicked();
