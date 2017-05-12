@@ -69,6 +69,9 @@ StatusDialog::StatusDialog(bool rInstalled, bool isSVGsupported, QString command
 
     #ifdef _WIN32
 
+    mPackageInstall << "installDependencyDevtools.R";
+    mPackageInstall << "installDependencyDigest.R";
+    mPackageInstall << "installDependencyBeezdemand.R";
     mPackageInstall << "installDependencyReshape.R";
     mPackageInstall << "installDependencyBase64.R";
     mPackageInstall << "installDependencyJsonlite.R";
@@ -83,6 +86,9 @@ StatusDialog::StatusDialog(bool rInstalled, bool isSVGsupported, QString command
 
     QString scriptDir = "\"" + runDirectory.path() + "/";
 
+    mPackageInstall << scriptDir + "installDependencyDevtools.R\"";
+    mPackageInstall << scriptDir + "installDependencyDigest.R\"";
+    mPackageInstall << scriptDir + "installDependencyBeezdemand.R\"";
     mPackageInstall << scriptDir + "installDependencyReshape.R\"";
     mPackageInstall << scriptDir + "installDependencyBase64.R\"";
     mPackageInstall << scriptDir + "installDependencyJsonlite.R\"";
@@ -112,6 +118,42 @@ void StatusDialog::WorkUpdate(QString status)
     {
         if (!isTrue)
         {
+            ui->statusDevtools->setText("devtools could not be installed!");
+        }
+        else
+        {
+            ui->statusDevtools->setText("devtools installed and ready!");
+            ui->statusDevtools->setStyleSheet("QLabel { color : green; }");
+        }
+    }
+    else if (orderVar == 1)
+    {
+        if (!isTrue)
+        {
+            ui->statusDigest->setText("digest could not be installed!");
+        }
+        else
+        {
+            ui->statusDigest->setText("digest installed and ready!");
+            ui->statusDigest->setStyleSheet("QLabel { color : green; }");
+        }
+    }
+    else if (orderVar == 2)
+    {
+        if (!isTrue)
+        {
+            ui->statusBeezdemand->setText("beezdemand could not be installed!");
+        }
+        else
+        {
+            ui->statusBeezdemand->setText("beezdemand installed and ready!");
+            ui->statusBeezdemand->setStyleSheet("QLabel { color : green; }");
+        }
+    }
+    else if (orderVar == 3)
+    {
+        if (!isTrue)
+        {
             ui->statusReshape->setText("reshape could not be installed!");
         }
         else
@@ -120,7 +162,7 @@ void StatusDialog::WorkUpdate(QString status)
             ui->statusReshape->setStyleSheet("QLabel { color : green; }");
         }
     }
-    else if (orderVar == 1)
+    else if (orderVar == 4)
     {
         if (!isTrue)
         {
@@ -132,7 +174,7 @@ void StatusDialog::WorkUpdate(QString status)
             ui->statusBase64->setStyleSheet("QLabel { color : green; }");
         }
     }
-    else if (orderVar == 2)
+    else if (orderVar == 5)
     {
         if (!isTrue)
         {
@@ -150,7 +192,10 @@ void StatusDialog::WorkUpdate(QString status)
 
 void StatusDialog::DiagnosticsComplete()
 {
-    if (ui->statusR->text().contains("not") ||
+    if (ui->statusDevtools->text().contains("not") ||
+        ui->statusDigest->text().contains("not") ||
+        ui->statusBeezdemand->text().contains("not") ||
+        ui->statusR->text().contains("not") ||
         ui->statusReshape->text().contains("not") ||
         ui->statusBase64->text().contains("not") ||
         ui->statusJson->text().contains("not"))
