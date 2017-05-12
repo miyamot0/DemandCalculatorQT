@@ -75,11 +75,9 @@ void DemandSettingsDialog::on_pushButton_clicked()
         mModel = "koff";
     }
 
-    // add "check" and "notify" based on entries
-
     SheetWidget *temp = qobject_cast <SheetWidget *>(parent());
-    temp->Calculate("calculateDemand.R", mModel,
+    temp->Calculate("checkSystematic.R", mModel,
                     topPrice, leftPrice, bottomPrice, rightPrice,
                     topConsumption, leftConsumption, bottomConsumption, rightConsumption,
-                    true, true, ui->figuresEnable->isChecked());
+                    ui->checkAlways->isChecked(), ui->checkFlag->isChecked(), ui->figuresEnable->isChecked());
 }
