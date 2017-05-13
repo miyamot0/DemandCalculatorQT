@@ -1335,7 +1335,7 @@ void SheetWidget::WorkFinished(QStringList status)
 {
     QStringList mSplitCommand = status.first().split(" ");
 
-    if (mSplitCommand.first() == "checkSystematic.R")
+    if (mSplitCommand.first().contains("checkSystematic.R"))
     {
         if (isChecking)
         {
@@ -1544,7 +1544,7 @@ void SheetWidget::WorkFinished(QStringList status)
             worker->startWork();
         }
     }
-    else if (mSplitCommand.first() == "fitDemand.R")
+    else if (mSplitCommand.first().contains("fitDemand.R"))
     {
         resultsDialog = new ResultsDialog(this, status.at(1));
         resultsDialog->show();
