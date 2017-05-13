@@ -30,35 +30,11 @@ if (mRemQ0 == "DROP") {
     mRemQ0 <- FALSE
     mReplQ0 <- NULL
 } else if (mRemQ0 == "MODIFY") {
-    mRemQ0 <- FALSE
+    mRemQ0 <- TRUE
     mReplQ0 <- as.numeric(mReplQ0)
 }
 
 dat <- beezdemand::ChangeData(dat, rem0 = mRem0, replnum = mReplNum, remq0e = mRemQ0, replfree = mReplQ0)
-
-# Modify X's first
-#if (mRem0 == "DROP") {
-#    dat <- beezdemand::ChangeData(dat, rem0 = TRUE)
-#} else if (mRem0 == "MODIFY") {
-#    dat <- beezdemand::ChangeData(dat, rem0 = FALSE, replnum = as.numeric(mReplNum))
-#}
-# Modify Y's after
-#if (mRemQ0 == "DROP") {
-#    dat <- beezdemand::ChangeData(dat, remq0e = TRUE)
-#} else if (mRemQ0 == "MODIFY") {
-#    dat <- beezdemand::ChangeData(dat, remq0e = FALSE, replfree = as.numeric(mReplQ0))
-#}
-
-message(dat)
-
-#
-# Y Params
-# Default to 1, always?
-# mReplCount <- myArgs[]
-# X Params
-# mRemoveQ0
-# rem0 = FALSE, remq0e = FALSE, replfree = NULL, xcol = "x", ycol = "y", idcol = "id"
-#
 
 options(warn=-1)
 
