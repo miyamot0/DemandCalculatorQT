@@ -65,9 +65,7 @@ RESOURCES += \
     spreadsheet.qrc
 
 win32 {
-    DCA_FILES.files = scripts/DiscountingAreaComputation.R \
-                    scripts/DiscountingED50Computation.R \
-                    scripts/checkSystematic.R \
+    DCA_FILES.files = scripts/checkSystematic.R \
                     scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
                     scripts/installDependencyJsonlite.R \
@@ -93,9 +91,7 @@ win32 {
     INSTALLS += DCA_FILES
 }
 macx {
-    DCA_FILES.files = scripts/DiscountingAreaComputation.R \
-                    scripts/DiscountingED50Computation.R \
-                    scripts/checkSystematic.R \
+    DCA_FILES.files = scripts/checkSystematic.R \
                     scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
                     scripts/installDependencyJsonlite.R \

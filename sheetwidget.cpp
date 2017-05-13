@@ -1,21 +1,21 @@
 /**
    Copyright 2017 Shawn Gilroy
 
-   This file is part of Discounting Model Selector, Qt port.
+   This file is part of Demand Curve Analyzer, Qt port.
 
-   Discounting Model Selector is free software: you can redistribute it and/or modify
+   Demand Curve Analyzer is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, version 3.
 
-   Discounting Model Selector is distributed in the hope that it will be useful,
+   Demand Curve Analyzer is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with Discounting Model Selector.  If not, see http://www.gnu.org/licenses/.
+   along with Demand Curve Analyzer.  If not, see http://www.gnu.org/licenses/.
 
-   The Discounting Model Selector is a tool to assist researchers in behavior economics.
+   The Demand Curve Analyzer is a tool to assist researchers in behavior economics.
 
    Email: shawn(dot)gilroy(at)temple.edu
 
@@ -369,7 +369,7 @@ void SheetWidget::clearSheet()
 
 void SheetWidget::closeEvent(QCloseEvent* event)
 {
-    QMessageBox::StandardButton confirm = QMessageBox::question( this, "Discounting Model Selector",
+    QMessageBox::StandardButton confirm = QMessageBox::question( this, "Demand Curve Analyzer",
                                                                 tr("Are you sure you want to quit?\n"),
                                                                 QMessageBox::Cancel | QMessageBox::No | QMessageBox::Yes,
                                                                 QMessageBox::Yes);
@@ -429,7 +429,7 @@ void SheetWidget::setCurrentFile(const QString &fileName)
     curFile = fileName;
     setWindowFilePath(curFile);
 
-    QSettings settings(QSettings::UserScope, QLatin1String("Discounting Model Selector"));
+    QSettings settings(QSettings::UserScope, QLatin1String("Demand Curve Analyzer"));
     settings.beginGroup(QLatin1String("SheetWindow"));
 
     QStringList files = settings.value(QLatin1String("recentFileList")).toStringList();
@@ -450,7 +450,7 @@ void SheetWidget::setCurrentFile(const QString &fileName)
 
 void SheetWidget::saveSettings()
 {
-    QSettings settings(QSettings::UserScope, QLatin1String("Discounting Model Selector"));
+    QSettings settings(QSettings::UserScope, QLatin1String("Demand Curve Analyzer"));
     settings.beginGroup(QLatin1String("SheetWindow"));
 
     QStringList files = settings.value("recentFileList").toStringList();
@@ -542,7 +542,7 @@ void SheetWidget::showOpenFileDialog()
 
 void SheetWidget::updateRecentFileActions()
 {
-    QSettings settings(QSettings::UserScope, QLatin1String("Discounting Model Selector"));
+    QSettings settings(QSettings::UserScope, QLatin1String("Demand Curve Analyzer"));
     settings.beginGroup(QLatin1String("SheetWindow"));
     QStringList files = settings.value("recentFileList").toStringList();
 

@@ -1,8 +1,6 @@
 #include "steincheckdialog.h"
 #include "ui_steincheckdialog.h"
 
-#include <QDebug>
-
 SteinCheckDialog::SteinCheckDialog(QWidget *parent, QString jsonString) :
     QDialog(parent),
     ui(new Ui::SteinCheckDialog)
