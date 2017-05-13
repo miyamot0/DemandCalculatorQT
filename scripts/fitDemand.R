@@ -4,6 +4,7 @@ mModel <- myArgs[1]
 mIds <- as.numeric(unlist(strsplit(myArgs[2], split=",")))
 mPrices <- as.numeric(unlist(strsplit(myArgs[3], split=",")))
 mConsume <- as.numeric(unlist(strsplit(myArgs[4], split=",")))
+mParamK <- myArgs[5]
 
 dat <- data.frame(id=as.numeric(mIds), x=as.numeric(mPrices), y=as.numeric(mConsume))
 
@@ -25,6 +26,21 @@ if(!suppressMessages(require(beezdemand))){
   }
 }
 
-fitDemand <- suppressMessages(FitCurves(dat, mModel))
+numberCheck <- function(x) !grepl("\\D", x)
+
+fitDemand <- NULL
+
+if (mParamK != "NULL") {
+    ### Branch logic, if non-nulled string supplied
+    ### Parse apart whether or not supplied k or specified method
+    ###
+
+    if(numberCheck(mParamK)) {
+        fitDemand <- suppressMessages(FitCurves(dat, mModel, k = as.numeric(mParamK)))
+    } else {
+        fitDemand <- suppressMessages(FitCurves(dat, mModel, k = mParamK))
+    }
+}
+
 fitDemand <- toJSON(fitDemand, pretty = FALSE)
 fitDemand

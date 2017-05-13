@@ -129,8 +129,6 @@ DISTFILES += \
     License_reshape.txt \
     COPYING \
     README.md \
-    scripts/DiscountingAreaComputation.R \
-    scripts/DiscountingED50Computation.R \
     scripts/installDependencyBase64.R \
     scripts/installDependencyJsonlite.R \
     scripts/installDependencyReshape.R \

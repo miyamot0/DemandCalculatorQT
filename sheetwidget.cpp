@@ -1108,7 +1108,7 @@ bool SheetWidget::isToolWindowShown()
  * @brief
  */
 
-void SheetWidget::Calculate(QString scriptName, QString model,
+void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                             int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
                             bool checkValues, bool notify, bool showCharts)
@@ -1118,18 +1118,13 @@ void SheetWidget::Calculate(QString scriptName, QString model,
     mModel = model;
     isChecking = checkValues;
     isConditional = notify;
+    mCallK = kString;
 
     /**
      * @brief isRowData
      * Check if is row-based data
      */
     bool isRowData = (rightPrice - leftPrice == 0) ? false : true;
-
-    /**
-     * @brief nSeries
-     * Count how many series are in data set
-     */
-    int nSeries = (isRowData) ? bottomConsumption - topConsumption + 1 : nSeries = rightConsumption - leftConsumption + 1;
 
     int dWidth = rightPrice - leftPrice + 1;
     int dLength = bottomPrice - topPrice + 1;
@@ -1144,8 +1139,7 @@ void SheetWidget::Calculate(QString scriptName, QString model,
 
     ConstructFrameElements(pricePoints, consumptionPoints, idValues, isRowData,
                            topPrice, leftPrice, bottomPrice, rightPrice,
-                           topConsumption, leftConsumption, bottomConsumption, rightConsumption,
-                           nSeries);
+                           topConsumption, leftConsumption, bottomConsumption, rightConsumption);
 
     QStringList mArgList;
 
@@ -1183,16 +1177,13 @@ void SheetWidget::Calculate(QString scriptName, QString model,
     connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
     connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
 
-    orderVar = 0;
-    finalVar = nSeries;
-
     thread->wait();
     worker->startWork();
 }
 
 void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData,
                                          int topPrice, int leftPrice, int bottomPrice, int rightPrice,
-                                         int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, int nSeries)
+                                         int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption)
 {
     QStringList mTempPriceList;
 
@@ -1310,10 +1301,6 @@ void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &
             }
         }
 
-        /**
-
-          */
-
         for (int c2 = leftConsumption; c2 <= rightConsumption; c2++)
         {
             for (int r = topConsumption; r <= bottomConsumption; r++)
@@ -1334,76 +1321,7 @@ void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &
                 }
             }
         }
-
-
-
-        /*
- */
-
-        /**
-
-          */
-
-
-        /*
-        for (int r = topPrice; r <= bottomPrice; r++)
-        {
-            if (table->item(r, c) == NULL)
-            {
-                QMessageBox::critical(this, "Error",
-                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
-
-                if (demandWindowDialog->isVisible())
-                {
-                    demandWindowDialog->ToggleButton(true);
-                }
-
-                return;
-            }
-
-            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
-            holder.toDouble(&valueCheck);
-
-            mTempPriceList << holder;
-
-            if (!valueCheck)
-            {
-                QMessageBox::critical(this, "Error",
-                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
-
-                if (demandWindowDialog->isVisible())
-                {
-                    demandWindowDialog->ToggleButton(true);
-                }
-
-                return;
-            }
-        }
-        */
     }
-}
-
-void SheetWidget::WorkUpdate(QStringList status)
-{
-    qDebug() << "UPDATE: " << status;
-
-    /*
-    statusBar()->showMessage("Calculating set " + QString::number(orderVar + 1) + " of " + QString::number(finalVar), 3000);
-
-    orderVar++;
-
-    allResults.append(status);
-
-    if (displayFigures)
-    {
-        graphicalOutputDialog->appendBase64(status.at(status.count() - 1));
-    }
-    */
-}
-
-void FinishedUp(QStringList mFinal)
-{
-
 }
 
 void SheetWidget::WorkFinished(QStringList status)
@@ -1440,6 +1358,7 @@ void SheetWidget::WorkFinished(QStringList status)
                 mArgList << idValues.join(",");
                 mArgList << pricePoints.join(",");
                 mArgList << consumptionPoints.join(",");
+                mArgList << mCallK;
 
                 mSeriesCommands.clear();
                 mSeriesCommands << mArgList.join(" ");
@@ -1491,6 +1410,7 @@ void SheetWidget::WorkFinished(QStringList status)
                     mArgList << idValues.join(",");
                     mArgList << pricePoints.join(",");
                     mArgList << consumptionPoints.join(",");
+                    mArgList << mCallK;
 
                     mSeriesCommands.clear();
                     mSeriesCommands << mArgList.join(" ");
@@ -1533,6 +1453,7 @@ void SheetWidget::WorkFinished(QStringList status)
                 mArgList << idValues.join(",");
                 mArgList << pricePoints.join(",");
                 mArgList << consumptionPoints.join(",");
+                mArgList << mCallK;
 
                 mSeriesCommands.clear();
                 mSeriesCommands << mArgList.join(" ");
@@ -1575,6 +1496,7 @@ void SheetWidget::WorkFinished(QStringList status)
             mArgList << idValues.join(",");
             mArgList << pricePoints.join(",");
             mArgList << consumptionPoints.join(",");
+            mArgList << mCallK;
 
             mSeriesCommands.clear();
             mSeriesCommands << mArgList.join(" ");
@@ -1597,109 +1519,21 @@ void SheetWidget::WorkFinished(QStringList status)
     }
     else if (mSplitCommand.first() == "fitDemand.R")
     {
-        qDebug() << status.at(1);
-    }
+        resultsDialog = new ResultsDialog(this, status.at(1));
+        resultsDialog->show();
 
-
-
-    /*
-    if (displayFigures)
-    {
-        graphicalOutputDialog->show();
-    }
-
-    if (demandWindowDialog->isVisible())
-    {
-        return;
-    }
-    */
-}
-
-bool SheetWidget::areDelayPointsValid(QStringList &delayPoints, QStringList &consumptionPoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
-{
-    delayPoints.clear();
-
-    QString holder;
-    bool valueCheck = true;
-
-    if (isRowData)
-    {
-        int r = topDelay;
-
-        for (int c = leftDelay; c <= rightDelay; c++)
+        /*
+        if (displayFigures)
         {
-            if (table->item(r, c) == NULL)
-            {
-                QMessageBox::critical(this, "Error",
-                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
-
-                if (demandWindowDialog->isVisible())
-                {
-                    demandWindowDialog->ToggleButton(true);
-                }
-
-                return false;
-            }
-
-            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
-            holder.toDouble(&valueCheck);
-
-            delayPoints << holder;
-
-            if (!valueCheck)
-            {
-                QMessageBox::critical(this, "Error",
-                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
-
-                if (demandWindowDialog->isVisible())
-                {
-                    demandWindowDialog->ToggleButton(true);
-                }
-
-                return false;
-            }
+            graphicalOutputDialog->show();
         }
-    }
-    else
-    {
-        int c = leftDelay;
 
-        for (int r = topDelay; r <= bottomDelay; r++)
+        if (demandWindowDialog->isVisible())
         {
-            if (table->item(r, c) == NULL)
-            {
-                QMessageBox::critical(this, "Error",
-                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
-
-                if (demandWindowDialog->isVisible())
-                {
-                    demandWindowDialog->ToggleButton(true);
-                }
-
-                return false;
-            }
-
-            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
-            holder.toDouble(&valueCheck);
-
-            delayPoints << holder;
-
-            if (!valueCheck)
-            {
-                QMessageBox::critical(this, "Error",
-                                      "One of your delay measures doesn't look correct. Please re-check these values or selections.");
-
-                if (demandWindowDialog->isVisible())
-                {
-                    demandWindowDialog->ToggleButton(true);
-                }
-
-                return false;
-            }
+            return;
         }
+        */
     }
-
-    return true;
 }
 
 bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength)

@@ -47,6 +47,7 @@
 
 #include <QThread>
 #include <QProcess>
+#include <QDebug>
 
 #include "rworker.h"
 

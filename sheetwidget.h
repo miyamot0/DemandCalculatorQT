@@ -99,7 +99,7 @@ class SheetWidget : public QMainWindow
 public:
     SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandString, QWidget *parent = 0);
 
-    void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, int nSeries);
+    void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption);
     void convertExcelColumn(QString &mString, int column);
     QString convert_bool(bool value);
 
@@ -149,14 +149,12 @@ public slots:
 
     bool isToolWindowShown();
 
-    bool areDelayPointsValid(QStringList &delayPoints, QStringList &consumptionPoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay);
     bool areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength);
     void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i);
 
-    void Calculate(QString scriptName, QString model, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+    void Calculate(QString scriptName, QString model, QString kString, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                    int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, bool checkValues, bool notify, bool showCharts);
 
-    void WorkUpdate(QStringList status);
     void WorkFinished(QStringList status);
 
     void closeEvent(QCloseEvent* event);
@@ -215,11 +213,15 @@ private:
     QString mModel;
     QString commandParameter;
     QStringList mInstallCommands;
+
     bool isCoreRPresent;
     bool isCoreSVGSupportPresent;
 
     bool isChecking;
     bool isConditional;
+    QString mCallK;
+    QString mCallX;
+    QString mCallY;
 
     /**
      * @brief Thread object which will let us manipulate the running thread
@@ -230,8 +232,6 @@ private:
      * @brief Object which contains methods that should be runned in another thread
      */
     FitWorker *worker;
-    int orderVar;
-    int finalVar;
 
     QStringList mSeriesCommands;
 

@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QtWidgets>
-#include <QProcess>
 
 namespace Ui {
 class SteinCheckDialog;

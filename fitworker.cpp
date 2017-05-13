@@ -46,6 +46,7 @@
   */
 
 #include <QProcess>
+#include <QDebug>
 
 #include "fitworker.h"
 
@@ -84,6 +85,9 @@ void FitWorker::working()
 
     output = process.readAllStandardOutput();
     error = process.readAllStandardError();
+
+    qDebug() << "Output: " << output;
+    qDebug() << "Error: " << error;
 
     QStringList resultsList;
 

@@ -66,7 +66,6 @@ public:
 
 private:
     QString command;
-
     QStringList commandParameterList;
 
 signals:

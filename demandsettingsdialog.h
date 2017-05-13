@@ -21,11 +21,16 @@ public slots:
     void ToggleButton(bool status);
 
 private slots:
+    QString getModelString();
+    QString getKString();
+
     void on_modelingLinear_toggled(bool checked);
     void on_modelingExponential_toggled(bool checked);
     void on_modelingExponentiated_toggled(bool checked);
 
     void on_pushButton_clicked();
+
+    void on_kSettingsCustom_toggled(bool checked);
 
 private:
     Ui::DemandSettingsDialog *ui;

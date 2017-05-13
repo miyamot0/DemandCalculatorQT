@@ -30,7 +30,7 @@
 #include "ui_resultsdialog.h"
 #include "sheetwidget.h"
 
-ResultsDialog::ResultsDialog(QWidget *parent) :
+ResultsDialog::ResultsDialog(QWidget *parent, QString jsonString) :
     QDialog(parent),
     ui(new Ui::ResultsDialog)
 {
@@ -50,161 +50,103 @@ ResultsDialog::ResultsDialog(QWidget *parent) :
     copyAction->setIcon(QIcon(":/images/edit-copy.png"));
     connect(copyAction, &QAction::triggered, this, &ResultsDialog::copy);
 
-    addAction(copyAction);
-}
+    addAction(copyAction);    
 
-void ResultsDialog::ImportDataAndShow(bool cbBIC, bool cbAIC, bool cbRMSE, bool cbBF, bool tripLogNormal, QString metric)
-{
-    SheetWidget *temp = qobject_cast <SheetWidget *>(parent());
+    jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8(), &err);
+    jsonArr = jsonDoc.array();
 
-    QList<int> skipList;
+    QStringList keyList;
 
-    skipList << 2 << 9 << 37;
-
-    if (!cbRMSE)
+    for (int i=0; i < jsonArr.count(); i++)
     {
-        skipList << 3 << 10 << 17 << 24 << 31 << 38;
-    }
+        jsonVal = jsonArr.at(i);
+        jsonObj = jsonVal.toObject();
 
-    if (!cbBIC)
-    {
-        skipList << 4 << 11 << 18 << 25 << 32 << 39;
-    }
-
-    if (!cbAIC)
-    {
-        skipList << 5 << 12 << 19 << 26 << 33 << 40;
-    }
-
-    if (!cbBF)
-    {
-        skipList << 6 << 13 << 20 << 27 << 34 << 41;
-    }
-
-    QStringList columnList;
-
-    columnList << "Series";
-
-    if (tripLogNormal)
-    {
-        columnList << "Mazur.k";
-    }
-    else
-    {
-        columnList << "Mazur.lnk";
-    }
-
-    columnList << "";
-    columnList << "Mazur.RMSE";
-    columnList << "Mazur.BIC";
-    columnList << "Mazur.AIC";
-    columnList << "Mazur.BF";
-    columnList << "Mazur.prob";
-
-    if (tripLogNormal)
-    {
-        columnList << "exp.k";
-    }
-    else
-    {
-        columnList << "exp.lnk";
-    }
-
-    columnList << "";
-    columnList << "exp.RMSE";
-    columnList << "exp.BIC";
-    columnList << "exp.AIC";
-    columnList << "exp.BF";
-    columnList << "exp.prob";
-
-    columnList << "BD.beta";
-    columnList << "BD.delta";
-    columnList << "BD.RMSE";
-    columnList << "BD.BIC";
-    columnList << "BD.AIC";
-    columnList << "BD.BF";
-    columnList << "BD.prob";
-
-    if (tripLogNormal)
-    {
-        columnList << "MG.k";
-    }
-    else
-    {
-        columnList << "MG.lnk";
-    }
-
-    columnList << "MG.s";
-    columnList << "MG.RMSE";
-    columnList << "MG.BIC";
-    columnList << "MG.AIC";
-    columnList << "MG.BF";
-    columnList << "MG.prob";
-
-    if (tripLogNormal)
-    {
-        columnList << "Rachlin.k";
-    }
-    else
-    {
-        columnList << "Rachlin.lnk";
-    }
-
-    columnList << "Rachlin.s";
-    columnList << "Rachlin.RMSE";
-    columnList << "Rachlin.BIC";
-    columnList << "Rachlin.AIC";
-    columnList << "Rachlin.BF";
-    columnList << "Rachlin.prob";
-
-    columnList << "noise.mean";
-    columnList << "";
-    columnList << "noise.RMSE";
-    columnList << "noise.BIC";
-    columnList << "noise.AIC";
-    columnList << "noise.BF";
-    columnList << "noise.prob";
-
-    columnList << "probmodel";
-    columnList << metric;
-
-    // Create columns
-    for(int i=0; i<columnList.count();i++)
-    {
-        if (!skipList.contains(i))
+        if (i == 0)
         {
-            ui->tableWidget->insertColumn(ui->tableWidget->columnCount());
-            ui->tableWidget->setHorizontalHeaderItem(ui->tableWidget->columnCount() - 1, new QTableWidgetItem(columnList.at(i)));
-        }
-    }
-
-    int spacer;
-
-    for(int i=0; i<temp->allResults.count(); i++)
-    {
-        ui->tableWidget->insertRow(ui->tableWidget->rowCount());
-        QStringList mList = temp->allResults.at(i);
-
-        spacer = 0;
-
-        for(int j=0; j<mList.count(); j++)
-        {
-            if (!skipList.contains(j))
+            if (jsonObj["Equation"].toString().contains("hs"))
             {
-                QTableWidgetItem *item = new QTableWidgetItem(mList.at(j));
-                item->setFlags(item->flags() ^ Qt::ItemIsEditable);
-                ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, j - spacer, item);
+                keyList = getExponentialKeys();
+            }
+            else if (jsonObj["Equation"].toString().contains("koff"))
+            {
+                keyList = getExponentiatedKeys();
             }
             else
             {
-                spacer++;
+                keyList = getLinearKeys();
             }
         }
+
+        if (i == 0)
+        {
+            ui->tableWidget->clearContents();
+
+            for (int j=0; j<keyList.length(); j++)
+            {
+                ui->tableWidget->insertColumn(ui->tableWidget->columnCount());
+                ui->tableWidget->setHorizontalHeaderItem(ui->tableWidget->columnCount() - 1, new QTableWidgetItem(keyList.at(j)));
+            }
+        }
+
+        ui->tableWidget->insertRow(ui->tableWidget->rowCount());
+
+        for (int j=0; j<keyList.length(); j++)
+        {
+            QString label = "";
+
+            QJsonValueRef mObj = jsonObj[keyList.at(j)];
+
+            if (mObj.isDouble())
+            {
+                label = QString::number(mObj.toDouble());
+            }
+            else if (mObj.isString())
+            {
+                label = mObj.toString();
+            }
+
+            QTableWidgetItem *item = new QTableWidgetItem(label);
+            item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+            ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, j, item);
+        }
     }
+}
 
-    ui->tableWidget->viewport()->update();
+QStringList ResultsDialog::getLinearKeys()
+{
+    QStringList mReturnKeys;
+    mReturnKeys << "ID" << "Equation"
+                << "BP1" << "Intensity"
+                << "Omaxe" << "Pmaxe";
 
-    show();
+    return mReturnKeys;
+}
+
+QStringList ResultsDialog::getExponentialKeys()
+{
+    QStringList mReturnKeys;
+    mReturnKeys << "ID" << "Equation"
+                << "Alpha" << "AlphaHigh" << "AlphaLow" << "Alphase"
+                << "Q0d" << "Q0High" << "Q0Low" << "Q0se"
+                << "BP1" << "EV" << "Intensity" << "K"
+                << "Omaxd" << "Omaxe" << "Pmaxd" << "Pmaxe"
+                << "AbsSS"  << "R2" << "SdRes" << "N" << "Notes" ;
+
+    return mReturnKeys;
+}
+
+QStringList ResultsDialog::getExponentiatedKeys()
+{
+    QStringList mReturnKeys;
+    mReturnKeys << "ID" << "Equation"
+                << "Alpha" << "AlphaHigh" << "AlphaLow" << "Alphase"
+                << "Q0d" << "Q0High" << "Q0Low" << "Q0se"
+                << "BP0" << "BP1" << "EV" << "Intensity" << "K"
+                << "Omaxd" << "Omaxe" << "Pmaxd" << "Pmaxe"
+                << "AbsSS"  << "R2" << "SdRes" << "N" << "Notes" ;
+
+    return mReturnKeys;
 }
 
 ResultsDialog::~ResultsDialog()
@@ -245,7 +187,6 @@ void ResultsDialog::copy()
     QApplication::clipboard()->setText(str);
 }
 
-
 void ResultsDialog::on_pushButton_2_clicked()
 {
     QString selFilter="Spreadsheet (*.xlsx)";
@@ -285,21 +226,4 @@ void ResultsDialog::on_pushButton_2_clicked()
 
         xlsx.saveAs(file_name);
     }
-}
-
-void ResultsDialog::convertExcelColumn(QString &mString, int column)
-{
-    int dividend = column + 1;
-    QString columnName = "";
-
-    int modulo;
-
-    while (dividend > 0)
-    {
-        modulo = (dividend - 1) % 26;
-        columnName = new QString(65 + modulo) + columnName;
-        dividend = (int)((dividend - modulo) / 26);
-    }
-
-    mString = columnName;
 }

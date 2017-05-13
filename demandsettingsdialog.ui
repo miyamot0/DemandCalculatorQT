@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>774</width>
-    <height>541</height>
+    <width>876</width>
+    <height>501</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -46,6 +46,9 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The prices will be your X axis parameters (independent variable)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
            </widget>
           </item>
           <item row="1" column="0">
@@ -62,6 +65,9 @@
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Consumption will be the Y axis values (your dependent variable).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
            </widget>
           </item>
@@ -83,6 +89,9 @@
             <property name="enabled">
              <bool>true</bool>
             </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hursh, Raslear, Bauman &amp;amp; Black's Linear-Elasticity Demand Model&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Linear Demand Model</string>
             </property>
@@ -90,6 +99,9 @@
           </item>
           <item>
            <widget class="QRadioButton" name="modelingExponential">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Hursh &amp;amp; Silberburg's Exponential Model of Demand&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Exponential Demand Model</string>
             </property>
@@ -100,6 +112,9 @@
           </item>
           <item>
            <widget class="QRadioButton" name="modelingExponentiated">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Koffarnus, Franck, Stein &amp;amp; Bickel's Exponentiated Model of Demand&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Exponentiated Demand Model</string>
             </property>
@@ -116,8 +131,24 @@
          <layout class="QVBoxLayout" name="verticalLayout_11">
           <item>
            <widget class="QRadioButton" name="checkAlways">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Always display Stein &amp;amp; Bickel's systematic checks for systematicity.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Always</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="checkFlag">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Display Stein &amp;amp; Bickel's systematic checks for systematicity only when one or more cases do not pass.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Notify if Flagged</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -125,14 +156,10 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="checkFlag">
-            <property name="text">
-             <string>Notify if Flagged</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QRadioButton" name="checkNever">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Never display Stein &amp;amp; Bickel's systematic checks for systematicity.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Never</string>
             </property>
@@ -203,6 +230,9 @@
       <layout class="QHBoxLayout" name="holderFrame">
        <item>
         <widget class="QGroupBox" name="groupBox_6">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="title">
           <string>Rules when Y == 0</string>
          </property>
@@ -263,6 +293,9 @@
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_4">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -338,6 +371,9 @@
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
            <widget class="QRadioButton" name="kSettingsLogIndividual">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace'; font-size:12px; color:#000000; background-color:#ffffff;&quot;&gt;K will be calculated per individual using max/min + .5&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
              <string>Log Range K (Individual)</string>
             </property>
@@ -348,15 +384,31 @@
           </item>
           <item>
            <widget class="QRadioButton" name="kSettingsLogGroup">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace'; font-size:12px; color:#000000; background-color:#ffffff;&quot;&gt;K will be calculated based on the max/min of the entire sample + .5.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Log Range K (Shared)</string>
+             <string>Log Range K (Range)</string>
             </property>
            </widget>
           </item>
           <item>
            <widget class="QRadioButton" name="kSettingsFit">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace'; font-size:12px; color:#000000; background-color:#ffffff;&quot;&gt;K will be a free parameter fitted on an individual basis.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
             <property name="text">
-             <string>Fitted k</string>
+             <string>Fitted K (Individual)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="kSettingsFitShare">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace'; font-size:12px; color:#000000; background-color:#ffffff;&quot;&gt;K will be a free parameter fitted on an group basis (i.e., whole sample).&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Fitted K (Shared)</string>
             </property>
            </widget>
           </item>
