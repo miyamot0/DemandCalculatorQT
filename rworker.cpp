@@ -1,5 +1,4 @@
 /**
-
    Copyright 2017 Shawn Gilroy
 
    This file is part of Demand Curve Analyzer, Qt port.

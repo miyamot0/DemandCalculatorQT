@@ -22,7 +22,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
     aboutdialog.cpp \
     creditsdialog.cpp \
     fitworker.cpp \
@@ -36,7 +35,7 @@ SOURCES += main.cpp\
     demandsettingsdialog.cpp \
     steincheckdialog.cpp
 
-HEADERS  += mainwindow.h \
+HEADERS  += \
     aboutdialog.h \
     creditsdialog.h \
     fitworker.h \
@@ -50,7 +49,7 @@ HEADERS  += mainwindow.h \
     demandsettingsdialog.h \
     steincheckdialog.h
 
-FORMS    += mainwindow.ui \
+FORMS    += \
     aboutdialog.ui \
     creditsdialog.ui \
     graphicaloutputdialog.ui \

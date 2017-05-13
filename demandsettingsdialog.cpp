@@ -1,3 +1,26 @@
+/**
+   Copyright 2017 Shawn Gilroy
+
+   This file is part of Demand Curve Analyzer, Qt port.
+
+   Demand Curve Analyzer is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, version 3.
+
+   Demand Curve Analyzer is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Demand Curve Analyzer.  If not, see http://www.gnu.org/licenses/.
+
+   The Demand Curve Analyzer is a tool to assist researchers in behavior economics.
+
+   Email: shawn(dot)gilroy(at)temple.edu
+
+  */
+
 #include "demandsettingsdialog.h"
 #include "ui_demandsettingsdialog.h"
 
@@ -42,20 +65,29 @@ void DemandSettingsDialog::UpdateConsumption(QString label, int top, int left, i
 
 void DemandSettingsDialog::on_modelingLinear_toggled(bool checked)
 {
-    ui->q0DropValue->setChecked(true);
-    ui->breakpointDropValue->setChecked(true);
+    if (checked)
+    {
+        ui->q0DropValue->setChecked(true);
+        ui->breakpointDropValue->setChecked(true);
+    }
 }
 
 void DemandSettingsDialog::on_modelingExponential_toggled(bool checked)
 {
-    ui->q0DropValue->setChecked(true);
-    ui->breakpointDropValue->setChecked(true);
+    if (checked)
+    {
+        ui->q0DropValue->setChecked(true);
+        ui->breakpointDropValue->setChecked(true);
+    }
 }
 
 void DemandSettingsDialog::on_modelingExponentiated_toggled(bool checked)
 {
-    ui->q0KeepValue->setChecked(true);
-    ui->breakpointKeepValue->setChecked(true);
+    if (checked)
+    {
+        ui->q0KeepValue->setChecked(true);
+        ui->breakpointKeepValue->setChecked(true);
+    }
 }
 
 void DemandSettingsDialog::on_pushButton_clicked()
@@ -165,7 +197,7 @@ QString DemandSettingsDialog::getKString()
 
         bool isTextNumeric;
 
-        double mValue = mText.toDouble(&isTextNumeric);
+        mText.toDouble(&isTextNumeric);
 
         if (isTextNumeric)
         {
