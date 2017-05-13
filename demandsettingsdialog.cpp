@@ -31,6 +31,8 @@ DemandSettingsDialog::DemandSettingsDialog(QWidget *parent) :
     ui(new Ui::DemandSettingsDialog)
 {
     ui->setupUi(this);
+
+    this->setWindowFlags(Qt::Tool);
 }
 
 DemandSettingsDialog::~DemandSettingsDialog()

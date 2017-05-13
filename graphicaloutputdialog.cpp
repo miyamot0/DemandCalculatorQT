@@ -52,6 +52,8 @@ GraphicalOutputDialog::GraphicalOutputDialog(QWidget *parent) :
     connect(savePNG, SIGNAL(triggered()), this, SLOT(saveSVGasPNG()));
 
     installEventFilter(this);
+
+    this->setWindowFlags(Qt::Tool);
 }
 
 void GraphicalOutputDialog::contextMenuRequested(const QPoint& point)
