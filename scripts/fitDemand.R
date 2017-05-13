@@ -5,8 +5,60 @@ mIds <- as.numeric(unlist(strsplit(myArgs[2], split=",")))
 mPrices <- as.numeric(unlist(strsplit(myArgs[3], split=",")))
 mConsume <- as.numeric(unlist(strsplit(myArgs[4], split=",")))
 mParamK <- myArgs[5]
+mRem0 <- myArgs[6]
+mReplNum <- myArgs[7]
+mRemQ0 <- myArgs[8]
+mReplQ0 <- myArgs[9]
 
 dat <- data.frame(id=as.numeric(mIds), x=as.numeric(mPrices), y=as.numeric(mConsume))
+
+if (mRem0 == "DROP") {
+    mRem0 <- TRUE
+    mReplNum <- NULL
+} else if (mRem0 == "KEEP") {
+    mRem0 <- FALSE
+    mReplNum <- NULL
+} else if (mRem0 == "MODIFY") {
+    mRem0 <- FALSE
+    mReplNum <- as.numeric(mReplNum)
+}
+
+if (mRemQ0 == "DROP") {
+    mRemQ0 <- TRUE
+    mReplQ0 <- NULL
+} else if (mRemQ0 == "KEEP") {
+    mRemQ0 <- FALSE
+    mReplQ0 <- NULL
+} else if (mRemQ0 == "MODIFY") {
+    mRemQ0 <- FALSE
+    mReplQ0 <- as.numeric(mReplQ0)
+}
+
+dat <- beezdemand::ChangeData(dat, rem0 = mRem0, replnum = mReplNum, remq0e = mRemQ0, replfree = mReplQ0)
+
+# Modify X's first
+#if (mRem0 == "DROP") {
+#    dat <- beezdemand::ChangeData(dat, rem0 = TRUE)
+#} else if (mRem0 == "MODIFY") {
+#    dat <- beezdemand::ChangeData(dat, rem0 = FALSE, replnum = as.numeric(mReplNum))
+#}
+# Modify Y's after
+#if (mRemQ0 == "DROP") {
+#    dat <- beezdemand::ChangeData(dat, remq0e = TRUE)
+#} else if (mRemQ0 == "MODIFY") {
+#    dat <- beezdemand::ChangeData(dat, remq0e = FALSE, replfree = as.numeric(mReplQ0))
+#}
+
+message(dat)
+
+#
+# Y Params
+# Default to 1, always?
+# mReplCount <- myArgs[]
+# X Params
+# mRemoveQ0
+# rem0 = FALSE, remq0e = FALSE, replfree = NULL, xcol = "x", ycol = "y", idcol = "id"
+#
 
 options(warn=-1)
 

@@ -101,6 +101,7 @@ public:
 
     void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption);
     void convertExcelColumn(QString &mString, int column);
+
     QString convert_bool(bool value);
 
     QList<QStringList> allResults;
@@ -150,10 +151,14 @@ public slots:
     bool isToolWindowShown();
 
     bool areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength);
-    void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i);
+    void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints,
+                             bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue,
+                             int i);
 
     void Calculate(QString scriptName, QString model, QString kString, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
-                   int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption, bool checkValues, bool notify, bool showCharts);
+                   int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
+                   bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0,
+                   bool showCharts);
 
     void WorkFinished(QStringList status);
 
@@ -222,6 +227,12 @@ private:
     QString mCallK;
     QString mCallX;
     QString mCallY;
+
+    QString mRem0;
+    QString mReplnum;
+
+    QString mRemQ0;
+    QString mReplQ0;
 
     /**
      * @brief Thread object which will let us manipulate the running thread

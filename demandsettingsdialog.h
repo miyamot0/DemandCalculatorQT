@@ -24,13 +24,21 @@ private slots:
     QString getModelString();
     QString getKString();
 
+    QString getRemQZeroString();
+    QString getReplaceQ0String();
+
+    QString getRemZeroString();
+    QString getReplaceZeroConsumptionString();
+
     void on_modelingLinear_toggled(bool checked);
     void on_modelingExponential_toggled(bool checked);
     void on_modelingExponentiated_toggled(bool checked);
-
+    void on_kSettingsCustom_toggled(bool checked);
     void on_pushButton_clicked();
 
-    void on_kSettingsCustom_toggled(bool checked);
+    void on_breakpointModifyValueCustom_toggled(bool checked);
+
+    void on_q0ModifyValue_toggled(bool checked);
 
 private:
     Ui::DemandSettingsDialog *ui;

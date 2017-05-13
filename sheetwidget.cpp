@@ -100,7 +100,7 @@ SheetWidget::SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandSt
     buildMenus();
     setCentralWidget(table);
 
-    setWindowTitle("Discounting Model Selector v 1.0.0.0");
+    setWindowTitle("Demand Curve Analyzer v 1.0.0.0");
 
     this->layout()->setSizeConstraint(QLayout::SetNoConstraint);
 
@@ -1111,7 +1111,7 @@ bool SheetWidget::isToolWindowShown()
 void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                             int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
-                            bool checkValues, bool notify, bool showCharts)
+                            bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0, bool showCharts)
 {
 
     displayFigures = showCharts;
@@ -1119,6 +1119,12 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     isChecking = checkValues;
     isConditional = notify;
     mCallK = kString;
+
+    mRem0 = rem0;
+    mReplnum = replnum;
+
+    mRemQ0 = remQ0;
+    mReplQ0 = replQ0;
 
     /**
      * @brief isRowData
@@ -1359,6 +1365,10 @@ void SheetWidget::WorkFinished(QStringList status)
                 mArgList << pricePoints.join(",");
                 mArgList << consumptionPoints.join(",");
                 mArgList << mCallK;
+                mArgList << mRem0;
+                mArgList << mReplnum;
+                mArgList << mRemQ0;
+                mArgList << mReplQ0;
 
                 mSeriesCommands.clear();
                 mSeriesCommands << mArgList.join(" ");
@@ -1411,6 +1421,10 @@ void SheetWidget::WorkFinished(QStringList status)
                     mArgList << pricePoints.join(",");
                     mArgList << consumptionPoints.join(",");
                     mArgList << mCallK;
+                    mArgList << mRem0;
+                    mArgList << mReplnum;
+                    mArgList << mRemQ0;
+                    mArgList << mReplQ0;
 
                     mSeriesCommands.clear();
                     mSeriesCommands << mArgList.join(" ");
@@ -1454,6 +1468,10 @@ void SheetWidget::WorkFinished(QStringList status)
                 mArgList << pricePoints.join(",");
                 mArgList << consumptionPoints.join(",");
                 mArgList << mCallK;
+                mArgList << mRem0;
+                mArgList << mReplnum;
+                mArgList << mRemQ0;
+                mArgList << mReplQ0;
 
                 mSeriesCommands.clear();
                 mSeriesCommands << mArgList.join(" ");
@@ -1497,6 +1515,10 @@ void SheetWidget::WorkFinished(QStringList status)
             mArgList << pricePoints.join(",");
             mArgList << consumptionPoints.join(",");
             mArgList << mCallK;
+            mArgList << mRem0;
+            mArgList << mReplnum;
+            mArgList << mRemQ0;
+            mArgList << mReplQ0;
 
             mSeriesCommands.clear();
             mSeriesCommands << mArgList.join(" ");
@@ -1523,15 +1545,7 @@ void SheetWidget::WorkFinished(QStringList status)
         resultsDialog->show();
 
         /*
-        if (displayFigures)
-        {
-            graphicalOutputDialog->show();
-        }
-
-        if (demandWindowDialog->isVisible())
-        {
-            return;
-        }
+        TODO, Figure
         */
     }
 }

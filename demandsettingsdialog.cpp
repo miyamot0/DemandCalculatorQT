@@ -70,11 +70,53 @@ void DemandSettingsDialog::on_pushButton_clicked()
         return;
     }
 
+    QString rem0 = getRemZeroString();
+    QString replnum = "0.01";
+
+    if (rem0.contains("MODIFY"))
+    {
+        replnum = getReplaceZeroConsumptionString();
+        bool isValidNumber = false;
+
+        replnum.toDouble(&isValidNumber);
+
+        if (!isValidNumber)
+        {
+            QMessageBox messageBox;
+            messageBox.critical(this, "Error", "Your custom supplied Y replacement is not valid.");
+            messageBox.show();
+
+            return;
+        }
+    }
+
+    QString remQ0 = getRemQZeroString();
+    QString replQ0 = "0.01";
+
+    if (remQ0.contains("MODIFY"))
+    {
+        replQ0 = getReplaceQ0String();
+        bool isValidNumber = false;
+
+        replQ0.toDouble(&isValidNumber);
+
+        if (!isValidNumber)
+        {
+            QMessageBox messageBox;
+            messageBox.critical(this, "Error", "Your custom supplied X replacement is not valid.");
+            messageBox.show();
+
+            return;
+        }
+    }
+
     SheetWidget *temp = qobject_cast <SheetWidget *>(parent());
     temp->Calculate("checkSystematic.R", getModelString(), mKValue,
                     topPrice, leftPrice, bottomPrice, rightPrice,
                     topConsumption, leftConsumption, bottomConsumption, rightConsumption,
-                    ui->checkAlways->isChecked(), ui->checkFlag->isChecked(), ui->figuresEnable->isChecked());
+                    ui->checkAlways->isChecked(), ui->checkFlag->isChecked(),
+                    rem0, replnum, remQ0, replQ0,
+                    ui->figuresEnable->isChecked());
 }
 
 QString DemandSettingsDialog::getModelString()
@@ -138,7 +180,84 @@ QString DemandSettingsDialog::getKString()
     return mK;
 }
 
+QString DemandSettingsDialog::getRemQZeroString()
+{
+    QString mReturnValue = "KEEP";
+
+    if (ui->q0DropValue->isChecked())
+    {
+        mReturnValue = "DROP";
+
+    } else if (ui->q0KeepValue->isChecked())
+    {
+        mReturnValue = "KEEP";
+
+    } else if (ui->q0ModifyValue->isChecked())
+    {
+        mReturnValue = "MODIFY";
+    }
+
+    return mReturnValue;
+}
+
+QString DemandSettingsDialog::getReplaceQ0String()
+{
+    return ui->q0CustomValueText->text();
+}
+
+QString DemandSettingsDialog::getRemZeroString()
+{
+    QString mReturnValue = "KEEP";
+
+    if (ui->breakpointDropValue->isChecked())
+    {
+        mReturnValue = "DROP";
+    }
+    else if (ui->breakpointKeepValue->isChecked())
+    {
+        mReturnValue = "KEEP";
+    }
+    else if (ui->breakpointModifyValueTenth->isChecked() ||
+             ui->breakpointModifyValueHundredth->isChecked() ||
+             ui->breakpointModifyValueCustom->isChecked())
+    {
+        mReturnValue = "MODIFY";
+    }
+
+    return mReturnValue;
+}
+
+QString DemandSettingsDialog::getReplaceZeroConsumptionString()
+{
+    QString mReturnValue = "0.01";
+
+    if (ui->breakpointModifyValueTenth->isChecked())
+    {
+        mReturnValue = "0.1";
+    }
+    else if (ui->breakpointModifyValueHundredth->isChecked())
+    {
+        mReturnValue = "0.01";
+    }
+    else if (ui->breakpointModifyValueCustom->isChecked())
+    {
+        mReturnValue = ui->breakpointModifyValueCustomText->text();
+    }
+
+    return mReturnValue;
+}
+
 void DemandSettingsDialog::on_kSettingsCustom_toggled(bool checked)
 {
     ui->kSettingsCustomText->setEnabled(checked);
+}
+
+void DemandSettingsDialog::on_breakpointModifyValueCustom_toggled(bool checked)
+{
+    ui->breakpointModifyValueCustomText->setEnabled(checked);
+}
+
+void DemandSettingsDialog::on_q0ModifyValue_toggled(bool checked)
+{
+    ui->q0CustomValueText->setEnabled(checked);
 }
