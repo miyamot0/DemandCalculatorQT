@@ -1615,8 +1615,6 @@ void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tem
 
                 if (valueCheck)
                 {
-                    valHolder = valHolder;
-
                     valuePoints << QString::number(valHolder);
                     tempDelayPoints << delayPoints.at(index);
                 }
@@ -1638,8 +1636,6 @@ void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tem
 
                 if (valueCheck)
                 {
-                    valHolder = valHolder;
-
                     valuePoints << QString::number(valHolder);
                     tempDelayPoints << delayPoints.at(index);
                 }
