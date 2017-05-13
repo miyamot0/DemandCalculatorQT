@@ -17,7 +17,7 @@ if (mRem0 == "DROP") {
     mReplNum <- NULL
 } else if (mRem0 == "KEEP") {
     mRem0 <- FALSE
-    mReplNum <- NULL
+    mReplNum <- 0
 } else if (mRem0 == "MODIFY") {
     mRem0 <- FALSE
     mReplNum <- as.numeric(mReplNum)
@@ -28,44 +28,40 @@ if (mRemQ0 == "DROP") {
     mReplQ0 <- NULL
 } else if (mRemQ0 == "KEEP") {
     mRemQ0 <- FALSE
-    mReplQ0 <- NULL
+    mReplQ0 <- 0.01
 } else if (mRemQ0 == "MODIFY") {
     mRemQ0 <- TRUE
     mReplQ0 <- as.numeric(mReplQ0)
 }
 
-dat <- beezdemand::ChangeData(dat, rem0 = mRem0, replnum = mReplNum, remq0e = mRemQ0, replfree = mReplQ0)
-
 options(warn=-1)
 
-if(!suppressMessages(require(jsonlite))){
-  suppressMessages(install.packages("jsonlite"))
-  if(!require(jsonlite)){
-    suppressMessages(install.packages("jsonlite"))
-    suppressMessages(library(jsonlite))
-  }
-}
+message(dat)
 
-if(!suppressMessages(require(beezdemand))){
-  suppressMessages(install.packages("beezdemand"))
-  if(!require(beezdemand)){
-    suppressMessages(install.packages("beezdemand"))
-    suppressMessages(library(beezdemand))
-  }
-}
+suppressMessages(require(jsonlite))
+suppressMessages(require(beezdemand))
 
+
+
+#message(paste(mRem0, mReplNum, mRemQ0, mReplQ0, sep = " "))
+
+### Clean up data, per user req's
+dat <- beezdemand::ChangeData(dat, rem0 = mRem0, replnum = mReplNum, remq0e = mRemQ0, replfree = mReplQ0)
+
+message(dat)
+
+### Regex, to determine nature of command
 numberCheck <- function(x) !grepl("\\D", x)
 
+### Reference to results
 fitDemand <- NULL
 
 if (mParamK != "NULL") {
-    ### Branch logic, if non-nulled string supplied
-    ### Parse apart whether or not supplied k or specified method
-    ###
-
     if(numberCheck(mParamK)) {
+        ### K is a numeric assignment
         fitDemand <- suppressMessages(FitCurves(dat, mModel, k = as.numeric(mParamK)))
     } else {
+        ### K is a string command
         fitDemand <- suppressMessages(FitCurves(dat, mModel, k = mParamK))
     }
 }

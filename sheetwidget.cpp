@@ -217,9 +217,9 @@ void SheetWidget::buildMenus()
 
     demandWindowDialog = new DemandSettingsDialog(this);
 
-    openLicenseDMS = new QAction("DMS License (GPL-V3)", this);
-    openLicenseDMS->setIcon(QIcon(":/images/text-x-generic.png"));
-    connect(openLicenseDMS, &QAction::triggered, this, &SheetWidget::showDMSLicenseWindow);
+    openLicenseDCA = new QAction("DCA License (GPL-V3)", this);
+    openLicenseDCA->setIcon(QIcon(":/images/text-x-generic.png"));
+    connect(openLicenseDCA, &QAction::triggered, this, &SheetWidget::showDCALicenseWindow);
 
     openLicenseR = new QAction("R License (GPL-V3)", this);
     openLicenseR->setIcon(QIcon(":/images/text-x-generic.png"));
@@ -241,7 +241,7 @@ void SheetWidget::buildMenus()
     openLicenseReshape->setIcon(QIcon(":/images/text-x-generic.png"));
     connect(openLicenseReshape, &QAction::triggered, this, &SheetWidget::showReshapeLicenseWindow);
 
-    openLicenseBDS = new QAction("DMS License (GPL-V3)", this);
+    openLicenseBDS = new QAction("DCA License (GPL-V3)", this);
     openLicenseBDS->setIcon(QIcon(":/images/text-x-generic.png"));
     connect(openLicenseBDS, &QAction::triggered, this, &SheetWidget::showBDSLicenseWindow);
 
@@ -313,7 +313,7 @@ void SheetWidget::buildMenus()
     sheetCalculationsMenu->addAction(openDemandWindow);
 
     QMenu *sheetLicensesMenu = menuBar()->addMenu(tr("&Licenses"));
-    sheetLicensesMenu->addAction(openLicenseDMS);
+    sheetLicensesMenu->addAction(openLicenseDCA);
     sheetLicensesMenu->addAction(openLicenseR);
     sheetLicensesMenu->addAction(openLicenseNls);
     sheetLicensesMenu->addAction(openLicenseBase64);
@@ -659,7 +659,7 @@ void SheetWidget::showDemandWindow()
     demandWindowDialog->show();
 }
 
-void SheetWidget::showDMSLicenseWindow()
+void SheetWidget::showDCALicenseWindow()
 {
     QString mFilePath = "";
 
@@ -676,7 +676,7 @@ void SheetWidget::showDMSLicenseWindow()
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
-    licenseDialog->setWindowTitle("DMS License (GPL-V3)");
+    licenseDialog->setWindowTitle("DCA License (GPL-V3)");
     licenseDialog->setModal(true);
     licenseDialog->show();
 }
@@ -830,7 +830,7 @@ void SheetWidget::showBDSLicenseWindow()
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
-    licenseDialog->setWindowTitle("DMS License (GPL-V3)");
+    licenseDialog->setWindowTitle("DCA License (GPL-V3)");
     licenseDialog->setModal(true);
     licenseDialog->show();
 }

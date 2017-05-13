@@ -65,7 +65,7 @@ RESOURCES += \
     spreadsheet.qrc
 
 win32 {
-    DMS_FILES.files = scripts/DiscountingAreaComputation.R \
+    DCA_FILES.files = scripts/DiscountingAreaComputation.R \
                     scripts/DiscountingED50Computation.R \
                     scripts/checkSystematic.R \
                     scripts/fitDemand.R \
@@ -88,12 +88,12 @@ win32 {
     release: DESTDIR = $$OUT_PWD/build/release
     debug:   DESTDIR = $$OUT_PWD/build/debug
 
-    DMS_FILES.path = $$DESTDIR
+    DCA_FILES.path = $$DESTDIR
 
-    INSTALLS += DMS_FILES
+    INSTALLS += DCA_FILES
 }
 macx {
-    DMS_FILES.files = scripts/DiscountingAreaComputation.R \
+    DCA_FILES.files = scripts/DiscountingAreaComputation.R \
                     scripts/DiscountingED50Computation.R \
                     scripts/checkSystematic.R \
                     scripts/fitDemand.R \
@@ -113,9 +113,9 @@ macx {
                     License_reshape.txt \
                     COPYING
 
-    DMS_FILES.path = Contents/Resources
+    DCA_FILES.path = Contents/Resources
 
-    QMAKE_BUNDLE_DATA += DMS_FILES
+    QMAKE_BUNDLE_DATA += DCA_FILES
 }
 
 DISTFILES += \

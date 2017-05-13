@@ -200,11 +200,11 @@ void StatusDialog::DiagnosticsComplete()
         ui->statusBase64->text().contains("not") ||
         ui->statusJson->text().contains("not"))
     {
-        ui->statusDiagnostics->setText("DMS is not yet functional!");
+        ui->statusDiagnostics->setText("DCA is not yet functional!");
     }
     else
     {
-        ui->statusDiagnostics->setText("DMS is installed and ready!");
+        ui->statusDiagnostics->setText("DCA is installed and ready!");
         ui->statusDiagnostics->setStyleSheet("QLabel { color : green; }");
     }
 }

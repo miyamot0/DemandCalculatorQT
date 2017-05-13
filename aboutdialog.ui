@@ -28,10 +28,10 @@
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
-        <x>32</x>
+        <x>44</x>
         <y>0</y>
-        <width>352</width>
-        <height>977</height>
+        <width>328</width>
+        <height>809</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -174,27 +174,7 @@
        <item>
         <widget class="QLabel" name="label_9">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The DMS operates in a general fashion with R.  There are literally hundreds of R versions out there and depending your particular version, there may be variability in how it behaves. Generally, you should attempt to re-start the program so that it has a chance to fetch the needed packages.  If this doesn't help, email shawn(dot)gilroy(at)temple(dot)edu your specific log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_11">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;My data is highlighted in yellow?&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_10">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The model selection procedures work in a relative fashion-- All models are compared against one another.  In this way, there isn't a 'wrong' model but simply models that are more favorable than others. Data characterized according to the 'Noise Model' are series that don't appear to fit typical models and does not appear systematic. These series are highlighted so that users may orient to the data and inspect before drawing conclusions from other model parameters.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The DCA operates in a general fashion with R. There are literally hundreds of R versions out there and depending your particular version, there may be variability in how it behaves. Generally, you should attempt to re-start the program so that it has a chance to fetch the needed packages. If this doesn't help, email shawn(dot)gilroy(at)temple(dot)edu your specific log.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>

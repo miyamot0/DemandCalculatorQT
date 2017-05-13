@@ -137,7 +137,7 @@ public slots:
     void showCreditsWindow();
     void showFAQWindow();
 
-    void showDMSLicenseWindow();
+    void showDCALicenseWindow();
     void showRLicenseWindow();
     void showNLSLicenseWindow();
     void showBase64LicenseWindow();
@@ -180,7 +180,7 @@ private:
 
     QAction *openDemandWindow;
 
-    QAction *openLicenseDMS;
+    QAction *openLicenseDCA;
     QAction *openLicenseR;
     QAction *openLicenseNls;
     QAction *openLicenseBase64;
