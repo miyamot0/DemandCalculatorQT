@@ -86,7 +86,7 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QGroupBox" name="groupBox_2">
+        <widget class="QGroupBox" name="groupBoxModels">
          <property name="title">
           <string>Modeling Options</string>
          </property>
@@ -131,7 +131,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_9">
+        <widget class="QGroupBox" name="groupBoxStein">
          <property name="title">
           <string>Systematic Checks</string>
          </property>
@@ -185,8 +185,17 @@
        <layout class="QVBoxLayout" name="verticalLayout_9">
         <item>
          <widget class="QLabel" name="label_5">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To calculate demand curves, users must select a range of Pricing Values and Consumption Values in the main spreadsheet. Data may be either horizontally (Left to Right) or vertically (Top to Bottom) oriented, so long as the arrangement is consistent. Advanced users may also select the Linear Demand Function (), the Exponential Demand Function (Hursh &amp;amp; Silberburg, 2008) or the Exponentiated Demand Function (Koffarnus, Franck, Stein &amp;amp; Bickel, 2015) to apply to the provided data. Whenever possible, users are urged to proceed with the assigned defaults. The defaults for each model are automatically updated when models are selected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -195,19 +204,6 @@
         </item>
        </layout>
       </widget>
-     </item>
-     <item>
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton">
@@ -236,7 +232,7 @@
      <item>
       <layout class="QHBoxLayout" name="holderFrame">
        <item>
-        <widget class="QGroupBox" name="groupBox_6">
+        <widget class="QGroupBox" name="groupBoxY">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -299,7 +295,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_4">
+        <widget class="QGroupBox" name="groupBoxX">
          <property name="enabled">
           <bool>true</bool>
          </property>
@@ -371,7 +367,7 @@
      <item>
       <layout class="QHBoxLayout" name="holderFrame2">
        <item>
-        <widget class="QGroupBox" name="groupBox_3">
+        <widget class="QGroupBox" name="groupBoxK">
          <property name="title">
           <string>Free Parameter (k) Settings</string>
          </property>
@@ -443,10 +439,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_5">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
+        <widget class="QGroupBox" name="groupBoxFigure">
          <property name="title">
           <string>Visualization Options</string>
          </property>
@@ -488,14 +481,29 @@
      </item>
      <item>
       <widget class="QGroupBox" name="groupBox_8">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="title">
         <string>Notes:</string>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_10">
         <item>
          <widget class="QLabel" name="label_6">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="text">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The above settings can be overridden. Caution is emphasized in modifying these values without fully understanding the conceptual and methodological implications. Deviating from the defaults may produce biased analyses and/or questionable results.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
@@ -504,19 +512,6 @@
         </item>
        </layout>
       </widget>
-     </item>
-     <item>
-      <spacer name="verticalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>

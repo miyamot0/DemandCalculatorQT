@@ -45,6 +45,20 @@ void DemandSettingsDialog::ToggleButton(bool status)
     ui->pushButton->setEnabled(status);
 }
 
+void DemandSettingsDialog::WindowStateActive(bool status)
+{
+    ui->priceRangeText->setEnabled(status);
+    ui->consumptionRangeText->setEnabled(status);
+    ui->groupBoxModels->setEnabled(status);
+    ui->groupBoxStein->setEnabled(status);
+    ui->groupBoxY->setEnabled(status);
+    ui->groupBoxX->setEnabled(status);
+    ui->groupBoxK->setEnabled(status);
+    ui->groupBoxFigure->setEnabled(status);
+
+    ui->pushButton->setEnabled(status);
+}
+
 void DemandSettingsDialog::UpdatePrices(QString label, int top, int left, int bottom, int right)
 {
     ui->priceRangeText->setText(label);

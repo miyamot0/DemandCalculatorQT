@@ -86,8 +86,6 @@
 
 #include "fitworker.h"
 
-#include "graphicaloutputdialog.h"
-
 #include "licensedialog.h"
 #include "creditsdialog.h"
 #include "aboutdialog.h"
@@ -213,7 +211,6 @@ private:
     CreditsDialog *creditsDialog;
 
     ResultsDialog *resultsDialog;
-    GraphicalOutputDialog *graphicalOutputDialog;
 
     QString mModel;
     QString commandParameter;
@@ -224,6 +221,7 @@ private:
 
     bool isChecking;
     bool isConditional;
+
     QString mCallK;
     QString mCallX;
     QString mCallY;
@@ -233,6 +231,8 @@ private:
 
     QString mRemQ0;
     QString mReplQ0;
+
+    QString mFigureFlag;
 
     /**
      * @brief Thread object which will let us manipulate the running thread

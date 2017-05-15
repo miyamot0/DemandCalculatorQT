@@ -45,12 +45,14 @@ ResultsDialog::ResultsDialog(QWidget *parent, QString jsonString) :
         )
     );
 
+    graphicalOutputDialog = new GraphicalOutputDialog(this);
+
     copyAction = new QAction("Copy", this);
     copyAction->setShortcut(QKeySequence("Ctrl+C"));
     copyAction->setIcon(QIcon(":/images/edit-copy.png"));
     connect(copyAction, &QAction::triggered, this, &ResultsDialog::copy);
 
-    addAction(copyAction);    
+    addAction(copyAction);
 
     jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8(), &err);
     jsonArr = jsonDoc.array();
@@ -61,6 +63,16 @@ ResultsDialog::ResultsDialog(QWidget *parent, QString jsonString) :
     {
         jsonVal = jsonArr.at(i);
         jsonObj = jsonVal.toObject();
+
+        if (jsonObj["figure"].toString().contains("SKIP", Qt::CaseInsensitive))
+        {
+            skipFlag = true;
+        }
+
+        if (!skipFlag)
+        {
+            graphicalOutputDialog->appendBase64(jsonObj["figure"].toString());
+        }
 
         if (i == 0)
         {
@@ -110,6 +122,11 @@ ResultsDialog::ResultsDialog(QWidget *parent, QString jsonString) :
             item->setFlags(item->flags() ^ Qt::ItemIsEditable);
             ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, j, item);
         }
+    }
+
+    if (!skipFlag)
+    {
+        graphicalOutputDialog->show();
     }
 }
 

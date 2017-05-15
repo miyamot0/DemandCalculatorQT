@@ -1119,12 +1119,11 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     isChecking = checkValues;
     isConditional = notify;
     mCallK = kString;
-
     mRem0 = rem0;
     mReplnum = replnum;
-
     mRemQ0 = remQ0;
     mReplQ0 = replQ0;
+    mFigureFlag = (showCharts) ? "TRUE" : "FALSE";
 
     /**
      * @brief isRowData
@@ -1186,6 +1185,8 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     thread->wait();
     worker->startWork();
+
+    demandWindowDialog->WindowStateActive(false);
 }
 
 void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData,
@@ -1371,6 +1372,7 @@ void SheetWidget::WorkFinished(QStringList status)
                 mArgList << mReplnum;
                 mArgList << mRemQ0;
                 mArgList << mReplQ0;
+                mArgList << mFigureFlag;
 
                 mSeriesCommands.clear();
                 mSeriesCommands << mArgList.join(" ");
@@ -1389,6 +1391,10 @@ void SheetWidget::WorkFinished(QStringList status)
 
                 thread->wait();
                 worker->startWork();
+            }
+            else
+            {
+                demandWindowDialog->WindowStateActive(true);
             }
         }
         else if (isConditional)
@@ -1428,6 +1434,7 @@ void SheetWidget::WorkFinished(QStringList status)
                     mArgList << mReplnum;
                     mArgList << mRemQ0;
                     mArgList << mReplQ0;
+                    mArgList << mFigureFlag;
 
                     mSeriesCommands.clear();
                     mSeriesCommands << mArgList.join(" ");
@@ -1446,6 +1453,10 @@ void SheetWidget::WorkFinished(QStringList status)
 
                     thread->wait();
                     worker->startWork();
+                }
+                else
+                {
+                    demandWindowDialog->WindowStateActive(true);
                 }
             }
             else
@@ -1476,6 +1487,7 @@ void SheetWidget::WorkFinished(QStringList status)
                 mArgList << mReplnum;
                 mArgList << mRemQ0;
                 mArgList << mReplQ0;
+                mArgList << mFigureFlag;
 
                 mSeriesCommands.clear();
                 mSeriesCommands << mArgList.join(" ");
@@ -1524,6 +1536,7 @@ void SheetWidget::WorkFinished(QStringList status)
             mArgList << mReplnum;
             mArgList << mRemQ0;
             mArgList << mReplQ0;
+            mArgList << mFigureFlag;
 
             mSeriesCommands.clear();
             mSeriesCommands << mArgList.join(" ");
@@ -1549,9 +1562,7 @@ void SheetWidget::WorkFinished(QStringList status)
         resultsDialog = new ResultsDialog(this, status.at(1));
         resultsDialog->show();
 
-        /*
-        TODO, Figure
-        */
+        demandWindowDialog->WindowStateActive(true);
     }
 }
 

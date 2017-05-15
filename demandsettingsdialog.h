@@ -42,6 +42,7 @@ public slots:
     void UpdatePrices(QString label, int top, int left, int bottom, int right);
     void UpdateConsumption(QString label, int top, int left, int bottom, int right);
     void ToggleButton(bool status);
+    void WindowStateActive(bool status);
 
 private slots:
     QString getModelString();
