@@ -61,6 +61,12 @@ int main(int argc, char *argv[])
 
         commandString = "/usr/local/bin/Rscript";
     }
+    else if(QFile::exists("/usr/bin/Rscript"))
+    {
+        isRActive = true;
+
+        commandString = "/usr/bin/Rscript";
+    }
 
     QDir myDir("/Applications");
     QList<QFileInfo> mFiles = myDir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries);
