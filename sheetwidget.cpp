@@ -1691,11 +1691,6 @@ void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tem
  * @brief
  */
 
-QString SheetWidget::convert_bool(bool value)
-{
-    return (value) ? QString("1") : QString("0");
-}
-
 QString SheetWidget::strippedName(const QString &fullFileName)
 {
     return QFileInfo(fullFileName).fileName();

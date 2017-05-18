@@ -100,8 +100,6 @@ public:
     void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption);
     void convertExcelColumn(QString &mString, int column);
 
-    QString convert_bool(bool value);
-
     QList<QStringList> allResults;
     QList<QStringList> allCharts;
 
