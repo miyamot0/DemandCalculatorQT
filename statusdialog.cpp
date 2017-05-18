@@ -44,6 +44,11 @@ StatusDialog::StatusDialog(bool rInstalled, bool isSVGsupported, QString command
 
     orderVar = 0;
 
+
+    QString mText = ui->labelSubTitle->text();
+    QString mTextReplace = mText.replace(QString("[[version]]"), QString("%1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
+    ui->labelSubTitle->setText(mTextReplace);
+
     if (!rInstalled)
     {
         ui->statusR->setText("R was not found!");
