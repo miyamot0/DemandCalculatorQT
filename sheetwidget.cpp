@@ -374,7 +374,12 @@ void SheetWidget::checkUpdatesAction()
 #ifdef _WIN32
     mCommand = "maintenancetool.exe";
 #elif TARGET_OS_MAC
-    mCommand = "maintenancetool";
+    QDir mDir = QDir::current();
+    mDir.cdUp();
+    mDir.cdUp();
+    mDir.cdUp();
+
+    mCommand = QDir::cleanPath(mDir.path() + QDir::separator() + "maintenancetool.app");
 #endif
 
     if (QFile::exists(mCommand))
