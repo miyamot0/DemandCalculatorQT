@@ -100,7 +100,7 @@ SheetWidget::SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandSt
     buildMenus();
     setCentralWidget(table);
 
-    setWindowTitle("Demand Curve Analyzer v 1.0.0.0");
+    setWindowTitle("Demand Curve Analyzer v" + QString("%1.%2.%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD));
 
     this->layout()->setSizeConstraint(QLayout::SetNoConstraint);
 
