@@ -369,12 +369,20 @@ void SheetWidget::clearSheet()
 
 void SheetWidget::checkUpdatesAction()
 {
-    if (QFile::exists("maintenancetool.exe"))
+    QString mCommand = "";
+
+#ifdef _WIN32
+    mCommand = "maintenancetool.exe";
+#elif TARGET_OS_MAC
+    mCommand = "maintenancetool";
+#endif
+
+    if (QFile::exists(mCommand))
     {
         QProcess p;
         QStringList args;
         args << "--updater";
-        p.start("maintenancetool.exe", args);
+        p.start(mCommand, args);
         p.waitForStarted();
         p.waitForFinished(-1);
     }
