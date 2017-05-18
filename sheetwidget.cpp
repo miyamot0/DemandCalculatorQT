@@ -87,7 +87,6 @@ SheetWidget::SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandSt
     table = new QTableWidget(10000, 10000, this);
     table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
 
-
     QString value;
 
     for (int c = 0; c < 10000; ++c)
@@ -170,6 +169,7 @@ void SheetWidget::buildMenus()
     connect(saveSheetAction, &QAction::triggered, this, &SheetWidget::showSaveFileDialog);
 
     updateProgramAction = new QAction("C&heck Updates", this);
+    updateProgramAction->setIcon(QIcon(":/images/view-refresh.png"));
     connect(updateProgramAction, &QAction::triggered, this, &SheetWidget::checkUpdatesAction);
 
     exitSheetAction = new QAction("E&xit", this);
@@ -381,8 +381,6 @@ void SheetWidget::checkUpdatesAction()
 
     mCommand = QDir::cleanPath(mDir.path() + QDir::separator() + "maintenancetool.app");
 #endif
-
-    qDebug() << mCommand;
 
     if (QFile::exists(mCommand))
     {
