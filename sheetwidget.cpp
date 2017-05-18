@@ -169,6 +169,9 @@ void SheetWidget::buildMenus()
     saveSheetAction->setIcon(QIcon(":/images/document-save.png"));
     connect(saveSheetAction, &QAction::triggered, this, &SheetWidget::showSaveFileDialog);
 
+    updateProgramAction = new QAction("C&heck Updates", this);
+    connect(updateProgramAction, &QAction::triggered, this, &SheetWidget::checkUpdatesAction);
+
     exitSheetAction = new QAction("E&xit", this);
     exitSheetAction->setShortcut(QKeySequence("Ctrl+Q"));
     exitSheetAction->setIcon(QIcon(":/images/application-exit.png"));
@@ -296,7 +299,8 @@ void SheetWidget::buildMenus()
     }
 
     sheetOptionsMenu->addSeparator();
-
+    sheetOptionsMenu->addAction(updateProgramAction);
+    sheetOptionsMenu->addSeparator();
     sheetOptionsMenu->addAction(exitSheetAction);
 
     updateRecentFileActions();
@@ -361,6 +365,19 @@ void SheetWidget::clearSheet()
     setWindowFilePath(curFile);
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+void SheetWidget::checkUpdatesAction()
+{
+    if (QFile::exists("maintenancetool.exe"))
+    {
+        QProcess p;
+        QStringList args;
+        args << "--updater";
+        p.start("maintenancetool.exe", args);
+        p.waitForStarted();
+        p.waitForFinished(-1);
+    }
 }
 
 /** Window methods

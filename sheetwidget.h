@@ -163,11 +163,13 @@ public slots:
     void closeEvent(QCloseEvent* event);
     void setCurrentFile(const QString &fileName);
     void updateRecentFileActions();
+    void checkUpdatesAction();
 
 private:
     QAction *newSheetAction;
     QAction *openSheetAction;
     QAction *saveSheetAction;
+    QAction *updateProgramAction;
     QAction *exitSheetAction;
 
     QAction *cutAction;
