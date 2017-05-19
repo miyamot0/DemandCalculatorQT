@@ -75,18 +75,14 @@ win32 {
                     scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
                     scripts/installDependencyJsonlite.R \
-                    scripts/installDependencyReshape.R \
                     scripts/installDependencyBeezdemand.R \
                     scripts/installDependencyDevtools.R \
                     scripts/installDependencyDigest.R \
-                    License_base64enc.txt \
-                    License_BDS.txt \
                     License_gnome_icons.txt \
-                    License_jsonlite.txt \
-                    License_NLS.txt \
                     License_Qt.txt \
                     License_R.txt \
-                    License_reshape.txt \
+                    License_Beezdemand.txt \
+                    License_fitDemand.txt \
                     COPYING
 
     release: DESTDIR = $$OUT_PWD/build/release
@@ -101,18 +97,14 @@ macx {
                     scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
                     scripts/installDependencyJsonlite.R \
-                    scripts/installDependencyReshape.R \
                     scripts/installDependencyBeezdemand.R \
                     scripts/installDependencyDevtools.R \
                     scripts/installDependencyDigest.R \
-                    License_base64enc.txt \
-                    License_BDS.txt \
                     License_gnome_icons.txt \
-                    License_jsonlite.txt \
-                    License_NLS.txt \
                     License_Qt.txt \
                     License_R.txt \
-                    License_reshape.txt \
+                    License_Beezdemand.txt \
+                    License_fitDemand.txt \
                     COPYING
 
     DCA_FILES.path = Contents/Resources
@@ -121,19 +113,15 @@ macx {
 }
 
 DISTFILES += \
-    License_base64enc.txt \
-    License_BDS.txt \
     License_gnome_icons.txt \
-    License_jsonlite.txt \
-    License_NLS.txt \
     License_Qt.txt \
     License_R.txt \
-    License_reshape.txt \
+    License_Beezdemand.txt \
+    License_fitDemand.txt \
     COPYING \
     README.md \
     scripts/installDependencyBase64.R \
     scripts/installDependencyJsonlite.R \
-    scripts/installDependencyReshape.R \
     scripts/installDependencyBeezdemand.R \
     scripts/installDependencyDevtools.R \
     scripts/installDependencyDigest.R \

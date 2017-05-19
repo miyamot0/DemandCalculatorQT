@@ -31,7 +31,6 @@ The Small N Stats Demand Calculator uses a number of open source projects to wor
 * nls R Package (stats) - GPLv2+ (GPL 3.0 Licensed). Copyright (C) 1999-1999 Saikat DebRoy, Douglas M. Bates, Jose C. Pinheiro.
 * nls R Package (stats) - GPLv2+ (GPL 3.0 Licensed). Copyright (C) 2000-17. The R Core Team.
 * base64enc R Package - GPLv2+ (GPL 3.0 Licensed). Copyright (c) 2015, Simon Urbanek
-* reshape R Package - MIT Licensed. Copyright (c) 2014, Hadley Wickham.
 * jsonlite R Package - MIT Licensed. Copyright (c) 2017, Jeroen Ooms.
 
 ### Referenced Works (academic works)

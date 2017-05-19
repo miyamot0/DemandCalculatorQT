@@ -77,7 +77,6 @@ StatusDialog::StatusDialog(bool rInstalled, bool isSVGsupported, QString command
     mPackageInstall << "installDependencyDevtools.R";
     mPackageInstall << "installDependencyDigest.R";
     mPackageInstall << "installDependencyBeezdemand.R";
-    mPackageInstall << "installDependencyReshape.R";
     mPackageInstall << "installDependencyBase64.R";
     mPackageInstall << "installDependencyJsonlite.R";
 
@@ -94,7 +93,6 @@ StatusDialog::StatusDialog(bool rInstalled, bool isSVGsupported, QString command
     mPackageInstall << scriptDir + "installDependencyDevtools.R\"";
     mPackageInstall << scriptDir + "installDependencyDigest.R\"";
     mPackageInstall << scriptDir + "installDependencyBeezdemand.R\"";
-    mPackageInstall << scriptDir + "installDependencyReshape.R\"";
     mPackageInstall << scriptDir + "installDependencyBase64.R\"";
     mPackageInstall << scriptDir + "installDependencyJsonlite.R\"";
 
@@ -159,18 +157,6 @@ void StatusDialog::WorkUpdate(QString status)
     {
         if (!isTrue)
         {
-            ui->statusReshape->setText("reshape could not be installed!");
-        }
-        else
-        {
-            ui->statusReshape->setText("reshape installed and ready!");
-            ui->statusReshape->setStyleSheet("QLabel { color : green; }");
-        }
-    }
-    else if (orderVar == 4)
-    {
-        if (!isTrue)
-        {
             ui->statusBase64->setText("base64enc could not be installed!");
         }
         else
@@ -179,7 +165,7 @@ void StatusDialog::WorkUpdate(QString status)
             ui->statusBase64->setStyleSheet("QLabel { color : green; }");
         }
     }
-    else if (orderVar == 5)
+    else if (orderVar == 4)
     {
         if (!isTrue)
         {
@@ -201,7 +187,6 @@ void StatusDialog::DiagnosticsComplete()
         ui->statusDigest->text().contains("not") ||
         ui->statusBeezdemand->text().contains("not") ||
         ui->statusR->text().contains("not") ||
-        ui->statusReshape->text().contains("not") ||
         ui->statusBase64->text().contains("not") ||
         ui->statusJson->text().contains("not"))
     {

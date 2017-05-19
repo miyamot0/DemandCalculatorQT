@@ -134,13 +134,8 @@ public slots:
     void showFAQWindow();
 
     void showDCALicenseWindow();
-    void showRLicenseWindow();
-    void showNLSLicenseWindow();
-    void showBase64LicenseWindow();
-    void showGridextraLicenseWindow();
-    void showJsonliteLicenseWindow();
-    void showReshapeLicenseWindow();
-    void showBDSLicenseWindow();
+    void showBeezdemandLicenseWindow();
+    void showFitDemandLicenseWindow();
     void showQTLicenseWindow();
     void showGnomeLicenseWindow();
 
@@ -179,12 +174,8 @@ private:
     QAction *openDemandWindow;
 
     QAction *openLicenseDCA;
-    QAction *openLicenseR;
-    QAction *openLicenseNls;
-    QAction *openLicenseBase64;
-    QAction *openLicenseJsonlite;
-    QAction *openLicenseReshape;
-    QAction *openLicenseBDS;
+    QAction *openLicenseBeezdemand;
+    QAction *openLicenseFitDemand;
     QAction *openLicenseQt;
     QAction *openLicenseGnome;
 
