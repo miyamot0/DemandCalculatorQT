@@ -4,17 +4,21 @@
 #
 #-------------------------------------------------
 
+TEST_FEATURES = 0
+
 VERSION_MAJOR = 1
-VERSION_MINOR = 0
+VERSION_MINOR = 2
 VERSION_BUILD = 6
 
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
        "VERSION_MINOR=$$VERSION_MINOR"\
-       "VERSION_BUILD=$$VERSION_BUILD"
+       "VERSION_BUILD=$$VERSION_BUILD"\
+       "VERSION_TESTING=$$TEST_FEATURES"
 
-QT       += core gui widgets xlsx svg
+QT       += core gui widgets xlsx charts network xml
 
 TARGET = DemandCalculatorQt
+
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -97,6 +101,11 @@ FORMS    += \
 RESOURCES += \
     spreadsheet.qrc
 
+###
+#
+# Win macro's, route to appropriate directories for installation prep
+#
+###
 win32 {
     DCA_FILES.files = scripts/checkSystematic.R \
                     scripts/fitDemand.R \
@@ -110,16 +119,32 @@ win32 {
                     License_R.txt \
                     License_Beezdemand.txt \
                     License_fitDemand.txt \
-                    COPYING
+                    COPYING \
+                    SNS.ico
 
-    release: DESTDIR = $$OUT_PWD/build/release
-    debug:   DESTDIR = $$OUT_PWD/build/debug
+    win32:RC_ICONS += SNS.ico
+
+    CONFIG(debug, debug|release) {
+        DESTDIR = $$OUT_PWD/build/debug
+    } else {
+        DESTDIR = $$OUT_PWD/build/release
+    }
 
     DCA_FILES.path = $$DESTDIR
 
     INSTALLS += DCA_FILES
 }
+
+###
+#
+# Mac macro's, route to appropriate directories for installation prep
+#
+###
 macx {
+    INCLUDEPATH += Libraries/alglib-3.11.0/src
+
+    macx:ICON = $${PWD}/SNS.icns
+
     DCA_FILES.files = scripts/checkSystematic.R \
                     scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
@@ -132,7 +157,8 @@ macx {
                     License_R.txt \
                     License_Beezdemand.txt \
                     License_fitDemand.txt \
-                    COPYING
+                    COPYING \
+                    SNS.icns
 
     DCA_FILES.path = Contents/Resources
 
@@ -153,4 +179,8 @@ DISTFILES += \
     scripts/installDependencyDevtools.R \
     scripts/installDependencyDigest.R \
     scripts/checkSystematic.R \
-    scripts/fitDemand.R
+    scripts/fitDemand.R \
+    SNS.ico \
+    SNS.icns \
+    License_ALGLIB.txt \
+    License_Tango.txt
