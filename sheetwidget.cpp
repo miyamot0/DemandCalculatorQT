@@ -66,6 +66,26 @@
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 
+   ====================================================================================
+
+   ALGLIB 3.11.0 (source code generated 2017-05-11)
+   Copyright (c) Sergey Bochkanov (ALGLIB project).
+
+   >>> SOURCE LICENSE >>>
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation (www.fsf.org); either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   A copy of the GNU General Public License is available at
+   http://www.fsf.org/licensing/licenses
+   >>> END OF LICENSE >>>
+
   */
 
 #include <QtWidgets>
@@ -78,14 +98,14 @@
 
 QTXLSX_USE_NAMESPACE
 
-SheetWidget::SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandString, QWidget *parent) : QMainWindow(parent)
+SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
 {
-    isCoreRPresent = rInstalled;
-    isCoreSVGSupportPresent = isSVGinstalled;
-    commandParameter = commandString;
-
     table = new QTableWidget(10000, 10000, this);
     table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
+
+    #ifdef TARGET_OS_MAC
+        table->setStyleSheet("QTableView {selection-background-color: #73E2A7; }");
+    #endif
 
     QString value;
 
@@ -118,34 +138,57 @@ SheetWidget::SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandSt
 
     #endif
 
-    statusDialog = new StatusDialog(isCoreRPresent, isCoreSVGSupportPresent, commandParameter, this);
-    statusDialog->setModal(true);
-    statusDialog->show();
-
-    if (!isCoreRPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup R");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program was not found on your machine (at least within the normal path). If installed already, please add the binary to your path. If not yet installed, you can download the R program from this location:<br/><br/> <a href='https://www.r-project.org//'>The R Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-    }
-
-    if (!isCoreSVGSupportPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup xQuartz");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program uses xQuartz on OSX to to generate high quality images. This was not found "
-                            "on your machine (at least within the normal path). If not yet installed, you "
-                            "can download and install xQuartz from this location:<br/><br/> <a href='https://www.xquartz.org/'>"
-                            "The xQuartz Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-    }
-
     table->installEventFilter( this );
+
+    manager = new QNetworkAccessManager(this);
+    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(downloadedFile(QNetworkReply*)) );
+
+    #ifdef _WIN32
+        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/ModelSelectionRepository/Updates.xml")));
+    #elif TARGET_OS_MAC
+        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/ModelSelectionRepositoryMac/Updates.xml")));
+    #endif
+}
+
+void SheetWidget::downloadedFile(QNetworkReply *reply) {
+    QByteArray data = reply->readAll();
+
+    QDomDocument versionXML;
+
+    if(!versionXML.setContent(data))
+    {
+        return;
+    }
+
+    QDomElement root = versionXML.documentElement();
+    QDomElement mNode = root.namedItem("PackageUpdate").toElement();
+    QDomElement mNode2 = mNode.namedItem("Version").toElement();
+
+    QStringList mVersionList = mNode2.text().split('.');
+
+    bool hasUpdate = false;
+
+    if (mVersionList[0].toInt() > VERSION_MAJOR)
+    {
+        hasUpdate = true;
+    }
+    else if (mVersionList[1].toInt() > VERSION_MINOR)
+    {
+        hasUpdate = true;
+    }
+    else if (mVersionList[2].toInt() > VERSION_BUILD)
+    {
+        hasUpdate = true;
+    }
+
+    if (hasUpdate)
+    {
+        QMessageBox *msgBox = new QMessageBox;
+        msgBox->setWindowTitle("Updates");
+        msgBox->setText("There is an update available!");
+        msgBox->setWindowModality(Qt::NonModal);
+        msgBox->show();
+    }
 }
 
 void SheetWidget::buildMenus()
@@ -174,7 +217,7 @@ void SheetWidget::buildMenus()
 
     exitSheetAction = new QAction("E&xit", this);
     exitSheetAction->setShortcut(QKeySequence("Ctrl+Q"));
-    exitSheetAction->setIcon(QIcon(":/images/application-exit.png"));
+    exitSheetAction->setIcon(QIcon(":/images/system-log-out.png"));
     connect(exitSheetAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 
     /** Window actions
@@ -182,7 +225,7 @@ void SheetWidget::buildMenus()
      */
 
     openDemandWindow = new QAction("D&emand Curve Analysis", this);
-    openDemandWindow->setIcon(QIcon(":/images/applications-other.png"));
+    openDemandWindow->setIcon(QIcon(":/images/applications-system.png"));
     connect(openDemandWindow, &QAction::triggered, this, &SheetWidget::showDemandWindow);
 
     /** Edit actions
@@ -221,31 +264,31 @@ void SheetWidget::buildMenus()
     demandWindowDialog = new DemandSettingsDialog(this);
 
     openLicenseDCA = new QAction("DCA License (GPL-V3)", this);
-    openLicenseDCA->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseDCA->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseDCA, &QAction::triggered, this, &SheetWidget::showDCALicenseWindow);
 
     openLicenseBeezdemand = new QAction("Beezdemand License (GPL-V3)", this);
-    openLicenseBeezdemand->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseBeezdemand->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseBeezdemand, &QAction::triggered, this, &SheetWidget::showBeezdemandLicenseWindow);
 
     openLicenseFitDemand = new QAction("fitDemand License (GPL-V3)", this);
-    openLicenseFitDemand->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseFitDemand->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseFitDemand, &QAction::triggered, this, &SheetWidget::showFitDemandLicenseWindow);
 
     openLicenseQt = new QAction("Qt License (LGPL-V3, GPL-V3)", this);
-    openLicenseQt->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseQt->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseQt, &QAction::triggered, this, &SheetWidget::showQTLicenseWindow);
 
     openLicenseGnome = new QAction("Gnome Icons License (GPL-V3)", this);
-    openLicenseGnome->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseGnome->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseGnome, &QAction::triggered, this, &SheetWidget::showGnomeLicenseWindow);
 
     openAbout = new QAction("Credits", this);
-    openAbout->setIcon(QIcon(":/images/text-x-generic.png"));
+    openAbout->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openAbout, &QAction::triggered, this, &SheetWidget::showCreditsWindow);
 
     openFAQ = new QAction("FAQ", this);
-    openFAQ->setIcon(QIcon(":/images/text-x-generic.png"));
+    openFAQ->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openFAQ, &QAction::triggered, this, &SheetWidget::showFAQWindow);
 
     /** Window helper actions
@@ -253,16 +296,17 @@ void SheetWidget::buildMenus()
      */
 
     priceAction = new QAction("Set Prices", this);
-    priceAction->setIcon(QIcon(":/images/system-run.png"));
+    priceAction->setIcon(QIcon(":/images/preferences-system.png"));
     connect(priceAction, &QAction::triggered, this, &SheetWidget::updatePriceModalWindow);
 
     consumptionAction = new QAction("Set Consumption", this);
-    consumptionAction->setIcon(QIcon(":/images/system-run.png"));
+    consumptionAction->setIcon(QIcon(":/images/preferences-system.png"));
     connect(consumptionAction, &QAction::triggered, this, &SheetWidget::updateConsumptionModalWindow);
 
     for (int i = 0; i < MaxRecentFiles; ++i) {
         recentFileActs[i] = new QAction(this);
         recentFileActs[i]->setVisible(false);
+        recentFileActs[i]->setIcon(QIcon(":/images/format-justify-center.png"));
         connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
     }
 
@@ -632,33 +676,6 @@ void SheetWidget::showSaveFileDialog()
 
 void SheetWidget::showDemandWindow()
 {
-    if (!isCoreRPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup up");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program was not found on your machine (at least within the normal path). If installed already, please add the binary to your path. If not yet installed, you can download the R program from this location:<br/><br/> <a href='https://www.r-project.org//'>The R Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-
-        return;
-    }
-
-    if (!isCoreSVGSupportPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup xQuartz");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program uses xQuartz on OSX to to generate high quality images. This was not found "
-                            "on your machine (at least within the normal path). If not yet installed, you "
-                            "can download and install xQuartz from this location:<br/><br/> <a href='https://www.xquartz.org/'>"
-                            "The xQuartz Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-
-        return;
-    }
-
     if (isToolWindowShown())
     {
         return;
@@ -1073,18 +1090,18 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     allResults.clear();
 
-    thread = new QThread();
-    worker = new FitWorker(commandParameter, mSeriesCommands);
+    //thread = new QThread();
+    //worker = new FitWorker(commandParameter, mSeriesCommands);
 
-    worker->moveToThread(thread);
+    //worker->moveToThread(thread);
 
-    connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-    connect(thread, SIGNAL(started()), worker, SLOT(working()));
-    connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-    connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+    //connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+    //connect(thread, SIGNAL(started()), worker, SLOT(working()));
+    //connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+    //connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
 
-    thread->wait();
-    worker->startWork();
+    //thread->wait();
+    //worker->startWork();
 
     demandWindowDialog->WindowStateActive(false);
 }
@@ -1279,18 +1296,18 @@ void SheetWidget::WorkFinished(QStringList status)
 
                 allResults.clear();
 
-                thread = new QThread();
-                worker = new FitWorker(commandParameter, mSeriesCommands);
+                //thread = new QThread();
+                //worker = new FitWorker(commandParameter, mSeriesCommands);
 
-                worker->moveToThread(thread);
+                //worker->moveToThread(thread);
 
-                connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-                connect(thread, SIGNAL(started()), worker, SLOT(working()));
-                connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-                connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+                //connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+                //connect(thread, SIGNAL(started()), worker, SLOT(working()));
+                //connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+                //connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
 
-                thread->wait();
-                worker->startWork();
+                //thread->wait();
+                //worker->startWork();
             }
             else
             {
@@ -1341,18 +1358,18 @@ void SheetWidget::WorkFinished(QStringList status)
 
                     allResults.clear();
 
-                    thread = new QThread();
-                    worker = new FitWorker(commandParameter, mSeriesCommands);
+                    //thread = new QThread();
+                    //worker = new FitWorker(commandParameter, mSeriesCommands);
 
-                    worker->moveToThread(thread);
+                    //worker->moveToThread(thread);
 
-                    connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-                    connect(thread, SIGNAL(started()), worker, SLOT(working()));
-                    connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-                    connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+                    //connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+                    //connect(thread, SIGNAL(started()), worker, SLOT(working()));
+                    //connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+                    //connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
 
-                    thread->wait();
-                    worker->startWork();
+                    //thread->wait();
+                    //worker->startWork();
                 }
                 else
                 {
@@ -1394,18 +1411,18 @@ void SheetWidget::WorkFinished(QStringList status)
 
                 allResults.clear();
 
-                thread = new QThread();
-                worker = new FitWorker(commandParameter, mSeriesCommands);
+                //thread = new QThread();
+                //worker = new FitWorker(commandParameter, mSeriesCommands);
 
-                worker->moveToThread(thread);
+                //worker->moveToThread(thread);
 
-                connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-                connect(thread, SIGNAL(started()), worker, SLOT(working()));
-                connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-                connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+                //connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+                //connect(thread, SIGNAL(started()), worker, SLOT(working()));
+                //connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+                //connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
 
-                thread->wait();
-                worker->startWork();
+                //thread->wait();
+                //worker->startWork();
             }
         }
         else
@@ -1443,18 +1460,18 @@ void SheetWidget::WorkFinished(QStringList status)
 
             allResults.clear();
 
-            thread = new QThread();
-            worker = new FitWorker(commandParameter, mSeriesCommands);
+            //thread = new QThread();
+            //worker = new FitWorker(commandParameter, mSeriesCommands);
 
-            worker->moveToThread(thread);
+            //worker->moveToThread(thread);
 
-            connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-            connect(thread, SIGNAL(started()), worker, SLOT(working()));
-            connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-            connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+            //connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
+            //connect(thread, SIGNAL(started()), worker, SLOT(working()));
+            //connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
+            //connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
 
-            thread->wait();
-            worker->startWork();
+            //thread->wait();
+            //worker->startWork();
         }
     }
     else if (mSplitCommand.first().contains("fitDemand.R"))

@@ -72,20 +72,18 @@
 #define SHEETWIDGET_H
 
 #include <QMainWindow>
-#include <QProcess>
 #include <QWidget>
 #include <QTableWidget>
 #include <QtGui>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QDomDocument>
 
 #include "sheetselectdialog.h"
 #include "demandsettingsdialog.h"
-
 #include "steincheckdialog.h"
 #include "resultsdialog.h"
-#include "statusdialog.h"
-
-#include "fitworker.h"
-
 #include "licensedialog.h"
 #include "creditsdialog.h"
 #include "aboutdialog.h"
@@ -95,7 +93,7 @@ class SheetWidget : public QMainWindow
     Q_OBJECT
 
 public:
-    SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandString, QWidget *parent = 0);
+    SheetWidget(QWidget *parent = 0);
 
     void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption);
     void convertExcelColumn(QString &mString, int column);
@@ -104,6 +102,7 @@ public:
     QList<QStringList> allCharts;
 
 public slots:
+    void downloadedFile(QNetworkReply *reply);
 
 protected:
     void buildMenus();
@@ -195,7 +194,6 @@ private:
     DemandSettingsDialog *demandWindowDialog;
     SteinCheckDialog *steinCheckDialog;
 
-    StatusDialog *statusDialog;
     LicenseDialog *licenseDialog;
 
     AboutDialog *aboutDialog;
@@ -204,11 +202,6 @@ private:
     ResultsDialog *resultsDialog;
 
     QString mModel;
-    QString commandParameter;
-    QStringList mInstallCommands;
-
-    bool isCoreRPresent;
-    bool isCoreSVGSupportPresent;
 
     bool isChecking;
     bool isConditional;
@@ -228,12 +221,12 @@ private:
     /**
      * @brief Thread object which will let us manipulate the running thread
      */
-    QThread *thread;
+    //QThread *thread;
 
     /**
      * @brief Object which contains methods that should be runned in another thread
      */
-    FitWorker *worker;
+    //FitWorker *worker;
 
     QStringList mSeriesCommands;
 
@@ -248,6 +241,8 @@ private:
     QString curFile;
 
     QAction *separatorAct;
+
+    QNetworkAccessManager *manager;
 };
 
 
