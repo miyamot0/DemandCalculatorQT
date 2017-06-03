@@ -200,6 +200,8 @@ void chartwindow::plotLinearSeries(int index)
     *pmaxLine << QPointF(derivedPmax, 0.01);
     *pmaxLine << QPointF(derivedPmax, log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax));
 
+    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
+
     axisX->setMax(highestPrice * 2.0);
 
     double highestConsumption = -1;
@@ -338,6 +340,8 @@ void chartwindow::plotExponentialSeries(int index)
     *pmaxLine << QPointF(derivedPmax, 0.01);
     *pmaxLine << QPointF(derivedPmax, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1));
 
+    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
+
     axisX->setMax(highestPrice * 2.0);
 
     double highestConsumption = -1;
@@ -458,6 +462,8 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     *pmaxLine << QPointF(derivedPmax, 0.01);
     *pmaxLine << QPointF(derivedPmax, exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
+
+    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
 
     rawPrices = mList.at(22);
     rawPrices = rawPrices.replace(QString("["), QString(""));
