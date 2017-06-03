@@ -165,7 +165,6 @@ macx {
 DISTFILES += \
     License_Qt.txt \
     License_Beezdemand.txt \
-    License_fitDemand.txt \
     COPYING \
     README.md \
     SNS.ico \
