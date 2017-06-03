@@ -48,8 +48,8 @@ private:
     lsfitstate state;
     lsfitreport rep;
 
-    double epsx = 0.000001;
-    double diffstep = 0.00001;
+    double epsx = 0.000000001;
+    double diffstep = 0.00000001;
 };
 
 #endif // DEMANDMODELING_H

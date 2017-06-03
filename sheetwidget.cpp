@@ -1291,8 +1291,11 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             << getOmaxEString(valuePoints, pricePointsTemp)
                             << getPmaxEString(valuePoints, pricePointsTemp)
                             << QString::number(L)
+                            << QString::number(mObj->GetReport().errpar[2])
                             << QString::number(b)
+                            << QString::number(mObj->GetReport().errpar[1])
                             << QString::number(a)
+                            << QString::number(mObj->GetReport().errpar[0])
                             << QString::number(mObj->GetReport().r2)
                             << "TO DO"
                             << QString::number(b - (a * pbar))
@@ -1365,8 +1368,13 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
                 double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+                double alphase = (mCallK == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
+
                 double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+                QString kse = (mCallK == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
+
                 double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+                double q0se = (mCallK == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
 
                 double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
                 double omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
@@ -1377,11 +1385,14 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 mTempHolder << QString::number(i + 1)
                             << "Exponential"
                             << QString::number(alpha)
+                            << QString::number(alphase)
                             << QString::number(q0)
+                            << QString::number(q0se)
                             << getBP1String(valuePoints, pricePointsTemp)
                             << QString::number(EV)
                             << getIntensityString(valuePoints, pricePointsTemp)
                             << QString::number(k)
+                            << kse
                             << QString::number(omaxd)
                             << getOmaxEString(valuePoints, pricePointsTemp)
                             << QString::number(pmaxd)
@@ -1459,8 +1470,12 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
                 double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+                double alphase = (mCallK == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
                 double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+                QString kse = (mCallK == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
+
                 double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+                double q0se = (mCallK == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
                 double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
                 double omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
 
@@ -1470,12 +1485,15 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 mTempHolder << QString::number(i + 1)
                             << "Exponentiated"
                             << QString::number(alpha)
+                            << QString::number(alphase)
                             << QString::number(q0)
+                            << QString::number(q0se)
                             << getBP0String(valuePoints, pricePointsTemp)
                             << getBP1String(valuePoints, pricePointsTemp)
                             << QString::number(EV)
                             << getIntensityString(valuePoints, pricePointsTemp)
                             << QString::number(k)
+                            << kse
                             << QString::number(omaxd)
                             << getOmaxEString(valuePoints, pricePointsTemp)
                             << QString::number(pmaxd)

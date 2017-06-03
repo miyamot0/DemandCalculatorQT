@@ -35,7 +35,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
     aboutdialog.cpp \
     creditsdialog.cpp \
-    graphicaloutputdialog.cpp \
     licensedialog.cpp \
     resultsdialog.cpp \
     sheetselectdialog.cpp \
@@ -61,7 +60,6 @@ SOURCES += main.cpp\
 HEADERS  += \
     aboutdialog.h \
     creditsdialog.h \
-    graphicaloutputdialog.h \
     licensedialog.h \
     resultsdialog.h \
     sheetselectdialog.h \
@@ -88,7 +86,6 @@ HEADERS  += \
 FORMS    += \
     aboutdialog.ui \
     creditsdialog.ui \
-    graphicaloutputdialog.ui \
     licensedialog.ui \
     resultsdialog.ui \
     sheetselectdialog.ui \

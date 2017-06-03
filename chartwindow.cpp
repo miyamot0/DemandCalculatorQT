@@ -161,13 +161,13 @@ void chartwindow::plotLinearSeries(int index)
         return;
     }
 
-    rawPrices = mList.at(16);
+    rawPrices = mList.at(19);
     rawPrices = rawPrices.replace(QString("["), QString(""));
     rawPrices = rawPrices.replace(QString("]"), QString(""));
 
     QList<QString> rawPricesSplit = rawPrices.split(",");
 
-    rawValues = mList.at(17);
+    rawValues = mList.at(20);
     rawValues = rawValues.replace(QString("["), QString(""));
     rawValues = rawValues.replace(QString("]"), QString(""));
 
@@ -181,15 +181,15 @@ void chartwindow::plotLinearSeries(int index)
 
     if (!checkValue) return;
 
-    linearb = mList[7].toDouble(&checkValue);
+    linearb = mList[8].toDouble(&checkValue);
 
     if (!checkValue) return;
 
-    lineara = mList[8].toDouble(&checkValue);
+    lineara = mList[10].toDouble(&checkValue);
 
     if (!checkValue) return;
 
-    derivedPmax = mList[14].toDouble(&checkValue);
+    derivedPmax = mList[17].toDouble(&checkValue);
 
     if (!checkValue) return;
 
@@ -299,13 +299,13 @@ void chartwindow::plotExponentialSeries(int index)
         return;
     }
 
-    rawPrices = mList.at(18);
+    rawPrices = mList.at(21);
     rawPrices = rawPrices.replace(QString("["), QString(""));
     rawPrices = rawPrices.replace(QString("]"), QString(""));
 
     QList<QString> rawPricesSplit = rawPrices.split(",");
 
-    rawValues = mList.at(19);
+    rawValues = mList.at(22);
     rawValues = rawValues.replace(QString("["), QString(""));
     rawValues = rawValues.replace(QString("]"), QString(""));
 
@@ -319,15 +319,15 @@ void chartwindow::plotExponentialSeries(int index)
 
     if (!checkValue) return;
 
-    exponentialQ0 = mList[3].toDouble(&checkValue);
+    exponentialQ0 = mList[4].toDouble(&checkValue);
 
     if (!checkValue) return;
 
-    exponentialK = mList[7].toDouble(&checkValue);
+    exponentialK = mList[9].toDouble(&checkValue);
 
     if (!checkValue) return;
 
-    derivedPmax = mList[10].toDouble(&checkValue);
+    derivedPmax = mList[13].toDouble(&checkValue);
 
     if (!checkValue) return;
 
@@ -442,15 +442,15 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     if (!checkValue) return;
 
-    exponentiatedQ0 = mList[3].toDouble(&checkValue);
+    exponentiatedQ0 = mList[4].toDouble(&checkValue);
 
     if (!checkValue) return;
 
-    exponentiatedK = mList[8].toDouble(&checkValue);
+    exponentiatedK = mList[10].toDouble(&checkValue);
 
     if (!checkValue) return;
 
-    derivedPmax = mList[11].toDouble(&checkValue);
+    derivedPmax = mList[14].toDouble(&checkValue);
 
     if (!checkValue) return;
 
@@ -459,13 +459,13 @@ void chartwindow::plotExponentiatedSeries(int index)
     *pmaxLine << QPointF(derivedPmax, 0.01);
     *pmaxLine << QPointF(derivedPmax, exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
 
-    rawPrices = mList.at(19);
+    rawPrices = mList.at(22);
     rawPrices = rawPrices.replace(QString("["), QString(""));
     rawPrices = rawPrices.replace(QString("]"), QString(""));
 
     QList<QString> rawPricesSplit = rawPrices.split(",");
 
-    rawValues = mList.at(20);
+    rawValues = mList.at(23);
     rawValues = rawValues.replace(QString("["), QString(""));
     rawValues = rawValues.replace(QString("]"), QString(""));
 

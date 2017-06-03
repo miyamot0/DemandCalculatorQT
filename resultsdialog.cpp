@@ -28,7 +28,6 @@
 
 #include "resultsdialog.h"
 #include "ui_resultsdialog.h"
-#include "sheetwidget.h"
 
 ResultsDialog::ResultsDialog(QWidget *parent) :
     QDialog(parent),
@@ -45,91 +44,12 @@ ResultsDialog::ResultsDialog(QWidget *parent) :
         )
     );
 
-    //graphicalOutputDialog = new GraphicalOutputDialog(this);
-
     copyAction = new QAction("Copy", this);
     copyAction->setShortcut(QKeySequence("Ctrl+C"));
     copyAction->setIcon(QIcon(":/images/edit-copy.png"));
     connect(copyAction, &QAction::triggered, this, &ResultsDialog::copy);
 
     addAction(copyAction);
-
-    /*
-    jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8(), &err);
-    jsonArr = jsonDoc.array();
-
-    QStringList keyList;
-
-    for (int i=0; i < jsonArr.count(); i++)
-    {
-        jsonVal = jsonArr.at(i);
-        jsonObj = jsonVal.toObject();
-
-        if (jsonObj["figure"].toString().contains("SKIP", Qt::CaseInsensitive))
-        {
-            skipFlag = true;
-        }
-
-        if (!skipFlag)
-        {
-            graphicalOutputDialog->appendBase64(jsonObj["figure"].toString());
-        }
-
-        if (i == 0)
-        {
-            if (jsonObj["Equation"].toString().contains("hs"))
-            {
-                keyList = getExponentialKeys();
-            }
-            else if (jsonObj["Equation"].toString().contains("koff"))
-            {
-                keyList = getExponentiatedKeys();
-            }
-            else
-            {
-                keyList = getLinearKeys();
-            }
-        }
-
-        if (i == 0)
-        {
-            ui->tableWidget->clearContents();
-
-            for (int j=0; j<keyList.length(); j++)
-            {
-                ui->tableWidget->insertColumn(ui->tableWidget->columnCount());
-                ui->tableWidget->setHorizontalHeaderItem(ui->tableWidget->columnCount() - 1, new QTableWidgetItem(keyList.at(j)));
-            }
-        }
-
-        ui->tableWidget->insertRow(ui->tableWidget->rowCount());
-
-        for (int j=0; j<keyList.length(); j++)
-        {
-            QString label = "";
-
-            QJsonValueRef mObj = jsonObj[keyList.at(j)];
-
-            if (mObj.isDouble())
-            {
-                label = QString::number(mObj.toDouble());
-            }
-            else if (mObj.isString())
-            {
-                label = mObj.toString();
-            }
-
-            QTableWidgetItem *item = new QTableWidgetItem(label);
-            item->setFlags(item->flags() ^ Qt::ItemIsEditable);
-            ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, j, item);
-        }
-    }
-
-    if (!skipFlag)
-    {
-        graphicalOutputDialog->show();
-    }
-    */
 }
 
 void ResultsDialog::setResults(QList<QStringList> mData)
@@ -161,8 +81,11 @@ QStringList ResultsDialog::getLinearKeys()
                 << "Omaxe"
                 << "Pmaxe"
                 << "L"
+                << "Lse"
                 << "b"
+                << "bse"
                 << "a"
+                << "ase"
                 << "R2"
                 << "Elasticity"
                 << "MeanElasticity"
@@ -182,11 +105,14 @@ QStringList ResultsDialog::getExponentialKeys()
     mReturnKeys << "ID"
                 << "Equation"
                 << "Alpha"
+                << "Alphase"
                 << "Q0d"
+                << "Q0dse"
                 << "BP1"
                 << "EV"
                 << "Intensity"
                 << "K"
+                << "Kse"
                 << "Omaxd"
                 << "Omaxe"
                 << "Pmaxd"
@@ -209,12 +135,15 @@ QStringList ResultsDialog::getExponentiatedKeys()
     mReturnKeys << "ID"
                 << "Equation"
                 << "Alpha"
+                << "Alphase"
                 << "Q0d"
+                << "Q0dse"
                 << "BP0"
                 << "BP1"
                 << "EV"
                 << "Intensity"
                 << "K"
+                << "Kse"
                 << "Omaxd"
                 << "Omaxe"
                 << "Pmaxd"

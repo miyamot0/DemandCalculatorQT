@@ -26,7 +26,6 @@
 
 #include <QDialog>
 #include <QtWidgets>
-#include "graphicaloutputdialog.h"
 
 namespace Ui {
 class ResultsDialog;
@@ -59,8 +58,6 @@ private slots:
 
 private:
     Ui::ResultsDialog *ui;
-
-    GraphicalOutputDialog *graphicalOutputDialog;
 
     QAction *copyAction;
     QList<QStringList> mResults;
