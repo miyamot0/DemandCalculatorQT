@@ -62,6 +62,8 @@ private:
     QLineSeries *demandCurve;
     QScatterSeries *dataPoints;
 
+    QString modelType;
+
     double param1;
     double param2;
 

@@ -7,6 +7,7 @@
 chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget *parent)
 {
     mDisplayData = stringList;
+    modelType = mModel;
 
     QVBoxLayout *windowLayout = new QVBoxLayout;
 
@@ -69,23 +70,13 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
         setWindowTitle("Exponentiated Demand Model Plots");
 
         axisY2 = new QValueAxis;
-        /*
         axisY2->setGridLineColor(Qt::transparent);
         axisY2->setTitleText("Overall Consumption");
+        axisY2->setTickCount(5);
         axisY2->setLabelsFont(mLegendFont);
         axisY2->setLinePenColor(Qt::black);
         axisY2->setLinePen(QPen(Qt::black));
         axisY2->setMin(0.01);
-        */
-
-        axisY2->setGridLineColor(Qt::transparent);
-        axisY2->setTitleText("Value");
-        axisY2->setTickCount(5);
-        axisY2->setLabelsFont(mLegendFont);
-        axisY2->setMin(0);
-        axisY2->setMax(10);
-        axisY2->setLinePenColor(Qt::black);
-        axisY2->setLinePen(QPen(Qt::black));
 
         buildExponentiatedPlot();
     }
@@ -119,7 +110,6 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
     resize(800, 600);
 
     setWindowFlags(Qt::WindowStaysOnTopHint);
-
 }
 
 void chartwindow::buildLinearPlot()
@@ -203,6 +193,16 @@ void chartwindow::plotLinearSeries(int index)
         if (!checkValue1 || !checkValue2)
         {
             break;
+        }
+
+        if (param1 <= 0)
+        {
+            param1 = 0.01;
+        }
+
+        if (param2 <= 0)
+        {
+            param2 = 0.01;
         }
 
         *dataPoints << QPointF(param1, param2);
@@ -302,6 +302,16 @@ void chartwindow::plotExponentialSeries(int index)
             break;
         }
 
+        if (param1 <= 0)
+        {
+            param1 = 0.01;
+        }
+
+        if (param2 <= 0)
+        {
+            param2 = 0.01;
+        }
+
         *dataPoints << QPointF(param1, param2);
     }
 
@@ -339,24 +349,6 @@ void chartwindow::buildExponentiatedPlot()
 
     chart->setAxisX(axisX, dataPoints);
     chart->setAxisY(axisY2, dataPoints);
-
-    /*
-    chart->addAxis(axisX, Qt::AlignBottom);
-    chart->addAxis(axisY2, Qt::AlignLeft);
-
-    //dataPoints->attachAxis(axisX);
-    //dataPoints->attachAxis(axisY2);
-
-    //demandCurve->attachAxis(axisX);
-    //demandCurve->attachAxis(axisY2);
-
-    chart->setAxisX(axisX, dataPoints);
-    chart->setAxisY(axisY2, dataPoints);
-
-    chart->setAxisX(axisX, demandCurve);
-    chart->setAxisY(axisY2, demandCurve);
-
-    */
 }
 
 void chartwindow::plotExponentiatedSeries(int index)
@@ -389,12 +381,6 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     if (!checkValue) return;
 
-    //for (int i = 0; i < rawPricesSplit.length(); i++)
-    //{
-
-
-    //}
-
     rawPrices = mList.at(19);
     rawPrices = rawPrices.replace(QString("["), QString(""));
     rawPrices = rawPrices.replace(QString("]"), QString(""));
@@ -425,7 +411,12 @@ void chartwindow::plotExponentiatedSeries(int index)
 
         if (param1 <= 0)
         {
-            param1 += 0.01;
+            param1 = 0.01;
+        }
+
+        if (param2 <= 0)
+        {
+            param2 = 0.01;
         }
 
         if (param2 > highestConsumption)
@@ -452,18 +443,6 @@ void chartwindow::plotExponentiatedSeries(int index)
     }
 
     axisY2->setMax(highestConsumption);
-
-    /*
-
-
-
-
-
-
-
-    qDebug() << dataPoints->isVisible();
-    qDebug() << dataPoints->points();
-    */
 }
 
 bool chartwindow::eventFilter(QObject *object, QEvent *e)
@@ -522,14 +501,18 @@ void chartwindow::on_NextButton_clicked()
 
     currentIndexShown++;
 
-    //if (isAUCFigure)
-    //{
-        //plotAUCSeries(currentIndexShown);
-    //}
-    //else
-    //{
-        //plotED50Series(currentIndexShown);
-    //}
+    if (modelType == "linear")
+    {
+        plotLinearSeries(currentIndexShown);
+    }
+    else if (modelType == "hs")
+    {
+        plotExponentialSeries(currentIndexShown);
+    }
+    else if (modelType == "koff")
+    {
+        plotExponentiatedSeries(currentIndexShown);
+    }
 }
 
 void chartwindow::on_PreviousButton_clicked()
@@ -541,12 +524,16 @@ void chartwindow::on_PreviousButton_clicked()
 
     currentIndexShown--;
 
-    //if (isAUCFigure)
-    //{
-        //plotAUCSeries(currentIndexShown);
-    //}
-    //else
-    //{
-        //plotED50Series(currentIndexShown);
-    //}
+    if (modelType == "linear")
+    {
+        plotLinearSeries(currentIndexShown);
+    }
+    else if (modelType == "hs")
+    {
+        plotExponentialSeries(currentIndexShown);
+    }
+    else if (modelType == "koff")
+    {
+        plotExponentiatedSeries(currentIndexShown);
+    }
 }
