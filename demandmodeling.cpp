@@ -22,6 +22,26 @@ void demandmodeling::SetLowerUpperBounds(const char *mUpperString, const char *m
     bndl = mLowerString;
 }
 
+real_1d_array demandmodeling::GetParams()
+{
+    return c;
+}
+
+lsfitstate demandmodeling::GetState()
+{
+    return state;
+}
+
+ae_int_t demandmodeling::GetInfo()
+{
+    return info;
+}
+
+lsfitreport demandmodeling::GetReport()
+{
+    return rep;
+}
+
 void exponential_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
 {
     QList<double> *param = (QList<double> *) ptr;

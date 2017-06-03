@@ -148,6 +148,9 @@ public slots:
                              bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue,
                              int i);
     void getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue);
+    void getDataPointsGlobal(double &returnK, bool isRowData, QString mModel,
+                             int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                             int topValue, int leftValue, int bottomValue, int rightValue);
 
     void Calculate(QString scriptName, QString model, QString kString, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                    int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,

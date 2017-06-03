@@ -98,6 +98,15 @@
 
 QTXLSX_USE_NAMESPACE
 
+struct QPairFirstComparer
+{
+    template<typename T1, typename T2>
+    bool operator()(const QPair<T1,T2> &one, const QPair<T1,T2> &two) const
+    {
+        return one.first < two.first;
+    }
+};
+
 SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
 {
     table = new QTableWidget(10000, 10000, this);
@@ -1108,13 +1117,16 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     {
         getGlobalMinAndMax(globalMinK, globalMaxK, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
     }
-    else (mCallK == "share")
+    else if (mCallK == "share")
     {
+        getDataPointsGlobal(globalFitK, isRowData, mModel,
+                            topPrice, leftPrice, bottomPrice, rightPrice,
+                            topConsumption, leftConsumption, bottomConsumption, rightConsumption);
 
     }
 
-    resultsDialog = new ResultsDialog(this);
-    resultsDialog->setModal(false);
+    //resultsDialog = new ResultsDialog(this);
+    //resultsDialog->setModal(false);
 
     statusBar()->showMessage("Beginning calculations...", 3000);
     allResults.clear();
@@ -1286,6 +1298,10 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 else if (mCallK == "range")
                 {
                     mParams << (log10(globalMaxK) - log10(globalMinK)) + 0.5;
+                }
+                else if (mCallK == "share")
+                {
+                    mParams << globalFitK;
                 }
 
                 mObj->FitExponential("[10, 0.0001]", mParams);
@@ -1872,6 +1888,141 @@ void SheetWidget::getGlobalMinAndMax(double &globalMin, double &globalMax, bool 
         }
     }
 }
+
+void SheetWidget::getDataPointsGlobal(double &returnK, bool isRowData, QString mModel,
+                                      int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                                      int topValue, int leftValue, int bottomValue, int rightValue)
+{
+
+    QList<QPair<double, double>> mDataPoints;
+
+    QString holder1;
+    QString holder2;
+
+    bool valueCheck1 = true;
+    double valHolder1;
+
+    bool valueCheck2 = true;
+    double valHolder2;
+
+    if (isRowData)
+    {
+        for (int r = topValue; r <= bottomValue; r++)
+        {
+            for (int c = leftValue; c <= rightValue; c++)
+            {
+                if (table->item(r, c) != NULL && table->item(topPrice, c) != NULL)
+                {
+                    holder1 = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder1 = holder1.toDouble(&valueCheck1);
+
+                    holder2 = table->item(topPrice, c)->data(Qt::DisplayRole).toString();
+                    valHolder2 = holder2.toDouble(&valueCheck2);
+
+                    if (mModel == "hs")
+                    {
+                        // Drop consumption values of zero
+                        if (valHolder1 <= 0)
+                        {
+                            continue;
+                        }
+
+                        valHolder1 = log10(valHolder1);
+
+                        if (valueCheck1 && valueCheck2)
+                        {
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                    else
+                    {
+                        if (valueCheck1 && valueCheck2)
+                        {
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int c = leftValue; c <= rightValue; c++)
+        {
+            for (int r = topValue; r <= bottomValue; r++)
+            {
+                if (table->item(r, c) != NULL && table->item(leftPrice, c) != NULL)
+                {
+                    holder1 = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder1 = holder1.toDouble(&valueCheck1);
+
+                    holder2 = table->item(c, leftPrice)->data(Qt::DisplayRole).toString();
+                    valHolder2 = holder2.toDouble(&valueCheck2);
+
+                    if (mModel == "hs")
+                    {
+                        // Drop consumption values of zero
+                        if (valHolder1 <= 0)
+                        {
+                            continue;
+                        }
+
+                        valHolder1 = log10(valHolder1);
+
+                        if (valueCheck1 && valueCheck2)
+                        {                            
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                    else
+                    {
+                        if (valueCheck1 && valueCheck2)
+                        {
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    QString x = "";
+    QString y = "";
+
+    x.append("[");
+    y.append("[");
+
+    qSort(mDataPoints.begin(), mDataPoints.end(), QPairFirstComparer());
+
+    for (int i = 0; i < mDataPoints.count(); i++)
+    {
+        if (i == 0)
+        {
+            x.append("[" + QString::number(mDataPoints[i].first) + "]");
+            y.append(QString::number(mDataPoints[i].second));
+        }
+        else
+        {
+            x.append(",[" + QString::number(mDataPoints[i].first) + "]");
+            y.append("," + QString::number(mDataPoints[i].second));
+        }
+    }
+
+    x.append("]");
+    y.append("]");
+
+    if (mModel == "hs")
+    {
+        mObj->SetX(x.toUtf8().constData());
+        mObj->SetY(y.toUtf8().constData());
+
+        mObj->SetLowerUpperBounds("[10, +inf, 1]", "[0.1, 0.1, -inf]");
+        mObj->FitExponentialWithK("[1, 10, 0.0001]");
+
+        returnK = mObj->GetParams()[0];
+    }
+}
+
 
 void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
 {

@@ -24,11 +24,14 @@ public:
     void SetStarts(const char *mString);
     void SetLowerUpperBounds(const char *mUpperString, const char *mLowerString);
 
-    void FitLinear(const char *mStarts);
+    real_1d_array GetParams();
+    lsfitstate GetState();
+    ae_int_t GetInfo();
+    lsfitreport GetReport();
 
+    void FitLinear(const char *mStarts);
     void FitExponential(const char *mStarts, QList<double> mParams);
     void FitExponentialWithK(const char *mStarts);
-
     void FitExponentiated(const char *mStarts, QList<double> mParams);
     void FitExponentiatedWithK(const char *mStarts);
 
