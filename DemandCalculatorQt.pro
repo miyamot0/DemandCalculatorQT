@@ -163,20 +163,11 @@ macx {
 }
 
 DISTFILES += \
-    License_gnome_icons.txt \
     License_Qt.txt \
-    License_R.txt \
     License_Beezdemand.txt \
     License_fitDemand.txt \
     COPYING \
     README.md \
-    scripts/installDependencyBase64.R \
-    scripts/installDependencyJsonlite.R \
-    scripts/installDependencyBeezdemand.R \
-    scripts/installDependencyDevtools.R \
-    scripts/installDependencyDigest.R \
-    scripts/checkSystematic.R \
-    scripts/fitDemand.R \
     SNS.ico \
     SNS.icns \
     License_ALGLIB.txt \
