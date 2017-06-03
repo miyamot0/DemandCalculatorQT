@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>350</width>
     <height>523</height>
    </rect>
   </property>
@@ -27,8 +27,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>380</width>
-        <height>473</height>
+        <width>313</width>
+        <height>645</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -74,7 +74,7 @@
        <item>
         <widget class="QLabel" name="label_2">
          <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:600;&quot;&gt;Demand Curve Analyzer&lt;/span&gt; is an extension of earlier work by Brent Kaplan and was designed to aid in the selection and application of behavioral economic models. &lt;/p&gt;&lt;p&gt;The &lt;a href=&quot;http://www.smallnstats.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Small n Stats&lt;/span&gt;&lt;/a&gt; project references an on-going endeavor to expand upon the tools available to researchers and practitioners in the behavioral sciences. Small n Stats is developed and maintained by Shawn P. Gilroy.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Credits and Acknowledgements:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;TBD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The &lt;span style=&quot; font-weight:600;&quot;&gt;Demand Curve Analyzer&lt;/span&gt; is an extension of earlier work by Brent Kaplan and the &lt;span style=&quot; font-weight:600;&quot;&gt;beezdemandR package&lt;/span&gt; and was designed to aid in the selection and application of behavioral economic models. This project is designed to assist in the application and administration of models of demand. &lt;/p&gt;&lt;p&gt;The &lt;a href=&quot;http://www.smallnstats.com&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Small n Stats&lt;/span&gt;&lt;/a&gt; project references an on-going endeavor to expand upon the tools available to researchers and practitioners in the behavioral sciences. Small n Stats is developed and maintained by Shawn P. Gilroy.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Source Code Licenses:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;- Qt Framework (5.8) - LGPL 3.0 (GPL 3.0 Licensed). Copyright (C). Qt Team&lt;/p&gt;&lt;p&gt;- Qt Examples (Spreadsheet, Recent Files) - BSD-3 Clause. Copyright (C). Qt Team&lt;/p&gt;&lt;p&gt;- ALGLIB (3.11.0) - GPLv3 Licensed. Copyright 1994-2017 ALGLIB Project.&lt;/p&gt;&lt;p&gt;- Tango Icon Set - Public Domain. Copyright 1994-2005 Free Software Federation.&lt;/p&gt;&lt;p&gt;- Beezdemand - GPLv2+ Licensed. Copyright 2016-2017 Brent Kaplan.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Credits and Acknowledgements:&lt;/span&gt;&lt;/p&gt;&lt;p&gt;TBD&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
