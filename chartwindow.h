@@ -59,6 +59,7 @@ private:
     QString rawPrices;
     QString rawValues;
 
+    QLineSeries *pmaxLine;
     QLineSeries *demandCurve;
     QScatterSeries *dataPoints;
 
@@ -69,6 +70,8 @@ private:
 
     bool checkValue1;
     bool checkValue2;
+
+    double derivedPmax;
 
     // Linear
 

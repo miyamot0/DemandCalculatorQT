@@ -136,6 +136,14 @@ void chartwindow::buildLinearPlot()
         demandCurve->attachAxis(axisX);
         demandCurve->attachAxis(axisY);
 
+    pmaxLine = new QLineSeries();
+    pmaxLine->setName("pMax");
+    pmaxLine->setPen(QPen(Qt::red));
+        chart->addSeries(pmaxLine);
+
+        pmaxLine->attachAxis(axisX);
+        pmaxLine->attachAxis(axisY);
+
     plotLinearSeries(0);
 }
 
@@ -181,7 +189,16 @@ void chartwindow::plotLinearSeries(int index)
 
     if (!checkValue) return;
 
+    derivedPmax = mList[14].toDouble(&checkValue);
+
+    if (!checkValue) return;
+
     double highestPrice = rawPricesSplit[rawPricesSplit.count() - 1].toDouble();
+
+    pmaxLine->clear();
+
+    *pmaxLine << QPointF(derivedPmax, 0.01);
+    *pmaxLine << QPointF(derivedPmax, log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax));
 
     axisX->setMax(highestPrice * 2.0);
 
@@ -257,6 +274,14 @@ void chartwindow::buildExponentialPlot()
         demandCurve->attachAxis(axisX);
         demandCurve->attachAxis(axisY);
 
+    pmaxLine = new QLineSeries();
+    pmaxLine->setName("pMax");
+    pmaxLine->setPen(QPen(Qt::red));
+        chart->addSeries(pmaxLine);
+
+        pmaxLine->attachAxis(axisX);
+        pmaxLine->attachAxis(axisY);
+
     plotExponentialSeries(0);
 }
 
@@ -302,7 +327,16 @@ void chartwindow::plotExponentialSeries(int index)
 
     if (!checkValue) return;
 
+    derivedPmax = mList[10].toDouble(&checkValue);
+
+    if (!checkValue) return;
+
     double highestPrice = rawPricesSplit[rawPricesSplit.count() - 1].toDouble();
+
+    pmaxLine->clear();
+
+    *pmaxLine << QPointF(derivedPmax, 0.01);
+    *pmaxLine << QPointF(derivedPmax, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1));
 
     axisX->setMax(highestPrice * 2.0);
 
@@ -369,6 +403,11 @@ void chartwindow::buildExponentiatedPlot()
     dataPoints->setMarkerSize(10);
         chart->addSeries(dataPoints);
 
+    pmaxLine = new QLineSeries();
+    pmaxLine->setName("pMax");
+    pmaxLine->setPen(QPen(Qt::red));
+        chart->addSeries(pmaxLine);
+
     plotExponentiatedSeries(0);
 
     chart->setAxisX(axisX, demandCurve);
@@ -376,6 +415,9 @@ void chartwindow::buildExponentiatedPlot()
 
     chart->setAxisX(axisX, dataPoints);
     chart->setAxisY(axisY2, dataPoints);
+
+    chart->setAxisX(axisX, pmaxLine);
+    chart->setAxisY(axisY2, pmaxLine);
 }
 
 void chartwindow::plotExponentiatedSeries(int index)
@@ -407,6 +449,15 @@ void chartwindow::plotExponentiatedSeries(int index)
     exponentiatedK = mList[8].toDouble(&checkValue);
 
     if (!checkValue) return;
+
+    derivedPmax = mList[11].toDouble(&checkValue);
+
+    if (!checkValue) return;
+
+    pmaxLine->clear();
+
+    *pmaxLine << QPointF(derivedPmax, 0.01);
+    *pmaxLine << QPointF(derivedPmax, exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
 
     rawPrices = mList.at(19);
     rawPrices = rawPrices.replace(QString("["), QString(""));
