@@ -26,6 +26,9 @@ public:
     void buildExponentialPlot();
     void plotExponentialSeries(int index);
 
+    void buildExponentiatedPlot();
+    void plotExponentiatedSeries(int index);
+
 private slots:
     void on_NextButton_clicked();
     void on_PreviousButton_clicked();
@@ -76,6 +79,12 @@ private:
     double exponentialAlpha;
     double exponentialQ0;
     double exponentialK;
+
+    // Exponentiated
+
+    double exponentiatedAlpha;
+    double exponentiatedQ0;
+    double exponentiatedK;
 
 };
 

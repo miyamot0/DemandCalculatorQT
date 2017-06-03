@@ -8,53 +8,6 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
 {
     mDisplayData = stringList;
 
-    /*
-    for (int i=0; i<mDisplayData.length(); i++)
-    {
-        mList = mDisplayData[i];
-
-        if (mModel == "linear")
-        {
-            rawPrices = mList.at(16);
-            rawValues = mList.at(17);
-        }
-        else if (mModel == "hs")
-        {
-            rawPrices = mList.at(18);
-            rawValues = mList.at(19);
-        }
-        else if (mModel == "koff")
-        {
-            rawPrices = mList.at(19);
-            rawValues = mList.at(20);
-        }
-
-        rawPrices = rawPrices.replace(QString("["), QString(""));
-        rawPrices = rawPrices.replace(QString("]"), QString(""));
-
-        rawValues = rawValues.replace(QString("["), QString(""));
-        rawValues = rawValues.replace(QString("]"), QString(""));
-
-        if (mModel == "linear")
-        {
-            //mDisplayData[i].replace(16, rawPrices);
-            //mDisplayData[i].replace(17, rawValues);
-
-            buildLinearPlot();
-        }
-        else if (mModel == "hs")
-        {
-            //mDisplayData[i].replace(18, rawPrices);
-            //mDisplayData[i].replace(19, rawValues);
-        }
-        else if (mModel == "koff")
-        {
-            //mDisplayData[i].replace(19, rawPrices);
-            //mDisplayData[i].replace(20, rawValues);
-        }
-    }
-    */
-
     QVBoxLayout *windowLayout = new QVBoxLayout;
 
     currentIndexShown = 0;
@@ -113,10 +66,29 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
     }
     else if (mModel == "koff")
     {
+        setWindowTitle("Exponentiated Demand Model Plots");
 
+        axisY2 = new QValueAxis;
+        /*
+        axisY2->setGridLineColor(Qt::transparent);
+        axisY2->setTitleText("Overall Consumption");
+        axisY2->setLabelsFont(mLegendFont);
+        axisY2->setLinePenColor(Qt::black);
+        axisY2->setLinePen(QPen(Qt::black));
+        axisY2->setMin(0.01);
+        */
+
+        axisY2->setGridLineColor(Qt::transparent);
+        axisY2->setTitleText("Value");
+        axisY2->setTickCount(5);
+        axisY2->setLabelsFont(mLegendFont);
+        axisY2->setMin(0);
+        axisY2->setMax(10);
+        axisY2->setLinePenColor(Qt::black);
+        axisY2->setLinePen(QPen(Qt::black));
+
+        buildExponentiatedPlot();
     }
-
-    // build plot
 
     chartView = new QChartView(chart);
     chartView->setRenderHint(QPainter::Antialiasing);
@@ -141,7 +113,6 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
     tb->addAction(saveAction);
     tb->addAction(prevAction);
     tb->addAction(nextAction);
-
 
     windowLayout->setMenuBar(tb);
     setCentralWidget(window);
@@ -344,6 +315,155 @@ void chartwindow::plotExponentialSeries(int index)
             *demandCurve << QPointF(i, projectedValue);
         }
     }
+}
+
+void chartwindow::buildExponentiatedPlot()
+{
+    demandCurve = new QLineSeries();
+    demandCurve->setName("Exponentiated Demand");
+    demandCurve->setPen(QPen(Qt::black));
+        chart->addSeries(demandCurve);
+
+    dataPoints = new QScatterSeries();
+    dataPoints->setName("Raw Data");
+    dataPoints->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+    dataPoints->setPen(QPen(Qt::black));
+    dataPoints->setBrush(QBrush(Qt::black));
+    dataPoints->setMarkerSize(10);
+        chart->addSeries(dataPoints);
+
+    plotExponentiatedSeries(0);
+
+    chart->setAxisX(axisX, demandCurve);
+    chart->setAxisY(axisY2, demandCurve);
+
+    chart->setAxisX(axisX, dataPoints);
+    chart->setAxisY(axisY2, dataPoints);
+
+    /*
+    chart->addAxis(axisX, Qt::AlignBottom);
+    chart->addAxis(axisY2, Qt::AlignLeft);
+
+    //dataPoints->attachAxis(axisX);
+    //dataPoints->attachAxis(axisY2);
+
+    //demandCurve->attachAxis(axisX);
+    //demandCurve->attachAxis(axisY2);
+
+    chart->setAxisX(axisX, dataPoints);
+    chart->setAxisY(axisY2, dataPoints);
+
+    chart->setAxisX(axisX, demandCurve);
+    chart->setAxisY(axisY2, demandCurve);
+
+    */
+}
+
+void chartwindow::plotExponentiatedSeries(int index)
+{
+    mList = mDisplayData.at(index);
+
+    demandCurve->clear();
+    dataPoints->clear();
+
+    if (mList[0].contains("dropped", Qt::CaseInsensitive))
+    {
+        chart->setTitle(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
+
+        return;
+    }
+
+    chart->setTitle(QString("Participant #%1").arg(QString::number(currentIndexShown + 1)));
+
+    bool checkValue;
+
+    exponentiatedAlpha = mList[2].toDouble(&checkValue);
+
+    if (!checkValue) return;
+
+    exponentiatedQ0 = mList[3].toDouble(&checkValue);
+
+    if (!checkValue) return;
+
+    exponentiatedK = mList[8].toDouble(&checkValue);
+
+    if (!checkValue) return;
+
+    //for (int i = 0; i < rawPricesSplit.length(); i++)
+    //{
+
+
+    //}
+
+    rawPrices = mList.at(19);
+    rawPrices = rawPrices.replace(QString("["), QString(""));
+    rawPrices = rawPrices.replace(QString("]"), QString(""));
+
+    QList<QString> rawPricesSplit = rawPrices.split(",");
+
+    rawValues = mList.at(20);
+    rawValues = rawValues.replace(QString("["), QString(""));
+    rawValues = rawValues.replace(QString("]"), QString(""));
+
+    QList<QString> rawValuesSplit = rawValues.split(",");
+
+    double highestPrice = rawPricesSplit[rawPricesSplit.count() - 1].toDouble();
+
+    axisX->setMax(highestPrice * 2.0);
+
+    double highestConsumption = -1;
+
+    for (int i = 0; i < rawPricesSplit.length(); i++)
+    {
+        param1 = rawPricesSplit[i].toDouble(&checkValue1);
+        param2 = rawValuesSplit[i].toDouble(&checkValue2);
+
+        if (!checkValue1 || !checkValue2)
+        {
+            break;
+        }
+
+        if (param1 <= 0)
+        {
+            param1 += 0.01;
+        }
+
+        if (param2 > highestConsumption)
+        {
+            highestConsumption = param2;
+        }
+
+        *dataPoints << QPointF(param1, param2);
+    }
+
+    for (double i = 0.01; i < highestPrice * 2; i = i + 0.1)
+    {
+        double projectedValue = exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * i) - 1)));
+
+        if (projectedValue > 0.01)
+        {
+            *demandCurve << QPointF(i, projectedValue);
+        }
+
+        if (projectedValue > highestConsumption)
+        {
+            highestConsumption = projectedValue;
+        }
+    }
+
+    axisY2->setMax(highestConsumption);
+
+    /*
+
+
+
+
+
+
+
+    qDebug() << dataPoints->isVisible();
+    qDebug() << dataPoints->points();
+    */
 }
 
 bool chartwindow::eventFilter(QObject *object, QEvent *e)
