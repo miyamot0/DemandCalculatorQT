@@ -55,7 +55,8 @@ SOURCES += main.cpp\
     Libraries/alglib-3.11.0/src/solvers.cpp \
     Libraries/alglib-3.11.0/src/specialfunctions.cpp \
     Libraries/alglib-3.11.0/src/statistics.cpp \
-    demandmodeling.cpp
+    demandmodeling.cpp \
+    chartwindow.cpp
 
 HEADERS  += \
     aboutdialog.h \
@@ -81,7 +82,8 @@ HEADERS  += \
     Libraries/alglib-3.11.0/src/specialfunctions.h \
     Libraries/alglib-3.11.0/src/statistics.h \
     Libraries/alglib-3.11.0/src/stdafx.h \
-    demandmodeling.h
+    demandmodeling.h \
+    chartwindow.h
 
 FORMS    += \
     aboutdialog.ui \

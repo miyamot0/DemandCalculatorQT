@@ -84,6 +84,8 @@
 #include "demandsettingsdialog.h"
 #include "demandmodeling.h"
 #include "steincheckdialog.h"
+
+#include "chartwindow.h"
 #include "resultsdialog.h"
 #include "licensedialog.h"
 #include "creditsdialog.h"
@@ -212,12 +214,11 @@ private:
     SheetSelectDialog *sheetSelectDialog;
     DemandSettingsDialog *demandWindowDialog;
     SteinCheckDialog *steinCheckDialog;
-
     LicenseDialog *licenseDialog;
-
     AboutDialog *aboutDialog;
     CreditsDialog *creditsDialog;
 
+    chartwindow *chartWindow;
     ResultsDialog *resultsDialog;
 
     QString mModel;
@@ -236,18 +237,6 @@ private:
     QString mReplQ0;
 
     QString mFigureFlag;
-
-    /**
-     * @brief Thread object which will let us manipulate the running thread
-     */
-    //QThread *thread;
-
-    /**
-     * @brief Object which contains methods that should be runned in another thread
-     */
-    //FitWorker *worker;
-
-    QStringList mSeriesCommands;
 
     bool displayFigures;
 

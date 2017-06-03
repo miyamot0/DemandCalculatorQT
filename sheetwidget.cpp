@@ -1521,6 +1521,8 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     resultsDialog->setModal(false);
     resultsDialog->show();
 
+    chartWindow = new chartwindow(allResults, mModel, this);
+    chartWindow->show();
 }
 
 double SheetWidget::getPbar(QStringList &xValues)
