@@ -1,5 +1,4 @@
 #include "demandmodeling.h"
-#include <QElapsedTimer>
 
 void demandmodeling::SetX(const char *mString)
 {
@@ -73,8 +72,6 @@ void linear_demand(const real_1d_array &c, const real_1d_array &x, double &func,
 
 void demandmodeling::FitLinear(const char *mStarts)
 {
-    QElapsedTimer timer;
-    timer.start();
     SetStarts(mStarts);
 
     lsfitcreatef(x, y, c, diffstep, state);
@@ -88,16 +85,11 @@ void demandmodeling::FitLinear(const char *mStarts)
 
 void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 {
-    QElapsedTimer timer;
-    timer.start();
     SetStarts(mStarts);
-
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
-
-    //real_1d_array s = "[1.0e+1, 1.0e-4]";
-    //lsfitsetscale(state, s);
-
+    real_1d_array s = "[1.0, 1.0e-3]";
+    lsfitsetscale(state, s);
     lsfitsetcond(state, epsx, maxits);
 
     alglib::lsfitfit(state, exponential_demand, NULL, &mParams);
@@ -107,8 +99,6 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 
 void demandmodeling::FitExponentialWithK(const char *mStarts)
 {
-    QElapsedTimer timer;
-    timer.start();
     SetStarts(mStarts);
 
     QList<double> mParams;
@@ -117,7 +107,7 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    real_1d_array s = "[1.0e+1, 1.0e-3, 1.0e+1]";
+    real_1d_array s = "[1.0, 1.0e-3, 1.0]";
     lsfitsetscale(state, s);
 
     lsfitsetcond(state, epsx, maxits);
@@ -129,8 +119,6 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 
 void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams)
 {
-    QElapsedTimer timer;
-    timer.start();
     SetStarts(mStarts);
 
     lsfitcreatef(x, y, c, diffstep, state);
@@ -148,8 +136,6 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 
 void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 {
-    QElapsedTimer timer;
-    timer.start();
     SetStarts(mStarts);
 
     lsfitcreatef(x, y, c, diffstep, state);

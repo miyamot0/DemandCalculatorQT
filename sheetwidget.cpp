@@ -1053,6 +1053,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     mFigureFlag = (showCharts) ? "TRUE" : "FALSE";
 
+    /*
     qDebug() << "mModel: " << mModel;
     qDebug() << "isChecking: " << isChecking;
     qDebug() << "mCallK: " << mCallK;
@@ -1060,6 +1061,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     qDebug() << "mReplnum: " << mReplnum;
     qDebug() << "mRemQ0: " << mRemQ0;
     qDebug() << "mReplQ0: " << mReplQ0;
+    */
 
     /**
      * @brief isRowData
@@ -1336,7 +1338,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
 
                 mObj->SetBounds(mUpperBounds.toUtf8().constData(), "[0.5, 0.001, -inf]");
-                mObj->FitExponentialWithK("[1, 1, 0.001]");
+                mObj->FitExponentialWithK("[1, 1, 0.01]");
             }
             else
             {
@@ -1357,7 +1359,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     mParams << globalFitK;
                 }
 
-                mObj->FitExponential("[10, 0.0001]", mParams);
+                mObj->FitExponential("[10, 0.01]", mParams);
             }
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
@@ -1430,7 +1432,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
 
                 mObj->SetBounds(mUpperBounds.toUtf8().constData(), "[0.5, 0.1, -inf]");
-                mObj->FitExponentiatedWithK("[1, 10, 0.001]");
+                mObj->FitExponentiatedWithK("[1, 10, 0.01]");
             }
             else
             {
@@ -1451,7 +1453,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     mParams << globalFitK;
                 }
 
-                mObj->FitExponentiated("[10, 0.0001]", mParams);
+                mObj->FitExponentiated("[10, 0.01]", mParams);
             }
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
@@ -1521,8 +1523,11 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     resultsDialog->setModal(false);
     resultsDialog->show();
 
-    chartWindow = new chartwindow(allResults, mModel, this);
-    chartWindow->show();
+    if (showCharts)
+    {
+        chartWindow = new chartwindow(allResults, mModel, this);
+        chartWindow->show();
+    }
 }
 
 double SheetWidget::getPbar(QStringList &xValues)
