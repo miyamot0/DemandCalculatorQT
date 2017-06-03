@@ -185,6 +185,8 @@ void chartwindow::plotLinearSeries(int index)
 
     axisX->setMax(highestPrice * 2.0);
 
+    double highestConsumption = -1;
+
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
         param1 = rawPricesSplit[i].toDouble(&checkValue1);
@@ -205,6 +207,11 @@ void chartwindow::plotLinearSeries(int index)
             param2 = 0.01;
         }
 
+        if (param2 > highestConsumption)
+        {
+            highestConsumption = param2;
+        }
+
         *dataPoints << QPointF(param1, param2);
     }
 
@@ -216,7 +223,14 @@ void chartwindow::plotLinearSeries(int index)
         {
             *demandCurve << QPointF(i, projectedValue);
         }
+
+        if (projectedValue > highestConsumption)
+        {
+            highestConsumption = projectedValue;
+        }
     }
+
+    axisY->setMax(highestConsumption * 2);
 }
 
 void chartwindow::buildExponentialPlot()
@@ -292,6 +306,8 @@ void chartwindow::plotExponentialSeries(int index)
 
     axisX->setMax(highestPrice * 2.0);
 
+    double highestConsumption = -1;
+
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
         param1 = rawPricesSplit[i].toDouble(&checkValue1);
@@ -312,19 +328,30 @@ void chartwindow::plotExponentialSeries(int index)
             param2 = 0.01;
         }
 
+        if (param2 > highestConsumption)
+        {
+            highestConsumption = param2;
+        }
+
         *dataPoints << QPointF(param1, param2);
     }
 
     for (double i = 0.01; i < highestPrice * 2; i = i + 0.1)
     {
-        //(log(q0)/log(10)) + k * (exp(-alpha * q0 * x) - 1)
         double projectedValue = log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * i) - 1);
 
         if (projectedValue > 0.01)
         {
             *demandCurve << QPointF(i, projectedValue);
         }
+
+        if (projectedValue > highestConsumption)
+        {
+            highestConsumption = projectedValue;
+        }
     }
+
+    axisY->setMax(highestConsumption * 2);
 }
 
 void chartwindow::buildExponentiatedPlot()
@@ -442,7 +469,7 @@ void chartwindow::plotExponentiatedSeries(int index)
         }
     }
 
-    axisY2->setMax(highestConsumption);
+    axisY2->setMax(highestConsumption * 1.2);
 }
 
 bool chartwindow::eventFilter(QObject *object, QEvent *e)
