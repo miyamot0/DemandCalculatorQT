@@ -94,7 +94,6 @@
 
 #include "sheetwidget.h"
 #include "resultsdialog.h"
-#include "statusdialog.h"
 
 QTXLSX_USE_NAMESPACE
 

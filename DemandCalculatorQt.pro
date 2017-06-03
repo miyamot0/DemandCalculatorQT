@@ -35,14 +35,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
     aboutdialog.cpp \
     creditsdialog.cpp \
-    fitworker.cpp \
     graphicaloutputdialog.cpp \
     licensedialog.cpp \
     resultsdialog.cpp \
-    rworker.cpp \
     sheetselectdialog.cpp \
     sheetwidget.cpp \
-    statusdialog.cpp \
     demandsettingsdialog.cpp \
     steincheckdialog.cpp \
     Libraries/alglib-3.11.0/src/alglibinternal.cpp \
@@ -63,14 +60,11 @@ SOURCES += main.cpp\
 HEADERS  += \
     aboutdialog.h \
     creditsdialog.h \
-    fitworker.h \
     graphicaloutputdialog.h \
     licensedialog.h \
     resultsdialog.h \
-    rworker.h \
     sheetselectdialog.h \
     sheetwidget.h \
-    statusdialog.h \
     demandsettingsdialog.h \
     steincheckdialog.h \
     Libraries/alglib-3.11.0/src/alglibinternal.h \
@@ -96,7 +90,6 @@ FORMS    += \
     licensedialog.ui \
     resultsdialog.ui \
     sheetselectdialog.ui \
-    statusdialog.ui \
     demandsettingsdialog.ui \
     steincheckdialog.ui
 
