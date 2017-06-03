@@ -1267,9 +1267,65 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
         {
             mObj->SetX(mXString.toUtf8().constData());
             mObj->SetY(mYLogString.toUtf8().constData());
-            mObj->SetBounds("[+inf, +inf]", "[-inf, -inf]");
+            mObj->SetBounds("[+inf, +inf, +inf]", "[-inf, -inf, -inf]");
 
-            mObj->FitLinear("[1, 1]");
+            mObj->FitLinear("[1, 1, 1]");
+
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            {
+                double a = mObj->GetState().c[0];
+                double b = mObj->GetState().c[1];
+                double L = mObj->GetState().c[2];
+
+                double pmaxd = (1 + b)/a;
+                double omaxd = (L * pow(pmaxd, b)) / exp(a * pmaxd) * pmaxd;
+
+                double pbar = getPbar(pricePointsTemp);
+
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Linear"
+                            << getBP0String(valuePoints, pricePointsTemp)
+                            << getBP1String(valuePoints, pricePointsTemp)
+                            << getOmaxEString(valuePoints, pricePointsTemp)
+                            << getPmaxEString(valuePoints, pricePointsTemp)
+                            << QString::number(L)
+                            << QString::number(b)
+                            << QString::number(a)
+                            << QString::number(mObj->GetReport().r2)
+                            << "TO DO"
+                            << QString::number(b - (a * pbar))
+                            << getIntensityString(valuePoints, pricePointsTemp)
+                            << QString::number(omaxd)
+                            << QString::number(pmaxd)
+                            << getCodeString(mObj->GetInfo())
+                            << mXString
+                            << mYLogString;
+            }
+            else
+            {
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Linear"
+                            << getBP0String(valuePoints, pricePointsTemp)
+                            << getBP1String(valuePoints, pricePointsTemp)
+                            << getOmaxEString(valuePoints, pricePointsTemp)
+                            << getPmaxEString(valuePoints, pricePointsTemp)
+                            << ""
+                            << ""
+                            << ""
+                            << ""
+                            << "TO DO"
+                            << ""
+                            << getIntensityString(valuePoints, pricePointsTemp)
+                            << ""
+                            << ""
+                            << getCodeString(mObj->GetInfo())
+                            << mXString
+                            << mYLogString;
+            }
+
+            allResults.append(mTempHolder);
         }
         else if (mModel == "hs")
         {
@@ -1305,37 +1361,65 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 mObj->FitExponential("[10, 0.0001]", mParams);
             }
 
-            double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
-            double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
-            double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            {
+                double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+                double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+                double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
 
-            double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-            double omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
+                double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
+                double omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
 
-            double EV = 1/(alpha * pow(k, 1.5) * 100);
+                double EV = 1/(alpha * pow(k, 1.5) * 100);
 
-            mTempHolder.clear();
-            mTempHolder << QString::number(i + 1)
-                        << "Exponential"
-                        << QString::number(alpha)
-                        << QString::number(q0)
-                        << "BP1"
-                        << "EV"
-                        << "Intensity"
-                        << QString::number(k)
-                        << QString::number(omaxd)
-                        << "Omaxe"
-                        << "Pmaxd"
-                        << "Pmaxe"
-                        << "AbsSS"
-                        << "R2"
-                        << "SdRes"
-                        << QString::number(pricePointsTemp.count())
-                        << QString::number((int) mObj->GetInfo());
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Exponential"
+                            << QString::number(alpha)
+                            << QString::number(q0)
+                            << getBP1String(valuePoints, pricePointsTemp)
+                            << QString::number(EV)
+                            << getIntensityString(valuePoints, pricePointsTemp)
+                            << QString::number(k)
+                            << QString::number(omaxd)
+                            << getOmaxEString(valuePoints, pricePointsTemp)
+                            << QString::number(pmaxd)
+                            << getPmaxEString(valuePoints, pricePointsTemp)
+                            << QString::number(mObj->GetReport().rmserror)
+                            << QString::number(mObj->GetReport().r2)
+                            << QString::number(mObj->GetReport().avgerror)
+                            << QString::number(pricePointsTemp.count())
+                            << getCodeString(mObj->GetInfo())
+                            << getKMessage(mCallK)
+                            << mXString
+                            << mYLogString;
+            }
+            else
+            {
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Exponential"
+                            << ""
+                            << ""
+                            << getBP1String(valuePoints, pricePointsTemp)
+                            << ""
+                            << getIntensityString(valuePoints, pricePointsTemp)
+                            << ""
+                            << ""
+                            << getOmaxEString(valuePoints, pricePointsTemp)
+                            << ""
+                            << getPmaxEString(valuePoints, pricePointsTemp)
+                            << ""
+                            << ""
+                            << ""
+                            << QString::number(pricePointsTemp.count())
+                            << getCodeString(mObj->GetInfo())
+                            << getKMessage(mCallK)
+                            << mXString
+                            << mYLogString;
+            }
 
             allResults.append(mTempHolder);
-
-
         }
         else if (mModel == "koff")
         {
@@ -1371,57 +1455,64 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 mObj->FitExponentiated("[10, 0.0001]", mParams);
             }
 
-            double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
-            double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
-            double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
-            double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-            double omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            {
+                double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+                double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+                double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+                double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
+                double omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
 
-            double EV = 1/(alpha * pow(k, 1.5) * 100);
+                double EV = 1/(alpha * pow(k, 1.5) * 100);
 
-/*
-
-        ## Find empirical measures
-        dfres[i, "Intensity"] <- adf[which(adf$x == min(adf$x), arr.ind = TRUE), "y"]
-        if (0 %in% adf$y) {
-            for (j in nrow(adf):1) {
-                if (adf$y[j] == 0) {
-                    next
-                } else {
-                    dfres[i, "BP0"] <- adf$x[j + 1]
-                    break
-                }
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Exponentiated"
+                            << QString::number(alpha)
+                            << QString::number(q0)
+                            << getBP0String(valuePoints, pricePointsTemp)
+                            << getBP1String(valuePoints, pricePointsTemp)
+                            << QString::number(EV)
+                            << getIntensityString(valuePoints, pricePointsTemp)
+                            << QString::number(k)
+                            << QString::number(omaxd)
+                            << getOmaxEString(valuePoints, pricePointsTemp)
+                            << QString::number(pmaxd)
+                            << getPmaxEString(valuePoints, pricePointsTemp)
+                            << QString::number(mObj->GetReport().rmserror)
+                            << QString::number(mObj->GetReport().r2)
+                            << QString::number(mObj->GetReport().avgerror)
+                            << QString::number(pricePointsTemp.count())
+                            << getCodeString(mObj->GetInfo())
+                            << getKMessage(mCallK)
+                            << mXString
+                            << mYString;
             }
-        } else {
-            dfres[i, "BP0"] <- NA
-        }
-
-        dfres[i, "BP1"] <- if (sum(adf$y) > 0) max(adf[adf$y != 0, "x"]) else NA
-
-        dfres[i, "Omaxe"] <- max(adf$expend)
-        dfres[i, "Pmaxe"] <- if (dfres[i, "Omaxe"] == 0) 0 else adf[max(which(adf$expend == max(adf$expend))), "x"]
-
-*/
-
-            mTempHolder.clear();
-            mTempHolder << QString::number(i + 1)
-                        << "Exponentiated"
-                        << QString::number(alpha)
-                        << QString::number(q0)
-                        << "BP0"
-                        << "BP1"
-                        << QString::number(EV)
-                        << "Intensity"
-                        << QString::number(k)
-                        << QString::number(omaxd)
-                        << "Omaxe"
-                        << QString::number(pmaxd)
-                        << "Pmaxe"
-                        << "AbsSS"
-                        << "R2"
-                        << "SdRes"
-                        << QString::number(pricePointsTemp.count())
-                        << QString::number((int) mObj->GetInfo());
+            else
+            {
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Exponentiated"
+                            << ""
+                            << ""
+                            << getBP0String(valuePoints, pricePointsTemp)
+                            << getBP1String(valuePoints, pricePointsTemp)
+                            << ""
+                            << getIntensityString(valuePoints, pricePointsTemp)
+                            << ""
+                            << ""
+                            << getOmaxEString(valuePoints, pricePointsTemp)
+                            << ""
+                            << getPmaxEString(valuePoints, pricePointsTemp)
+                            << ""
+                            << ""
+                            << ""
+                            << QString::number(pricePointsTemp.count())
+                            << getCodeString(mObj->GetInfo())
+                            << getKMessage(mCallK)
+                            << mXString
+                            << mYString;
+            }
 
             allResults.append(mTempHolder);
         }
@@ -1431,10 +1522,158 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     resultsDialog->setModal(false);
     resultsDialog->show();
 
+}
 
-    //allResults.clear();
+double SheetWidget::getPbar(QStringList &xValues)
+{
+    QSet<QString> mPrices = QSet<QString>::fromList(xValues);
 
-    //demandWindowDialog->WindowStateActive(false);
+    double sum = 0;
+
+    for (int i = 0; i < mPrices.count(); i++)
+    {
+        sum = sum + mPrices.values().at(i).toDouble();
+    }
+
+    return sum / (double) mPrices.count();
+}
+
+QString SheetWidget::getKMessage(QString call)
+{
+    if (call == "ind")
+    {
+        return QString("Individual Log Range");
+    }
+    else if (call == "range")
+    {
+        return QString("Overall Group Log Range");
+    }
+    else if (call == "fit")
+    {
+        return QString("Individually Fitted");
+    }
+    else if (call == "share")
+    {
+        return QString("Overall Group Fitted");
+    }
+    else
+    {
+        return QString("NA");
+    }
+}
+
+QString SheetWidget::getCodeString(ae_int_t code)
+{
+    switch ((int) code) {
+        case -7:
+            return QString("Error: gradient verification failed");
+            break;
+
+        case 2:
+            return QString("Success: relative step is no more than EpsX");
+            break;
+
+        case 5:
+            return QString("Note: MaxIts steps was taken");
+            break;
+
+        case 7:
+            return QString("Error: stopping conditions are too stringent, further improvement is impossible");
+            break;
+
+        default:
+            return QString("NA");
+            break;
+    }
+}
+
+QString SheetWidget::getPmaxEString(QStringList &yValues, QStringList &xValues)
+{
+    double maxExpendNumber = minrealnumber;
+    double maxPrice = 0.0;
+
+    for (int i = 0; i < yValues.length(); i++)
+    {
+        if ((xValues[i].toDouble() * yValues[i].toDouble()) > maxExpendNumber)
+        {
+            maxExpendNumber = (xValues[i].toDouble() * yValues[i].toDouble());
+
+            maxPrice = xValues[i].toDouble();
+        }
+    }
+
+    return QString::number(maxPrice);
+}
+
+QString SheetWidget::getOmaxEString(QStringList &yValues, QStringList &xValues)
+{
+    double maxExpendNumber = minrealnumber;
+
+    for (int i = 0; i < yValues.length(); i++)
+    {
+        if ((xValues[i].toDouble() * yValues[i].toDouble()) > maxExpendNumber)
+        {
+            maxExpendNumber = (xValues[i].toDouble() * yValues[i].toDouble());
+        }
+    }
+
+    return QString::number(maxExpendNumber);
+}
+
+QString SheetWidget::getIntensityString(QStringList &yValues, QStringList &xValues)
+{
+    double minNonZeroPrice = maxrealnumber;
+
+    QString consString = "NA";
+
+    for (int i = 0; i < yValues.length(); i++)
+    {
+        if (xValues[i].toDouble() < minNonZeroPrice)
+        {
+            minNonZeroPrice = xValues[i].toDouble();
+            consString = yValues[i];
+        }
+    }
+
+    return consString;
+}
+
+QString SheetWidget::getBP0String(QStringList &yValues, QStringList &xValues)
+{
+    double maxNonZeroPrice = minrealnumber;
+
+    QString priceString = "NA";
+
+    for (int i = 0; i < yValues.length(); i++)
+    {
+        if (yValues[i].toDouble() <= 0 && xValues[i].toDouble() > maxNonZeroPrice)
+        {
+            maxNonZeroPrice = xValues[i].toDouble();
+
+            priceString = QString::number(maxNonZeroPrice);
+        }
+    }
+
+    return priceString;
+}
+
+QString SheetWidget::getBP1String(QStringList &yValues, QStringList &xValues)
+{
+    double maxNonZeroPrice = minrealnumber;
+
+    QString priceString = "NA";
+
+    for (int i = 0; i < yValues.length(); i++)
+    {
+        if (yValues[i].toDouble() > 0 && xValues[i].toDouble() > maxNonZeroPrice)
+        {
+            maxNonZeroPrice = xValues[i].toDouble();
+
+            priceString = QString::number(maxNonZeroPrice);
+        }
+    }
+
+    return priceString;
 }
 
 void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData,

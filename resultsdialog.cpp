@@ -156,10 +156,22 @@ QStringList ResultsDialog::getLinearKeys()
     QStringList mReturnKeys;
     mReturnKeys << "ID"
                 << "Equation"
+                << "BP0"
                 << "BP1"
-                << "Intensity"
                 << "Omaxe"
-                << "Pmaxe";
+                << "Pmaxe"
+                << "L"
+                << "b"
+                << "a"
+                << "R2"
+                << "Elasticity"
+                << "MeanElasticity"
+                << "Intensity"
+                << "Omaxd"
+                << "Pmaxd"
+                << "Notes"
+                << "Prices"
+                << "Consumption";
 
     return mReturnKeys;
 }
@@ -179,11 +191,14 @@ QStringList ResultsDialog::getExponentialKeys()
                 << "Omaxe"
                 << "Pmaxd"
                 << "Pmaxe"
-                << "AbsSS"
+                << "RMSError"
                 << "R2"
-                << "SdRes"
+                << "avgerror"
                 << "N"
-                << "Notes" ;
+                << "Notes"
+                << "K Method"
+                << "Prices"
+                << "Consumption";
 
     return mReturnKeys;
 }
@@ -204,11 +219,14 @@ QStringList ResultsDialog::getExponentiatedKeys()
                 << "Omaxe"
                 << "Pmaxd"
                 << "Pmaxe"
-                << "AbsSS"
+                << "RMSError"
                 << "R2"
                 << "SdRes"
                 << "N"
-                << "Notes";
+                << "Notes"
+                << "K Method"
+                << "Prices"
+                << "Consumption";
 
     return mReturnKeys;
 }

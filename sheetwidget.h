@@ -164,6 +164,18 @@ public slots:
     void updateRecentFileActions();
     void checkUpdatesAction();
 
+private slots:
+    QString getCodeString(ae_int_t code);
+    QString getKMessage(QString call);
+
+    double getPbar(QStringList &xValues);
+
+    QString getPmaxEString(QStringList &yValues, QStringList &xValues);
+    QString getOmaxEString(QStringList &yValues, QStringList &xValues);
+    QString getIntensityString(QStringList &yValues, QStringList &xValues);
+    QString getBP0String(QStringList &yValues, QStringList &xValues);
+    QString getBP1String(QStringList &yValues, QStringList &xValues);
+
 private:
     QAction *newSheetAction;
     QAction *openSheetAction;

@@ -68,7 +68,7 @@ void exponentiated_demand_with_k(const real_1d_array &c, const real_1d_array &x,
 
 void linear_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
 {
-    func = log(1) + (c[1] * log(x[0])) - c[0] * x[0];
+    func = log(c[2]) + (c[1] * log(x[0])) - c[0] * x[0];
 }
 
 void demandmodeling::FitLinear(const char *mStarts)
@@ -87,6 +87,7 @@ void demandmodeling::FitLinear(const char *mStarts)
 
     qDebug() << "a: " << c[0];
     qDebug() << "b: " << c[1];
+    qDebug() << "L: " << c[2];
     qDebug() << "Iterations: " << rep.iterationscount;
     qDebug() << "Code: " << info;
     qDebug() << "nanoseconds elapsed: " << timer.nsecsElapsed();
@@ -110,12 +111,14 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 
     lsfitresults(state, info, c, rep);
 
+    /*
     qDebug() << "Q0: " << c[0];
     qDebug() << "alpha: " << c[1];
     qDebug() << "k (log range): " << mParams.first();
     qDebug() << "Iterations: " << rep.iterationscount;
     qDebug() << "Code: " << info;
     qDebug() << "nanoseconds elapsed: " << timer.nsecsElapsed();
+    */
 }
 
 void demandmodeling::FitExponentialWithK(const char *mStarts)
@@ -139,12 +142,14 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 
     lsfitresults(state, info, c, rep);
 
+    /*
     qDebug() << "Q0: " << c[1];
     qDebug() << "alpha: " << c[2];
     qDebug() << "K: " << c[0];
     qDebug() << "Iterations: " << rep.iterationscount;
     qDebug() << "Code: " << info;
     qDebug() << "nanoseconds elapsed: " << timer.nsecsElapsed();
+    */
 }
 
 void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams)
@@ -165,12 +170,14 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 
     lsfitresults(state, info, c, rep);
 
+    /*
     qDebug() << "Q0: " << c[0];
     qDebug() << "alpha: " << c[1];
     qDebug() << "k (log range): " << mParams.first();
     qDebug() << "Iterations: " << rep.iterationscount;
     qDebug() << "Code: " << info;
     qDebug() << "nanoseconds elapsed: " << timer.nsecsElapsed();
+    */
 }
 
 void demandmodeling::FitExponentiatedWithK(const char *mStarts)
@@ -191,12 +198,14 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 
     lsfitresults(state, info, c, rep);
 
+    /*
     qDebug() << "Q0: " << c[1];
     qDebug() << "alpha: " << c[2];
     qDebug() << "K: " << c[0];
     qDebug() << "Iterations: " << rep.iterationscount;
     qDebug() << "Code: " << info;
     qDebug() << "nanoseconds elapsed: " << timer.nsecsElapsed();
+    */
 }
 
 demandmodeling::demandmodeling()
