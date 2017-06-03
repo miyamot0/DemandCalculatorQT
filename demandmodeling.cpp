@@ -16,7 +16,7 @@ void demandmodeling::SetStarts(const char *mString)
     c = mString;
 }
 
-void demandmodeling::SetLowerUpperBounds(const char *mUpperString, const char *mLowerString)
+void demandmodeling::SetBounds(const char *mUpperString, const char *mLowerString)
 {
     bndu = mUpperString;
     bndl = mLowerString;

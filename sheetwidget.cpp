@@ -1100,8 +1100,6 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     QStringList valuePoints;
     QStringList pricePointsTemp;
 
-    int mSeriesScoring = 0;
-
     mSteinResults.clear();
 
     if (false)
@@ -1111,27 +1109,36 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
         //
     }
 
-    double globalMinK, globalMaxK, globalFitK;
+    double globalMin, globalMax, globalFitK;
 
     if (mCallK == "range")
     {
-        getGlobalMinAndMax(globalMinK, globalMaxK, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
+        getGlobalMinAndMax(globalMin, globalMax, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
     }
     else if (mCallK == "share")
     {
-        getDataPointsGlobal(globalFitK, isRowData, mModel,
+        getGlobalMinAndMax(globalMin, globalMax, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
+        getDataPointsGlobal(globalFitK, globalMax, isRowData, mModel,
                             topPrice, leftPrice, bottomPrice, rightPrice,
                             topConsumption, leftConsumption, bottomConsumption, rightConsumption);
 
     }
 
-    //resultsDialog = new ResultsDialog(this);
-    //resultsDialog->setModal(false);
-
     statusBar()->showMessage("Beginning calculations...", 3000);
     allResults.clear();
 
     QList<double> mParams;
+
+    double tempPrice;
+    double temp;
+
+    double localMax;
+    double localMin;
+
+    resultsDialog = new ResultsDialog(this);
+    resultsDialog->setResultsType(mModel);
+
+    QStringList mTempHolder;
 
     for (int i = 0; i < nSeries; i++)
     {
@@ -1149,11 +1156,8 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
         mYString = "[";
         mYLogString = "[";
 
-        double tempPrice;
-        double temp;
-
-        double localMax = minrealnumber;
-        double localMin = maxrealnumber;
+        localMax = minrealnumber;
+        localMin = maxrealnumber;
 
         int arraySize = 0;
 
@@ -1259,17 +1263,11 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
         mYString.append("]");
         mYLogString.append("]");
 
-        //double mKindiv = (log10(localMax) - log10(localMin)) + 0.5;
-
-        //range
-        //fit
-        //share
-
         if (mModel == "linear")
         {
             mObj->SetX(mXString.toUtf8().constData());
             mObj->SetY(mYLogString.toUtf8().constData());
-            mObj->SetLowerUpperBounds("[+inf, +inf]", "[-inf, -inf]");
+            mObj->SetBounds("[+inf, +inf]", "[-inf, -inf]");
 
             mObj->FitLinear("[1, 1]");
         }
@@ -1280,14 +1278,14 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             if (mCallK == "fit")
             {
-                QString mFitArgs("[" + QString::number((log10(localMax) - log10(localMin)) + 0.5) + ", 10, 0.0001]");
+                QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
 
-                mObj->SetLowerUpperBounds("[+inf, +inf, +inf]", "[0.1, +inf, -inf]");
-                mObj->FitExponentialWithK(mFitArgs.toUtf8().constData());
+                mObj->SetBounds(mUpperBounds.toUtf8().constData(), "[0.5, 0.001, -inf]");
+                mObj->FitExponentialWithK("[1, 1, 0.001]");
             }
             else
             {
-                mObj->SetLowerUpperBounds("[+inf, +inf]", "[0.0001, -inf]");
+                mObj->SetBounds("[+inf, +inf]", "[0.0001, -inf]");
 
                 mParams.clear();
 
@@ -1297,7 +1295,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 }
                 else if (mCallK == "range")
                 {
-                    mParams << (log10(globalMaxK) - log10(globalMinK)) + 0.5;
+                    mParams << (log10(globalMax) - log10(globalMin)) + 0.5;
                 }
                 else if (mCallK == "share")
                 {
@@ -1306,22 +1304,133 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                 mObj->FitExponential("[10, 0.0001]", mParams);
             }
+
+            double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+            double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+            double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+
+            double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
+            double omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
+
+            double EV = 1/(alpha * pow(k, 1.5) * 100);
+
+            mTempHolder.clear();
+            mTempHolder << QString::number(i + 1)
+                        << "Exponential"
+                        << QString::number(alpha)
+                        << QString::number(q0)
+                        << "BP1"
+                        << "EV"
+                        << "Intensity"
+                        << QString::number(k)
+                        << QString::number(omaxd)
+                        << "Omaxe"
+                        << "Pmaxd"
+                        << "Pmaxe"
+                        << "AbsSS"
+                        << "R2"
+                        << "SdRes"
+                        << QString::number(pricePointsTemp.count())
+                        << QString::number((int) mObj->GetInfo());
+
+            allResults.append(mTempHolder);
+
+
         }
         else if (mModel == "koff")
         {
             mObj->SetX(mXString.toUtf8().constData());
             mObj->SetY(mYString.toUtf8().constData());
-            mObj->SetLowerUpperBounds("[+inf, +inf]", "[0.1, -inf]");
 
-            double mKRange = (log10(localMax) - log10(localMin)) + 0.5;
+            if (mCallK == "fit")
+            {
+                QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
 
-            mParams.clear();
-            mParams << mKRange;
+                mObj->SetBounds(mUpperBounds.toUtf8().constData(), "[0.5, 0.1, -inf]");
+                mObj->FitExponentiatedWithK("[1, 10, 0.001]");
+            }
+            else
+            {
+                mObj->SetBounds("[+inf, +inf]", "[0.0001, -inf]");
 
-            mObj->FitExponentiated("[10, 0.0001]", mParams);
+                mParams.clear();
+
+                if (mCallK == "ind")
+                {
+                    mParams << (log10(localMax) - log10(localMin)) + 0.5;
+                }
+                else if (mCallK == "range")
+                {
+                    mParams << (log10(globalMax) - log10(globalMin)) + 0.5;
+                }
+                else if (mCallK == "share")
+                {
+                    mParams << globalFitK;
+                }
+
+                mObj->FitExponentiated("[10, 0.0001]", mParams);
+            }
+
+            double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+            double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+            double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+            double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
+            double omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
+
+            double EV = 1/(alpha * pow(k, 1.5) * 100);
+
+/*
+
+        ## Find empirical measures
+        dfres[i, "Intensity"] <- adf[which(adf$x == min(adf$x), arr.ind = TRUE), "y"]
+        if (0 %in% adf$y) {
+            for (j in nrow(adf):1) {
+                if (adf$y[j] == 0) {
+                    next
+                } else {
+                    dfres[i, "BP0"] <- adf$x[j + 1]
+                    break
+                }
+            }
+        } else {
+            dfres[i, "BP0"] <- NA
         }
 
+        dfres[i, "BP1"] <- if (sum(adf$y) > 0) max(adf[adf$y != 0, "x"]) else NA
+
+        dfres[i, "Omaxe"] <- max(adf$expend)
+        dfres[i, "Pmaxe"] <- if (dfres[i, "Omaxe"] == 0) 0 else adf[max(which(adf$expend == max(adf$expend))), "x"]
+
+*/
+
+            mTempHolder.clear();
+            mTempHolder << QString::number(i + 1)
+                        << "Exponentiated"
+                        << QString::number(alpha)
+                        << QString::number(q0)
+                        << "BP0"
+                        << "BP1"
+                        << QString::number(EV)
+                        << "Intensity"
+                        << QString::number(k)
+                        << QString::number(omaxd)
+                        << "Omaxe"
+                        << QString::number(pmaxd)
+                        << "Pmaxe"
+                        << "AbsSS"
+                        << "R2"
+                        << "SdRes"
+                        << QString::number(pricePointsTemp.count())
+                        << QString::number((int) mObj->GetInfo());
+
+            allResults.append(mTempHolder);
+        }
     }
+
+    resultsDialog->setResults(allResults);
+    resultsDialog->setModal(false);
+    resultsDialog->show();
+
 
     //allResults.clear();
 
@@ -1469,6 +1578,7 @@ void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &
 
 void SheetWidget::WorkFinished(QStringList status)
 {
+    /*
     QStringList mSplitCommand = status.first().split(" ");
 
     if (mSplitCommand.first().contains("checkSystematic.R"))
@@ -1699,6 +1809,7 @@ void SheetWidget::WorkFinished(QStringList status)
 
         demandWindowDialog->WindowStateActive(true);
     }
+    */
 }
 
 bool SheetWidget::arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
@@ -1889,7 +2000,7 @@ void SheetWidget::getGlobalMinAndMax(double &globalMin, double &globalMax, bool 
     }
 }
 
-void SheetWidget::getDataPointsGlobal(double &returnK, bool isRowData, QString mModel,
+void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, QString mModel,
                                       int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                                       int topValue, int leftValue, int bottomValue, int rightValue)
 {
@@ -2016,13 +2127,30 @@ void SheetWidget::getDataPointsGlobal(double &returnK, bool isRowData, QString m
         mObj->SetX(x.toUtf8().constData());
         mObj->SetY(y.toUtf8().constData());
 
-        mObj->SetLowerUpperBounds("[10, +inf, 1]", "[0.1, 0.1, -inf]");
+        double mMaxK = log10(globalMax) + 0.5;
+
+        QString mUpperBound("[" + QString::number(mMaxK) + ", +inf, 1]");
+
+        mObj->SetBounds(mUpperBound.toUtf8().constData(), "[0.1, 0.1, -inf]");
         mObj->FitExponentialWithK("[1, 10, 0.0001]");
 
         returnK = mObj->GetParams()[0];
     }
-}
+    else if (mModel == "koff")
+    {
+        mObj->SetX(x.toUtf8().constData());
+        mObj->SetY(y.toUtf8().constData());
 
+        double mMaxK = log10(globalMax) + 0.5;
+
+        QString mUpperBound("[" + QString::number(mMaxK) + ", +inf, 1]");
+
+        mObj->SetBounds(mUpperBound.toUtf8().constData(), "[0.1, 0.1, -inf]");
+        mObj->FitExponentiatedWithK("[1, 10, 0.0001]");
+
+        returnK = mObj->GetParams()[0];
+    }
+}
 
 void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
 {

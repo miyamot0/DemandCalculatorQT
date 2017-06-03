@@ -22,7 +22,7 @@ public:
     void SetX(const char *mString);
     void SetY(const char *mString);
     void SetStarts(const char *mString);
-    void SetLowerUpperBounds(const char *mUpperString, const char *mLowerString);
+    void SetBounds(const char *mUpperString, const char *mLowerString);
 
     real_1d_array GetParams();
     lsfitstate GetState();

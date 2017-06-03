@@ -41,7 +41,10 @@ public:
      * @brief ResultsDialog
      * @param parent
      */
-    explicit ResultsDialog(QWidget *parent = 0, QString jsonString = "");
+    explicit ResultsDialog(QWidget *parent = 0);
+
+    void setResults(QList<QStringList> mData);
+    void setResultsType(QString mModel);
     ~ResultsDialog();
 
 public slots:
@@ -60,14 +63,7 @@ private:
     GraphicalOutputDialog *graphicalOutputDialog;
 
     QAction *copyAction;
-
-    QJsonParseError err;
-    QJsonDocument jsonDoc;
-    QJsonArray jsonArr;
-    QJsonValue jsonVal;
-    QJsonObject jsonObj;
-
-    bool skipFlag = false;
+    QList<QStringList> mResults;
 };
 
 #endif // RESULTSDIALOG_H
