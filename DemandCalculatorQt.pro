@@ -57,7 +57,8 @@ SOURCES += main.cpp\
     Libraries/alglib-3.11.0/src/optimization.cpp \
     Libraries/alglib-3.11.0/src/solvers.cpp \
     Libraries/alglib-3.11.0/src/specialfunctions.cpp \
-    Libraries/alglib-3.11.0/src/statistics.cpp
+    Libraries/alglib-3.11.0/src/statistics.cpp \
+    demandmodeling.cpp
 
 HEADERS  += \
     aboutdialog.h \
@@ -85,7 +86,8 @@ HEADERS  += \
     Libraries/alglib-3.11.0/src/solvers.h \
     Libraries/alglib-3.11.0/src/specialfunctions.h \
     Libraries/alglib-3.11.0/src/statistics.h \
-    Libraries/alglib-3.11.0/src/stdafx.h
+    Libraries/alglib-3.11.0/src/stdafx.h \
+    demandmodeling.h
 
 FORMS    += \
     aboutdialog.ui \
@@ -107,6 +109,10 @@ RESOURCES += \
 #
 ###
 win32 {
+    INCLUDEPATH += Libraries/alglib-3.11.0/src
+
+    win32:RC_ICONS += SNS.ico
+
     DCA_FILES.files = scripts/checkSystematic.R \
                     scripts/fitDemand.R \
                     scripts/installDependencyBase64.R \
@@ -122,7 +128,6 @@ win32 {
                     COPYING \
                     SNS.ico
 
-    win32:RC_ICONS += SNS.ico
 
     CONFIG(debug, debug|release) {
         DESTDIR = $$OUT_PWD/build/debug

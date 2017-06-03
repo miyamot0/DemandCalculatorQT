@@ -27,7 +27,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QDialog>
-#include <QSvgWidget>
+//#include <QSvgWidget>
 #include <QFile>
 #include <QTextStream>
 
@@ -89,7 +89,7 @@ private:
 
     int currentIndexShown;
 
-    QSvgWidget *mSVG;
+    //QSvgWidget *mSVG;
 
     QMenu *dialogMenu;
     QAction *savePNG;

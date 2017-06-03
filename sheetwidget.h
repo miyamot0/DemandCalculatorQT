@@ -82,6 +82,7 @@
 
 #include "sheetselectdialog.h"
 #include "demandsettingsdialog.h"
+#include "demandmodeling.h"
 #include "steincheckdialog.h"
 #include "resultsdialog.h"
 #include "licensedialog.h"
@@ -134,16 +135,19 @@ public slots:
 
     void showDCALicenseWindow();
     void showBeezdemandLicenseWindow();
-    void showFitDemandLicenseWindow();
+    void showALGLIBLicenseWindow();
     void showQTLicenseWindow();
-    void showGnomeLicenseWindow();
+    void showTangoLicenseWindow();
 
     bool isToolWindowShown();
 
     bool areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength);
+
+    bool arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay);
     void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints,
                              bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue,
                              int i);
+    void getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue);
 
     void Calculate(QString scriptName, QString model, QString kString, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                    int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
@@ -174,9 +178,9 @@ private:
 
     QAction *openLicenseDCA;
     QAction *openLicenseBeezdemand;
-    QAction *openLicenseFitDemand;
+    QAction *openLicenseALGLIB;
     QAction *openLicenseQt;
-    QAction *openLicenseGnome;
+    QAction *openLicenseTango;
 
     QAction *openAbout;
     QAction *openFAQ;
@@ -243,6 +247,14 @@ private:
     QAction *separatorAct;
 
     QNetworkAccessManager *manager;
+
+    demandmodeling *mObj;
+
+    QString mXString;
+    QString mYString;
+    QString mYLogString;
+
+    QList<QStringList> mSteinResults;
 };
 
 

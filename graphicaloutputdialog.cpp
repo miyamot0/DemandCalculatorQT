@@ -22,7 +22,7 @@
   */
 
 #include <QtWidgets>
-#include <QSvgRenderer>
+//#include <QSvgRenderer>
 #include <QPixmap>
 #include "graphicaloutputdialog.h"
 #include "ui_graphicaloutputdialog.h"
@@ -33,13 +33,13 @@ GraphicalOutputDialog::GraphicalOutputDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    mSVG = new QSvgWidget();
+    //mSVG = new QSvgWidget();
 
     QSizePolicy qsp(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    mSVG->setSizePolicy(qsp);
-    mSVG->resize(500, 500);
+    //mSVG->setSizePolicy(qsp);
+    //mSVG->resize(500, 500);
 
-    ui->verticalLayout->insertWidget(0, mSVG, 0, Qt::AlignCenter);
+    //ui->verticalLayout->insertWidget(0, mSVG, 0, Qt::AlignCenter);
 
     currentIndexShown = 0;
 
@@ -97,13 +97,13 @@ void GraphicalOutputDialog::saveSVGasPNG()
 
     if(!file_name.trimmed().isEmpty())
     {
-        QSvgRenderer *renderer = mSVG->renderer();
-        QImage image(600, 600, QImage::Format_RGB32);
-        QPainter painter;
-        painter.begin(&image);
-        renderer->render(&painter);
-        painter.end();
-        image.save(file_name, "PNG", 9);
+        //QSvgRenderer *renderer = mSVG->renderer();
+        //QImage image(600, 600, QImage::Format_RGB32);
+        //QPainter painter;
+        //painter.begin(&image);
+        //renderer->render(&painter);
+        //painter.end();
+        //image.save(file_name, "PNG", 9);
     }
 }
 
@@ -138,6 +138,7 @@ void GraphicalOutputDialog::on_PreviousButton_clicked()
 
 void GraphicalOutputDialog::appendBase64(QString chartData)
 {
+    /*
     QFile file("tempFileNew.tmp");
     file.open(QIODevice::WriteOnly);
     file.write(QByteArray::fromBase64(chartData.toUtf8()));
@@ -171,6 +172,7 @@ void GraphicalOutputDialog::appendBase64(QString chartData)
     mDisplayData.append(readFile.readAll().toBase64());
 
     readFile.close();
+    */
 
     if (mDisplayData.count() == 1)
     {
@@ -184,7 +186,7 @@ void GraphicalOutputDialog::displayPlot()
 {
     chartString = mDisplayData.at(currentIndexShown);
 
-    mSVG->load(QByteArray::fromBase64(chartString.toUtf8()));
+    //mSVG->load(QByteArray::fromBase64(chartString.toUtf8()));
 
     //mSVG->resize(mSVG->sizeHint()) ;
 

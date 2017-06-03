@@ -80,6 +80,10 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
+
+    //real_1d_array s = "[1.0e+1, 1.0e-4]";
+    //lsfitsetscale(state, s);
+
     lsfitsetcond(state, epsx, maxits);
 
     alglib::lsfitfit(state, exponential_demand, NULL, &mParams);

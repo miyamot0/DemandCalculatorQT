@@ -148,6 +148,8 @@ SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
     #elif TARGET_OS_MAC
         manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/ModelSelectionRepositoryMac/Updates.xml")));
     #endif
+
+    mObj = new demandmodeling();
 }
 
 void SheetWidget::downloadedFile(QNetworkReply *reply) {
@@ -271,17 +273,17 @@ void SheetWidget::buildMenus()
     openLicenseBeezdemand->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseBeezdemand, &QAction::triggered, this, &SheetWidget::showBeezdemandLicenseWindow);
 
-    openLicenseFitDemand = new QAction("fitDemand License (GPL-V3)", this);
-    openLicenseFitDemand->setIcon(QIcon(":/images/format-justify-center.png"));
-    connect(openLicenseFitDemand, &QAction::triggered, this, &SheetWidget::showFitDemandLicenseWindow);
+    openLicenseALGLIB = new QAction("ALGLIB License (GPL-V3)", this);
+    openLicenseALGLIB->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseALGLIB, &QAction::triggered, this, &SheetWidget::showALGLIBLicenseWindow);
 
     openLicenseQt = new QAction("Qt License (LGPL-V3, GPL-V3)", this);
     openLicenseQt->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseQt, &QAction::triggered, this, &SheetWidget::showQTLicenseWindow);
 
-    openLicenseGnome = new QAction("Gnome Icons License (GPL-V3)", this);
-    openLicenseGnome->setIcon(QIcon(":/images/format-justify-center.png"));
-    connect(openLicenseGnome, &QAction::triggered, this, &SheetWidget::showGnomeLicenseWindow);
+    openLicenseTango = new QAction("Gnome Icons License (GPL-V3)", this);
+    openLicenseTango->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseTango, &QAction::triggered, this, &SheetWidget::showTangoLicenseWindow);
 
     openAbout = new QAction("Credits", this);
     openAbout->setIcon(QIcon(":/images/format-justify-center.png"));
@@ -347,9 +349,9 @@ void SheetWidget::buildMenus()
     QMenu *sheetLicensesMenu = menuBar()->addMenu(tr("&Licenses"));
     sheetLicensesMenu->addAction(openLicenseDCA);
     sheetLicensesMenu->addAction(openLicenseBeezdemand);
-    sheetLicensesMenu->addAction(openLicenseFitDemand);
+    sheetLicensesMenu->addAction(openLicenseALGLIB);
     sheetLicensesMenu->addAction(openLicenseQt);
-    sheetLicensesMenu->addAction(openLicenseGnome);
+    sheetLicensesMenu->addAction(openLicenseTango);
     sheetLicensesMenu->addAction(openAbout);
 
     QMenu *sheetAboutMenu = menuBar()->addMenu(tr("&Help"));
@@ -708,7 +710,7 @@ void SheetWidget::showBeezdemandLicenseWindow()
     licenseDialog->show();
 }
 
-void SheetWidget::showFitDemandLicenseWindow()
+void SheetWidget::showALGLIBLicenseWindow()
 {
     QString mFilePath = "";
 
@@ -774,24 +776,24 @@ void SheetWidget::showQTLicenseWindow()
     licenseDialog->show();
 }
 
-void SheetWidget::showGnomeLicenseWindow()
+void SheetWidget::showTangoLicenseWindow()
 {
     QString mFilePath = "";
 
     #ifdef _WIN32
-            mFilePath = "License_gnome_icons.txt";
+            mFilePath = "License_Tango.txt";
     #elif TARGET_OS_MAC
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
             mFilePath = "\"" + runDirectory.path() + "/";
 
-            mFilePath = mFilePath + "License_gnome_icons.txt\"";
+            mFilePath = mFilePath + "License_Tango.txt\"";
 
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
-    licenseDialog->setWindowTitle("Gnome Icon Set License (GPL-V3)");
+    licenseDialog->setWindowTitle("Tango Icons License (Public Domain)");
     licenseDialog->setModal(true);
     licenseDialog->show();
 }
@@ -1040,13 +1042,23 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     mReplnum = replnum;
     mRemQ0 = remQ0;
     mReplQ0 = replQ0;
+
     mFigureFlag = (showCharts) ? "TRUE" : "FALSE";
+
+    qDebug() << "mModel: " << mModel;
+    qDebug() << "isChecking: " << isChecking;
+    qDebug() << "mCallK: " << mCallK;
+    qDebug() << "mRem0: " << mRem0;
+    qDebug() << "mReplnum: " << mReplnum;
+    qDebug() << "mRemQ0: " << mRemQ0;
+    qDebug() << "mReplQ0: " << mReplQ0;
 
     /**
      * @brief isRowData
      * Check if is row-based data
      */
     bool isRowData = (rightPrice - leftPrice == 0) ? false : true;
+    int nSeries = (isRowData) ? bottomConsumption - topConsumption + 1 : nSeries = rightConsumption - leftConsumption + 1;
 
     int dWidth = rightPrice - leftPrice + 1;
     int dLength = bottomPrice - topPrice + 1;
@@ -1056,54 +1068,248 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     if (!areDimensionsValid(isRowData, dWidth, vWidth, dLength, vLength))
     {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
+
         return;
     }
 
-    ConstructFrameElements(pricePoints, consumptionPoints, idValues, isRowData,
-                           topPrice, leftPrice, bottomPrice, rightPrice,
-                           topConsumption, leftConsumption, bottomConsumption, rightConsumption);
+    QStringList pricePoints;
 
-    QStringList mArgList;
+    if(!arePricePointsValid(pricePoints, isRowData, topPrice, leftPrice, bottomPrice, rightPrice))
+    {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
 
-    #ifdef _WIN32
+        return;
+    }
 
-    mArgList << scriptName;
+    QStringList valuePoints;
+    QStringList pricePointsTemp;
 
-    #elif TARGET_OS_MAC
+    int mSeriesScoring = 0;
 
-    QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
-    runDirectory.cdUp();
-    runDirectory.cd("Resources");
-    QString scriptDir = "\"" + runDirectory.path() + "/";
+    mSteinResults.clear();
 
-    mArgList << scriptDir + scriptName + "\"";
+    if (false)
+    {
+        // TODO
+        // Add in Stein
+        //
+    }
 
-    #endif
+    double globalMinK, globalMaxK, globalFitK;
 
-    mArgList << model;
-    mArgList << idValues.join(",");
-    mArgList << pricePoints.join(",");
-    mArgList << consumptionPoints.join(",");
+    if (mCallK == "range")
+    {
+        getGlobalMinAndMax(globalMinK, globalMaxK, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
+    }
+    else (mCallK == "share")
+    {
 
-    mSeriesCommands.clear();
-    mSeriesCommands << mArgList.join(" ");
+    }
 
+    resultsDialog = new ResultsDialog(this);
+    resultsDialog->setModal(false);
+
+    statusBar()->showMessage("Beginning calculations...", 3000);
     allResults.clear();
 
-    //thread = new QThread();
-    //worker = new FitWorker(commandParameter, mSeriesCommands);
+    QList<double> mParams;
 
-    //worker->moveToThread(thread);
+    for (int i = 0; i < nSeries; i++)
+    {
+        QStringList resultsList;
+        resultsList << QString::number(i+1);
 
-    //connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-    //connect(thread, SIGNAL(started()), worker, SLOT(working()));
-    //connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-    //connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
+        statusBar()->showMessage("Calculating #" + QString::number(i + 1) + " of " + QString::number(nSeries), 3000);
 
-    //thread->wait();
-    //worker->startWork();
+        valuePoints.clear();
+        pricePointsTemp.clear();
 
-    demandWindowDialog->WindowStateActive(false);
+        areValuePointsValid(valuePoints, pricePointsTemp, pricePoints, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption, i);
+
+        mXString = "[";
+        mYString = "[";
+        mYLogString = "[";
+
+        double tempPrice;
+        double temp;
+
+        double localMax = minrealnumber;
+        double localMin = maxrealnumber;
+
+        int arraySize = 0;
+
+        for (int i=0; i<pricePointsTemp.length() && i<valuePoints.length(); i++)
+        {
+            tempPrice = pricePointsTemp[i].toDouble();
+
+            // Move on if cue is to drop
+            if (remQ0 == "DROP" && tempPrice == 0.0)
+            {
+                continue;
+            }
+
+            if (arraySize == 0)
+            {
+                temp = valuePoints[i].toDouble();
+
+                if (rem0 == "DROP" && temp == 0.0)
+                {
+                    continue;
+                }
+
+                if (remQ0 == "MODIFY" && tempPrice == 0.0)
+                {
+                    mXString.append("[" + mReplQ0 + "]");
+                }
+                else
+                {
+                    mXString.append("[" + pricePointsTemp[i] + "]");
+                }
+
+                if (rem0 == "MODIFY" && temp == 0.0)
+                {
+                    temp = mReplnum.toDouble();
+
+                    mYString.append(mReplnum);
+                    mYLogString.append(QString::number(log10(temp)));
+                }
+                else
+                {
+                    mYString.append(valuePoints[i]);
+                    mYLogString.append(QString::number(log10(temp)));
+                }
+
+                if (temp > 0 && temp < localMin)
+                {
+                    localMin = temp;
+                }
+
+                if (temp > 0 && temp > localMax)
+                {
+                    localMax = temp;
+                }
+
+                arraySize++;
+            }
+            else
+            {
+                temp = valuePoints[i].toDouble();
+
+                if (rem0 == "DROP" && temp == 0.0)
+                {
+                    continue;
+                }
+
+                if (remQ0 == "MODIFY" && tempPrice == 0.0)
+                {
+                    mXString.append(",[" + mReplQ0 + "]");
+                }
+                else
+                {
+                    mXString.append(",[" + pricePointsTemp[i] + "]");
+                }
+
+                if (rem0 == "MODIFY" && temp == 0.0)
+                {
+                    temp = mReplnum.toDouble();
+
+                    mYString.append("," + mReplnum);
+                    mYLogString.append("," + QString::number(log10(temp)));
+                }
+                else
+                {
+                    mYString.append("," + valuePoints[i]);
+                    mYLogString.append("," + QString::number(log10(temp)));
+                }
+
+                if (temp > 0 && temp < localMin)
+                {
+                    localMin = temp;
+                }
+
+                if (temp > 0 && temp > localMax)
+                {
+                    localMax = temp;
+                }
+
+                arraySize++;
+            }
+        }
+
+        mXString.append("]");
+        mYString.append("]");
+        mYLogString.append("]");
+
+        //double mKindiv = (log10(localMax) - log10(localMin)) + 0.5;
+
+        //range
+        //fit
+        //share
+
+        if (mModel == "linear")
+        {
+            mObj->SetX(mXString.toUtf8().constData());
+            mObj->SetY(mYLogString.toUtf8().constData());
+            mObj->SetLowerUpperBounds("[+inf, +inf]", "[-inf, -inf]");
+
+            mObj->FitLinear("[1, 1]");
+        }
+        else if (mModel == "hs")
+        {
+            mObj->SetX(mXString.toUtf8().constData());
+            mObj->SetY(mYLogString.toUtf8().constData());
+
+            if (mCallK == "fit")
+            {
+                QString mFitArgs("[" + QString::number((log10(localMax) - log10(localMin)) + 0.5) + ", 10, 0.0001]");
+
+                mObj->SetLowerUpperBounds("[+inf, +inf, +inf]", "[0.1, +inf, -inf]");
+                mObj->FitExponentialWithK(mFitArgs.toUtf8().constData());
+            }
+            else
+            {
+                mObj->SetLowerUpperBounds("[+inf, +inf]", "[0.0001, -inf]");
+
+                mParams.clear();
+
+                if (mCallK == "ind")
+                {
+                    mParams << (log10(localMax) - log10(localMin)) + 0.5;
+                }
+                else if (mCallK == "range")
+                {
+                    mParams << (log10(globalMaxK) - log10(globalMinK)) + 0.5;
+                }
+
+                mObj->FitExponential("[10, 0.0001]", mParams);
+            }
+        }
+        else if (mModel == "koff")
+        {
+            mObj->SetX(mXString.toUtf8().constData());
+            mObj->SetY(mYString.toUtf8().constData());
+            mObj->SetLowerUpperBounds("[+inf, +inf]", "[0.1, -inf]");
+
+            double mKRange = (log10(localMax) - log10(localMin)) + 0.5;
+
+            mParams.clear();
+            mParams << mKRange;
+
+            mObj->FitExponentiated("[10, 0.0001]", mParams);
+        }
+
+    }
+
+    //allResults.clear();
+
+    //demandWindowDialog->WindowStateActive(false);
 }
 
 void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData,
@@ -1159,10 +1365,6 @@ void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &
                 return;
             }
         }
-
-        /**
-
-          */
 
         for (int r2 = topConsumption; r2 <= bottomConsumption; r2++)
         {
@@ -1483,6 +1685,93 @@ void SheetWidget::WorkFinished(QStringList status)
     }
 }
 
+bool SheetWidget::arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
+{
+    pricePoints.clear();
+
+    QString holder;
+    bool valueCheck = true;
+
+    if (isRowData)
+    {
+        int r = topDelay;
+
+        for (int c = leftDelay; c <= rightDelay; c++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            pricePoints << holder;
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+        }
+    }
+    else
+    {
+        int c = leftDelay;
+
+        for (int r = topDelay; r <= bottomDelay; r++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            pricePoints << holder;
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength)
 {
     if (isRowData)
@@ -1517,6 +1806,71 @@ bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int
     }
 
     return true;
+}
+
+void SheetWidget::getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue)
+{
+    QString holder;
+    bool valueCheck = true;
+    double valHolder;
+
+    globalMin = maxrealnumber;
+    globalMax = minrealnumber;
+
+    if (isRowData)
+    {
+        for (int r = topValue; r <= bottomValue; r++)
+        {
+            for (int c = leftValue; c <= rightValue; c++)
+            {
+                if (table->item(r, c) != NULL)
+                {
+                    holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder = holder.toDouble(&valueCheck);
+
+                    if (valueCheck)
+                    {
+                        if (valHolder > 0 && valHolder > globalMax)
+                        {
+                            globalMax = valHolder;
+                        }
+
+                        if (valHolder > 0 && valHolder < globalMin)
+                        {
+                            globalMin = valHolder;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int c = leftValue; c <= rightValue; c++)
+        {
+            for (int r = topValue; r <= bottomValue; r++)
+            {
+                if (table->item(r, c) != NULL)
+                {
+                    holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder = holder.toDouble(&valueCheck);
+
+                    if (valueCheck)
+                    {
+                        if (valHolder > 0 && valHolder > globalMax)
+                        {
+                            globalMax = valHolder;
+                        }
+
+                        if (valHolder > 0 && valHolder < globalMin)
+                        {
+                            globalMin = valHolder;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
