@@ -1628,7 +1628,7 @@ QString SheetWidget::getPmaxEString(QStringList &yValues, QStringList &xValues)
 
     for (int i = 0; i < yValues.length(); i++)
     {
-        if ((xValues[i].toDouble() * yValues[i].toDouble()) > maxExpendNumber)
+        if ((xValues[i].toDouble() * yValues[i].toDouble()) >= maxExpendNumber)
         {
             maxExpendNumber = (xValues[i].toDouble() * yValues[i].toDouble());
 
