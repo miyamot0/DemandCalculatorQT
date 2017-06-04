@@ -1,5 +1,17 @@
 #-------------------------------------------------
 #
+# Demand Curve Analyzer, Qt Port
+# Copyright 2017, Shawn P. Gilroy
+# Released under the GPL-V3 license
+#
+# Source code for project hosted at:
+#
+# https://github.com/miyamot0/DemandCalculatorQT
+#
+#-------------------------------------------------
+
+#-------------------------------------------------
+#
 # Project created by QtCreator 2017-05-08T14:58:04
 #
 #-------------------------------------------------
