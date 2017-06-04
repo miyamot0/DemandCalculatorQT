@@ -1040,29 +1040,6 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
                             bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0, bool showCharts)
 {
-
-    displayFigures = showCharts;
-    mModel = model;
-    isChecking = checkValues;
-    isConditional = notify;
-    mCallK = kString;
-    mRem0 = rem0;
-    mReplnum = replnum;
-    mRemQ0 = remQ0;
-    mReplQ0 = replQ0;
-
-    mFigureFlag = (showCharts) ? "TRUE" : "FALSE";
-
-    /*
-    qDebug() << "mModel: " << mModel;
-    qDebug() << "isChecking: " << isChecking;
-    qDebug() << "mCallK: " << mCallK;
-    qDebug() << "mRem0: " << mRem0;
-    qDebug() << "mReplnum: " << mReplnum;
-    qDebug() << "mRemQ0: " << mRemQ0;
-    qDebug() << "mReplQ0: " << mReplQ0;
-    */
-
     /**
      * @brief isRowData
      * Check if is row-based data
@@ -1106,7 +1083,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     bool raisedFlag = false;
 
-    if (isChecking || isConditional)
+    if (checkValues || notify)
     {
         steinCheckDialog = new SteinCheck();
 
@@ -1123,13 +1100,11 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 raisedFlag = true;
             }
 
-            qDebug() << mTempSteinResults;
-
             mSteinResults.append(mTempSteinResults);
             steinCheckDialog->appendRow(mTempSteinResults);
         }
 
-        if (isChecking || raisedFlag)
+        if (checkValues || raisedFlag)
         {
             steinCheckDialog->exec();
 
@@ -1147,14 +1122,14 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     double globalMin, globalMax, globalFitK;
 
-    if (mCallK == "range")
+    if (kString == "range")
     {
         getGlobalMinAndMax(globalMin, globalMax, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
     }
-    else if (mCallK == "share")
+    else if (kString == "share")
     {
         getGlobalMinAndMax(globalMin, globalMax, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
-        getDataPointsGlobal(globalFitK, globalMax, isRowData, mModel,
+        getDataPointsGlobal(globalFitK, globalMax, isRowData, model,
                             topPrice, leftPrice, bottomPrice, rightPrice,
                             topConsumption, leftConsumption, bottomConsumption, rightConsumption);
 
@@ -1172,7 +1147,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     double localMin;
 
     resultsDialog = new ResultsDialog(this);
-    resultsDialog->setResultsType(mModel);
+    resultsDialog->setResultsType(model);
 
     QStringList mTempHolder;
 
@@ -1218,7 +1193,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                 if (remQ0 == "MODIFY" && tempPrice == 0.0)
                 {
-                    mXString.append("[" + mReplQ0 + "]");
+                    mXString.append("[" + replQ0 + "]");
                 }
                 else
                 {
@@ -1227,9 +1202,9 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                 if (rem0 == "MODIFY" && temp == 0.0)
                 {
-                    temp = mReplnum.toDouble();
+                    temp = replnum.toDouble();
 
-                    mYString.append(mReplnum);
+                    mYString.append(replnum);
                     mYLogString.append(QString::number(log10(temp)));
                 }
                 else
@@ -1261,7 +1236,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                 if (remQ0 == "MODIFY" && tempPrice == 0.0)
                 {
-                    mXString.append(",[" + mReplQ0 + "]");
+                    mXString.append(",[" + replQ0 + "]");
                 }
                 else
                 {
@@ -1270,9 +1245,9 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                 if (rem0 == "MODIFY" && temp == 0.0)
                 {
-                    temp = mReplnum.toDouble();
+                    temp = replnum.toDouble();
 
-                    mYString.append("," + mReplnum);
+                    mYString.append("," + replnum);
                     mYLogString.append("," + QString::number(log10(temp)));
                 }
                 else
@@ -1299,7 +1274,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
         mYString.append("]");
         mYLogString.append("]");
 
-        if (mModel == "linear")
+        if (model == "linear")
         {
             mObj->SetX(mXString.toUtf8().constData());
             mObj->SetY(mYLogString.toUtf8().constData());
@@ -1366,12 +1341,12 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             allResults.append(mTempHolder);
         }
-        else if (mModel == "hs")
+        else if (model == "hs")
         {
             mObj->SetX(mXString.toUtf8().constData());
             mObj->SetY(mYLogString.toUtf8().constData());
 
-            if (mCallK == "fit")
+            if (kString == "fit")
             {
                 QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
 
@@ -1384,15 +1359,15 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                 mParams.clear();
 
-                if (mCallK == "ind")
+                if (kString == "ind")
                 {
                     mParams << (log10(localMax) - log10(localMin)) + 0.5;
                 }
-                else if (mCallK == "range")
+                else if (kString == "range")
                 {
                     mParams << (log10(globalMax) - log10(globalMin)) + 0.5;
                 }
-                else if (mCallK == "share")
+                else if (kString == "share")
                 {
                     mParams << globalFitK;
                 }
@@ -1402,14 +1377,14 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
-                double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
-                double alphase = (mCallK == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
+                double alpha = (kString == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+                double alphase = (kString == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
 
-                double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
-                QString kse = (mCallK == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
+                double k = (kString == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+                QString kse = (kString == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
 
-                double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
-                double q0se = (mCallK == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
+                double q0 = (kString == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+                double q0se = (kString == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
 
                 double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
                 double omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
@@ -1437,7 +1412,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             << QString::number(mObj->GetReport().avgerror)
                             << QString::number(pricePointsTemp.count())
                             << getCodeString(mObj->GetInfo())
-                            << getKMessage(mCallK)
+                            << getKMessage(kString)
                             << mXString
                             << mYLogString;
             }
@@ -1461,19 +1436,19 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             << ""
                             << QString::number(pricePointsTemp.count())
                             << getCodeString(mObj->GetInfo())
-                            << getKMessage(mCallK)
+                            << getKMessage(kString)
                             << mXString
                             << mYLogString;
             }
 
             allResults.append(mTempHolder);
         }
-        else if (mModel == "koff")
+        else if (model == "koff")
         {
             mObj->SetX(mXString.toUtf8().constData());
             mObj->SetY(mYString.toUtf8().constData());
 
-            if (mCallK == "fit")
+            if (kString == "fit")
             {
                 QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
 
@@ -1486,15 +1461,15 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                 mParams.clear();
 
-                if (mCallK == "ind")
+                if (kString == "ind")
                 {
                     mParams << (log10(localMax) - log10(localMin)) + 0.5;
                 }
-                else if (mCallK == "range")
+                else if (kString == "range")
                 {
                     mParams << (log10(globalMax) - log10(globalMin)) + 0.5;
                 }
-                else if (mCallK == "share")
+                else if (kString == "share")
                 {
                     mParams << globalFitK;
                 }
@@ -1504,13 +1479,13 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
-                double alpha = (mCallK == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
-                double alphase = (mCallK == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
-                double k = (mCallK == "fit") ? mObj->GetState().c[0] : mParams.at(0);
-                QString kse = (mCallK == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
+                double alpha = (kString == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
+                double alphase = (kString == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
+                double k = (kString == "fit") ? mObj->GetState().c[0] : mParams.at(0);
+                QString kse = (kString == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
 
-                double q0 = (mCallK == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
-                double q0se = (mCallK == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
+                double q0 = (kString == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
+                double q0se = (kString == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
                 double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
                 double omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
 
@@ -1538,7 +1513,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             << QString::number(mObj->GetReport().avgerror)
                             << QString::number(pricePointsTemp.count())
                             << getCodeString(mObj->GetInfo())
-                            << getKMessage(mCallK)
+                            << getKMessage(kString)
                             << mXString
                             << mYString;
             }
@@ -1563,7 +1538,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             << ""
                             << QString::number(pricePointsTemp.count())
                             << getCodeString(mObj->GetInfo())
-                            << getKMessage(mCallK)
+                            << getKMessage(kString)
                             << mXString
                             << mYString;
             }
@@ -1578,7 +1553,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     if (showCharts)
     {
-        chartWindow = new chartwindow(allResults, mModel, this);
+        chartWindow = new chartwindow(allResults, model, this);
         chartWindow->show();
     }
 }

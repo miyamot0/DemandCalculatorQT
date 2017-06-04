@@ -218,25 +218,6 @@ private:
     chartwindow *chartWindow;
     ResultsDialog *resultsDialog;
 
-    QString mModel;
-
-    bool isChecking;
-    bool isConditional;
-
-    QString mCallK;
-    QString mCallX;
-    QString mCallY;
-
-    QString mRem0;
-    QString mReplnum;
-
-    QString mRemQ0;
-    QString mReplQ0;
-
-    QString mFigureFlag;
-
-    bool displayFigures;
-
     QString settingsFile;
 
     enum { MaxRecentFiles = 5 };

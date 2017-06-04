@@ -40,7 +40,6 @@ SOURCES += main.cpp\
     sheetselectdialog.cpp \
     sheetwidget.cpp \
     demandsettingsdialog.cpp \
-    steincheckdialog.cpp \
     Libraries/alglib-3.11.0/src/alglibinternal.cpp \
     Libraries/alglib-3.11.0/src/alglibmisc.cpp \
     Libraries/alglib-3.11.0/src/ap.cpp \
@@ -66,7 +65,6 @@ HEADERS  += \
     sheetselectdialog.h \
     sheetwidget.h \
     demandsettingsdialog.h \
-    steincheckdialog.h \
     Libraries/alglib-3.11.0/src/alglibinternal.h \
     Libraries/alglib-3.11.0/src/alglibmisc.h \
     Libraries/alglib-3.11.0/src/ap.h \
@@ -92,7 +90,6 @@ FORMS    += \
     resultsdialog.ui \
     sheetselectdialog.ui \
     demandsettingsdialog.ui \
-    steincheckdialog.ui \
     steincheck.ui
 
 RESOURCES += \
