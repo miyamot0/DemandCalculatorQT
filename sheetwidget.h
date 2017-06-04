@@ -83,7 +83,7 @@
 #include "sheetselectdialog.h"
 #include "demandsettingsdialog.h"
 #include "demandmodeling.h"
-#include "steincheckdialog.h"
+#include "steincheck.h"
 
 #include "chartwindow.h"
 #include "resultsdialog.h"
@@ -210,7 +210,7 @@ private:
 
     SheetSelectDialog *sheetSelectDialog;
     DemandSettingsDialog *demandWindowDialog;
-    SteinCheckDialog *steinCheckDialog;
+    SteinCheck *steinCheckDialog;
     LicenseDialog *licenseDialog;
     AboutDialog *aboutDialog;
     CreditsDialog *creditsDialog;
@@ -256,6 +256,8 @@ private:
     QString mYLogString;
 
     QList<QStringList> mSteinResults;
+
+    int mSeriesScoring;
 };
 
 

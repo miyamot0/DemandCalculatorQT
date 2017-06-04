@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>676</width>
-    <height>300</height>
+    <height>406</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -25,28 +25,6 @@
      <property name="wordWrap">
       <bool>true</bool>
      </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QComboBox" name="comboBox">
-     <property name="currentIndex">
-      <number>1</number>
-     </property>
-     <item>
-      <property name="text">
-       <string>Run All Series Regardless</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Run All Passing Series</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Run Selected Only</string>
-      </property>
-     </item>
     </widget>
    </item>
    <item>

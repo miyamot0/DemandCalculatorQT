@@ -37,6 +37,8 @@ public:
 
     QStringList GetSteinTest(QStringList &x, QStringList &y);
 
+    bool raisedFlag = false;
+
 private:
     real_2d_array x;
     real_1d_array y;

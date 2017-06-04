@@ -1102,21 +1102,47 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     QStringList pricePointsTemp;
 
     mSteinResults.clear();
+    QStringList mTempSteinResults;
 
-    for (int i = 0; i < nSeries; i++)
+    bool raisedFlag = false;
+
+    if (isChecking || isConditional)
     {
-        areValuePointsValid(valuePoints, pricePointsTemp, pricePoints, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption, i);
+        steinCheckDialog = new SteinCheck();
 
-        QStringList mSteinResults = mObj->GetSteinTest(pricePointsTemp, valuePoints);
-    }
+        for (int i = 0; i < nSeries; i++)
+        {
+            areValuePointsValid(valuePoints, pricePointsTemp, pricePoints, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption, i);
 
-    return;
+            mTempSteinResults.clear();
+            mTempSteinResults = mObj->GetSteinTest(pricePointsTemp, valuePoints);
+            mTempSteinResults[0] = QString::number(i + 1);
 
-    if (false)
-    {
-        // TODO
-        // Add in Stein
-        //
+            if (mObj->raisedFlag)
+            {
+                raisedFlag = true;
+            }
+
+            qDebug() << mTempSteinResults;
+
+            mSteinResults.append(mTempSteinResults);
+            steinCheckDialog->appendRow(mTempSteinResults);
+        }
+
+        if (isChecking || raisedFlag)
+        {
+            steinCheckDialog->exec();
+
+            if (!steinCheckDialog->canProceed)
+            {
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+        }
     }
 
     double globalMin, globalMax, globalFitK;

@@ -287,6 +287,8 @@ QStringList demandmodeling::GetSteinTest(QStringList &x, QStringList &y)
         passingMeasures++;
     }
 
+    raisedFlag = (passingMeasures < 3) ? true : false;
+
     mSteinReturn.clear();
     mSteinReturn << "" // Participant id, filled in later
                  << QString::number(passingMeasures)
