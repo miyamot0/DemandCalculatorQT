@@ -1546,6 +1546,8 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
     resultsDialog->setResults(allResults);
     resultsDialog->setModal(false);
+    resultsDialog->resize(demandWindowDialog->size() * 1.2);
+    resultsDialog->move(demandWindowDialog->pos());
     resultsDialog->show();
 
     if (showCharts)
