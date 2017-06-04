@@ -27,13 +27,13 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
     mLegend->setAlignment(Qt::AlignBottom);
 
     axisX = new QLogValueAxis;
-    axisX->setGridLineColor(Qt::transparent);
+    //axisX->setGridLineColor(Qt::transparent);
     axisX->setTitleText("Unit Price");
     axisX->setBase(10);
     axisX->setLabelsFont(mLegendFont);
     axisX->setLinePenColor(Qt::black);
     axisX->setLinePen(QPen(Qt::black));
-    axisX->setMin(0.01);
+    axisX->setMin(0.001);
 
     if (mModel == "linear")
     {
@@ -41,12 +41,12 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
 
         axisY = new QLogValueAxis;
         axisY->setBase(10);
-        axisY->setGridLineColor(Qt::transparent);
+        //axisY->setGridLineColor(Qt::transparent);
         axisY->setTitleText("Overall Consumption");
         axisY->setLabelsFont(mLegendFont);
         axisY->setLinePenColor(Qt::black);
         axisY->setLinePen(QPen(Qt::black));
-        axisY->setMin(0.01);
+        axisY->setMin(0.001);
 
         buildLinearPlot();
     }
@@ -56,12 +56,12 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
 
         axisY = new QLogValueAxis;
         axisY->setBase(10);
-        axisY->setGridLineColor(Qt::transparent);
+        //axisY->setGridLineColor(Qt::transparent);
         axisY->setTitleText("Overall Consumption");
         axisY->setLabelsFont(mLegendFont);
         axisY->setLinePenColor(Qt::black);
         axisY->setLinePen(QPen(Qt::black));
-        axisY->setMin(0.01);
+        axisY->setMin(0.001);
 
         buildExponentialPlot();
     }
@@ -70,13 +70,13 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
         setWindowTitle("Exponentiated Demand Model Plots");
 
         axisY2 = new QValueAxis;
-        axisY2->setGridLineColor(Qt::transparent);
+        //axisY2->setGridLineColor(Qt::transparent);
         axisY2->setTitleText("Overall Consumption");
         axisY2->setTickCount(5);
         axisY2->setLabelsFont(mLegendFont);
         axisY2->setLinePenColor(Qt::black);
         axisY2->setLinePen(QPen(Qt::black));
-        axisY2->setMin(0.01);
+        axisY2->setMin(0.001);
 
         buildExponentiatedPlot();
     }
@@ -197,7 +197,7 @@ void chartwindow::plotLinearSeries(int index)
 
     pmaxLine->clear();
 
-    *pmaxLine << QPointF(derivedPmax, 0.01);
+    *pmaxLine << QPointF(derivedPmax, 0.001);
     *pmaxLine << QPointF(derivedPmax, log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax));
 
     pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
@@ -218,12 +218,12 @@ void chartwindow::plotLinearSeries(int index)
 
         if (param1 <= 0)
         {
-            param1 = 0.01;
+            param1 = 0.001;
         }
 
         if (param2 <= 0)
         {
-            param2 = 0.01;
+            param2 = 0.001;
         }
 
         if (param2 > highestConsumption)
@@ -234,11 +234,11 @@ void chartwindow::plotLinearSeries(int index)
         *dataPoints << QPointF(param1, param2);
     }
 
-    for (double i = 0.01; i < highestPrice * 2; i = i + 0.1)
+    for (double i = 0.001; i < highestPrice * 2; )
     {
         double projectedValue = log(linearL) + (linearb * log(i)) - lineara * (i);
 
-        if (projectedValue > 0.01)
+        if (projectedValue >= 0.001)
         {
             *demandCurve << QPointF(i, projectedValue);
         }
@@ -247,9 +247,42 @@ void chartwindow::plotLinearSeries(int index)
         {
             highestConsumption = projectedValue;
         }
+
+        if (i <= 0.1)
+        {
+            i += 0.01;
+        }
+        else if (i > 0.1 && i <= 1.0)
+        {
+            i += 0.1;
+        }
+        else if (i > 1 && i <= 10)
+        {
+            i += 1;
+        }
+        else if (i > 10 && i <= 100)
+        {
+            i += 9;
+        }
+        else if (i > 100 && i <= 1000)
+        {
+            i += 99;
+        }
+        else if (i > 1000 && i <= 10000)
+        {
+            i += 999;
+        }
+        else if (i > 10000)
+        {
+            i += 9999;
+        }
     }
 
     axisY->setMax(highestConsumption * 2);
+    axisX->setMax(highestPrice * 2);
+
+    axisY->setMin(0.01);
+    axisX->setMin(0.01);
 }
 
 void chartwindow::buildExponentialPlot()
@@ -337,7 +370,7 @@ void chartwindow::plotExponentialSeries(int index)
 
     pmaxLine->clear();
 
-    *pmaxLine << QPointF(derivedPmax, 0.01);
+    *pmaxLine << QPointF(derivedPmax, 0.001);
     *pmaxLine << QPointF(derivedPmax, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1));
 
     pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
@@ -358,12 +391,12 @@ void chartwindow::plotExponentialSeries(int index)
 
         if (param1 <= 0)
         {
-            param1 = 0.01;
+            param1 = 0.001;
         }
 
         if (param2 <= 0)
         {
-            param2 = 0.01;
+            param2 = 0.001;
         }
 
         if (param2 > highestConsumption)
@@ -374,12 +407,14 @@ void chartwindow::plotExponentialSeries(int index)
         *dataPoints << QPointF(param1, param2);
     }
 
-    for (double i = 0.01; i < highestPrice * 2; i = i + 0.1)
+    for (double i = 0.001; i < highestPrice * 2; )
     {
         double projectedValue = log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * i) - 1);
 
-        if (projectedValue > 0.01)
+        if (projectedValue >= 0.001)
         {
+            qDebug() << i << " was valid in series";
+
             *demandCurve << QPointF(i, projectedValue);
         }
 
@@ -387,9 +422,42 @@ void chartwindow::plotExponentialSeries(int index)
         {
             highestConsumption = projectedValue;
         }
+
+        if (i <= 0.1)
+        {
+            i += 0.01;
+        }
+        else if (i > 0.1 && i <= 1.0)
+        {
+            i += 0.1;
+        }
+        else if (i > 1 && i <= 10)
+        {
+            i += 1;
+        }
+        else if (i > 10 && i <= 100)
+        {
+            i += 9;
+        }
+        else if (i > 100 && i <= 1000)
+        {
+            i += 99;
+        }
+        else if (i > 1000 && i <= 10000)
+        {
+            i += 999;
+        }
+        else if (i > 10000)
+        {
+            i += 9999;
+        }
     }
 
     axisY->setMax(highestConsumption * 2);
+    axisX->setMax(highestPrice * 2);
+
+    axisY->setMin(0.01);
+    axisX->setMin(0.01);
 }
 
 void chartwindow::buildExponentiatedPlot()
@@ -460,7 +528,7 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     pmaxLine->clear();
 
-    *pmaxLine << QPointF(derivedPmax, 0.01);
+    *pmaxLine << QPointF(derivedPmax, 0.001);
     *pmaxLine << QPointF(derivedPmax, exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
 
     pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
@@ -495,12 +563,12 @@ void chartwindow::plotExponentiatedSeries(int index)
 
         if (param1 <= 0)
         {
-            param1 = 0.01;
+            param1 = 0.001;
         }
 
         if (param2 <= 0)
         {
-            param2 = 0.01;
+            param2 = 0.001;
         }
 
         if (param2 > highestConsumption)
@@ -511,11 +579,11 @@ void chartwindow::plotExponentiatedSeries(int index)
         *dataPoints << QPointF(param1, param2);
     }
 
-    for (double i = 0.01; i < highestPrice * 2; i = i + 0.1)
+    for (double i = 0.001; i < highestPrice * 2; )
     {
         double projectedValue = exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * i) - 1)));
 
-        if (projectedValue > 0.01)
+        if (projectedValue >= 0.001)
         {
             *demandCurve << QPointF(i, projectedValue);
         }
@@ -524,9 +592,42 @@ void chartwindow::plotExponentiatedSeries(int index)
         {
             highestConsumption = projectedValue;
         }
+
+        if (i <= 0.1)
+        {
+            i += 0.01;
+        }
+        else if (i > 0.1 && i <= 1.0)
+        {
+            i += 0.1;
+        }
+        else if (i > 1 && i <= 10)
+        {
+            i += 1;
+        }
+        else if (i > 10 && i <= 100)
+        {
+            i += 9;
+        }
+        else if (i > 100 && i <= 1000)
+        {
+            i += 99;
+        }
+        else if (i > 1000 && i <= 10000)
+        {
+            i += 999;
+        }
+        else if (i > 10000)
+        {
+            i += 9999;
+        }
     }
 
     axisY2->setMax(highestConsumption * 1.2);
+    axisX->setMax(highestPrice * 2);
+
+    axisY2->setMin(0);
+    axisX->setMin(0.01);
 }
 
 bool chartwindow::eventFilter(QObject *object, QEvent *e)
