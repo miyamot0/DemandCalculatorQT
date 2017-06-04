@@ -239,6 +239,8 @@ private:
     QList<QStringList> mSteinResults;
 
     int mSeriesScoring;
+
+    bool mKcheck = false;
 };
 
 

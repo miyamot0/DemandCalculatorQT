@@ -1331,6 +1331,8 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
             mObj->SetX(mXString.toUtf8().constData());
             mObj->SetY(mYLogString.toUtf8().constData());
 
+            kString.toDouble(&mKcheck);
+
             if (kString == "fit")
             {
                 QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
@@ -1355,6 +1357,10 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 else if (kString == "share")
                 {
                     mParams << globalFitK;
+                }
+                else if (mKcheck)
+                {
+                    mParams << kString.toDouble();
                 }
 
                 mObj->FitExponential("[10, 0.01]", mParams);
@@ -1442,6 +1448,8 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
             }
             else
             {
+                kString.toDouble(&mKcheck);
+
                 mObj->SetBounds("[+inf, +inf]", "[0.0001, -inf]");
 
                 mParams.clear();
@@ -1457,6 +1465,10 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 else if (kString == "share")
                 {
                     mParams << globalFitK;
+                }
+                else if (mKcheck)
+                {
+                    mParams << kString.toDouble();
                 }
 
                 mObj->FitExponentiated("[10, 0.01]", mParams);
