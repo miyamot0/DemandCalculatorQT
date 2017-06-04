@@ -105,16 +105,8 @@ win32 {
 
     win32:RC_ICONS += SNS.ico
 
-    DCA_FILES.files = scripts/checkSystematic.R \
-                    scripts/fitDemand.R \
-                    scripts/installDependencyBase64.R \
-                    scripts/installDependencyJsonlite.R \
-                    scripts/installDependencyBeezdemand.R \
-                    scripts/installDependencyDevtools.R \
-                    scripts/installDependencyDigest.R \
-                    License_gnome_icons.txt \
+    DCA_FILES.files = License_Tango.txt \
                     License_Qt.txt \
-                    License_R.txt \
                     License_Beezdemand.txt \
                     License_fitDemand.txt \
                     COPYING \
@@ -142,16 +134,8 @@ macx {
 
     macx:ICON = $${PWD}/SNS.icns
 
-    DCA_FILES.files = scripts/checkSystematic.R \
-                    scripts/fitDemand.R \
-                    scripts/installDependencyBase64.R \
-                    scripts/installDependencyJsonlite.R \
-                    scripts/installDependencyBeezdemand.R \
-                    scripts/installDependencyDevtools.R \
-                    scripts/installDependencyDigest.R \
-                    License_gnome_icons.txt \
+    DCA_FILES.files = License_Tango.txt \
                     License_Qt.txt \
-                    License_R.txt \
                     License_Beezdemand.txt \
                     License_fitDemand.txt \
                     COPYING \
@@ -163,11 +147,11 @@ macx {
 }
 
 DISTFILES += \
+    License_ALGLIB.txt \
+    License_Tango.txt
     License_Qt.txt \
     License_Beezdemand.txt \
     COPYING \
     README.md \
     SNS.ico \
-    SNS.icns \
-    License_ALGLIB.txt \
-    License_Tango.txt
+    SNS.icns
