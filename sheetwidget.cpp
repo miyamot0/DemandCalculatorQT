@@ -706,10 +706,7 @@ void SheetWidget::showBeezdemandLicenseWindow()
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_Beezdemand.text\"";
-
+            mFilePath = runDirectory.filePath("License_Beezdemand.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
@@ -723,19 +720,16 @@ void SheetWidget::showALGLIBLicenseWindow()
     QString mFilePath = "";
 
     #ifdef _WIN32
-            mFilePath = "License_fitDemand.txt";
+            mFilePath = "License_ALGLIB.txt";
     #elif TARGET_OS_MAC
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_fitDemand.text\"";
-
+            mFilePath = runDirectory.filePath("License_ALGLIB.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
-    licenseDialog->setWindowTitle("fitDemand License (GPL-V3)");
+    licenseDialog->setWindowTitle("ALGLIB License (GPL-V3)");
     licenseDialog->setModal(true);
     licenseDialog->show();
 }
@@ -750,10 +744,7 @@ void SheetWidget::showDCALicenseWindow()
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "COPYING\"";
-
+            mFilePath = runDirectory.filePath("COPYING");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
@@ -772,10 +763,7 @@ void SheetWidget::showQTLicenseWindow()
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_Qt.txt\"";
-
+            mFilePath = runDirectory.filePath("License_Qt.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
@@ -794,10 +782,7 @@ void SheetWidget::showTangoLicenseWindow()
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_Tango.txt\"";
-
+            mFilePath = runDirectory.filePath("License_Tango.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
