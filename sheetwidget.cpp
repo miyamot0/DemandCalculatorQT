@@ -152,9 +152,9 @@ SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
     connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(downloadedFile(QNetworkReply*)) );
 
     #ifdef _WIN32
-        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/ModelSelectionRepository/Updates.xml")));
+        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/DemandCurveRepository/Updates.xml")));
     #elif TARGET_OS_MAC
-        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/ModelSelectionRepositoryMac/Updates.xml")));
+        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/DemandCurveRepositoryMac/Updates.xml")));
     #endif
 
     mObj = new demandmodeling();
