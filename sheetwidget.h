@@ -98,7 +98,6 @@ class SheetWidget : public QMainWindow
 public:
     SheetWidget(QWidget *parent = 0);
 
-    void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption);
     void convertExcelColumn(QString &mString, int column);
 
     QList<QStringList> allResults;
@@ -158,8 +157,6 @@ public slots:
                    int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
                    bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0,
                    bool showCharts);
-
-    void WorkFinished(QStringList status);
 
     void closeEvent(QCloseEvent* event);
     void setCurrentFile(const QString &fileName);

@@ -35,6 +35,8 @@ public:
     void FitExponentiated(const char *mStarts, QList<double> mParams);
     void FitExponentiatedWithK(const char *mStarts);
 
+    QStringList GetSteinTest(QStringList &x, QStringList &y);
+
 private:
     real_2d_array x;
     real_1d_array y;
@@ -50,6 +52,33 @@ private:
 
     double epsx = 0.000000001;
     double diffstep = 0.00000001;
+
+    // Stein criteria
+
+    QStringList mSteinReturn;
+
+    QList<QPair<double, double>> mModPoints;
+
+    bool containsZeroes = false;
+    bool checkX, checkY;
+    double tempX, tempY;
+    int numPosValues = 0;
+    double deltaQ;
+    double bounceThreshold;
+    int bounceCount = 0;
+    double bounceScore;
+    int reversalCount = 0;
+
+    QString deltaQPass;
+    QString bouncePass;
+    QString reversalpass;
+
+    int passingMeasures = 0;
+
+    double deltaq = 0.025;
+    double bounce = 0.10;
+    double reversals = 0;
+    double ncons0 = 2;
 };
 
 #endif // DEMANDMODELING_H

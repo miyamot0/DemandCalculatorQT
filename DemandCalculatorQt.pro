@@ -55,7 +55,8 @@ SOURCES += main.cpp\
     Libraries/alglib-3.11.0/src/specialfunctions.cpp \
     Libraries/alglib-3.11.0/src/statistics.cpp \
     demandmodeling.cpp \
-    chartwindow.cpp
+    chartwindow.cpp \
+    steincheck.cpp
 
 HEADERS  += \
     aboutdialog.h \
@@ -81,7 +82,8 @@ HEADERS  += \
     Libraries/alglib-3.11.0/src/statistics.h \
     Libraries/alglib-3.11.0/src/stdafx.h \
     demandmodeling.h \
-    chartwindow.h
+    chartwindow.h \
+    steincheck.h
 
 FORMS    += \
     aboutdialog.ui \
@@ -90,7 +92,8 @@ FORMS    += \
     resultsdialog.ui \
     sheetselectdialog.ui \
     demandsettingsdialog.ui \
-    steincheckdialog.ui
+    steincheckdialog.ui \
+    steincheck.ui
 
 RESOURCES += \
     spreadsheet.qrc

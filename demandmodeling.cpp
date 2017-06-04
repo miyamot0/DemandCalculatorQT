@@ -194,6 +194,113 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
     lsfitresults(state, info, c, rep);
 }
 
+struct QPairFirstComparer
+{
+    template<typename T1, typename T2>
+    bool operator()(const QPair<T1,T2> &one, const QPair<T1,T2> &two) const
+    {
+        return one.first < two.first;
+    }
+};
+
+QStringList demandmodeling::GetSteinTest(QStringList &x, QStringList &y)
+{
+    containsZeroes = false;
+
+    mModPoints.clear();
+
+    numPosValues = 0;
+
+    for (int i = 0; i < x.length() && i < x.length(); i++)
+    {
+        tempX = x[i].toDouble(&checkX);
+        tempY = y[i].toDouble(&checkY);
+
+        if (checkX && checkY)
+        {
+            if (tempY > 0)
+            {
+                numPosValues++;
+            }
+            else if (tempY == 0)
+            {
+                containsZeroes = true;
+            }
+
+            mModPoints.append(QPair<double, double>(tempX, tempY));
+        }
+    }
+
+    // Sort into increasing prices
+    qSort(mModPoints.begin(), mModPoints.end(), QPairFirstComparer());
+
+    // Calculate DeltaQ
+    deltaQ = (log10(mModPoints.first().second + 0.01) - log10(mModPoints.last().second + 0.01)) /
+            (log10(mModPoints.last().first + 0.01) - log10(mModPoints.first().first + 0.01));
+
+    // Calculate bounce
+    bounceThreshold = mModPoints.first().second * 0.25;
+    bounceCount = 0;
+
+    for (int i = 1; i < mModPoints.count(); i++)
+    {
+        if ((mModPoints[i].second - mModPoints[i - 1].second) > bounceThreshold)
+        {
+            bounceCount++;
+        }
+    }
+
+    bounceScore = (double) bounceCount / ((double) (mModPoints.count() - 1));
+
+    // Calculate reversals
+    reversalCount = 0;
+
+    if (containsZeroes)
+    {
+        for (int i = 0; i < mModPoints.count() - ncons0; i++)
+        {
+            if (mModPoints[i].second == 0 && mModPoints[i + 1].second == 0 && mModPoints[i + 2].second > 0)
+            {
+                reversalCount++;
+            }
+        }
+    }
+
+    deltaQPass = (deltaQ >= deltaq) ? "Pass" : "Fail";
+    bouncePass = (bounceScore <= bounce) ? "Pass" : "Fail";
+    reversalpass = (reversalCount <= reversals) ? "Pass" : "Fail";
+
+    passingMeasures = 0;
+
+    if (deltaQPass.contains("Pass", Qt::CaseInsensitive))
+    {
+        passingMeasures++;
+    }
+
+    if (bouncePass.contains("Pass", Qt::CaseInsensitive))
+    {
+        passingMeasures++;
+    }
+
+    if (reversalpass.contains("Pass", Qt::CaseInsensitive))
+    {
+        passingMeasures++;
+    }
+
+    mSteinReturn.clear();
+    mSteinReturn << "" // Participant id, filled in later
+                 << QString::number(passingMeasures)
+                 << QString::number(deltaQ)
+                 << deltaQPass
+                 << QString::number(bounceScore)
+                 << bouncePass
+                 << QString::number(reversalCount)
+                 << reversalpass
+                 << QString::number(numPosValues);
+
+    return mSteinReturn;
+}
+
 demandmodeling::demandmodeling()
 {
 
