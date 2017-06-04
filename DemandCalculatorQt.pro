@@ -117,10 +117,10 @@ win32 {
 
     win32:RC_ICONS += SNS.ico
 
-    DCA_FILES.files = License_Tango.txt \
-                    License_Qt.txt \
+    DCA_FILES.files = License_ALGLIB.txt \
+                    License_Tango.txt \
                     License_Beezdemand.txt \
-                    License_fitDemand.txt \
+                    License_Qt.txt \
                     COPYING \
                     SNS.ico
 
@@ -146,10 +146,10 @@ macx {
 
     macx:ICON = $${PWD}/SNS.icns
 
-    DCA_FILES.files = License_Tango.txt \
-                    License_Qt.txt \
+    DCA_FILES.files = License_ALGLIB.txt \
+                    License_Tango.txt \
                     License_Beezdemand.txt \
-                    License_fitDemand.txt \
+                    License_Qt.txt \
                     COPYING \
                     SNS.icns
 
