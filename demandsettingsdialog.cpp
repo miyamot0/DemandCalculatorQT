@@ -86,6 +86,8 @@ void DemandSettingsDialog::on_modelingLinear_toggled(bool checked)
         ui->q0DropValue->setChecked(true);
         ui->breakpointDropValue->setChecked(true);
     }
+
+    ui->groupBoxK->setEnabled(!checked);
 }
 
 void DemandSettingsDialog::on_modelingExponential_toggled(bool checked)

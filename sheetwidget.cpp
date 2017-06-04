@@ -289,7 +289,7 @@ void SheetWidget::buildMenus()
     openLicenseQt->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseQt, &QAction::triggered, this, &SheetWidget::showQTLicenseWindow);
 
-    openLicenseTango = new QAction("Gnome Icons License (GPL-V3)", this);
+    openLicenseTango = new QAction("Tango Icons License (Public Domain)", this);
     openLicenseTango->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseTango, &QAction::triggered, this, &SheetWidget::showTangoLicenseWindow);
 

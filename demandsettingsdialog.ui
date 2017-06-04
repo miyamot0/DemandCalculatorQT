@@ -148,7 +148,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Always display Stein &amp;amp; Bickel's systematic checks for systematicity.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Always</string>
+             <string>Show Always</string>
             </property>
             <property name="checked">
              <bool>false</bool>
@@ -161,7 +161,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Display Stein &amp;amp; Bickel's systematic checks for systematicity only when one or more cases do not pass.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Notify if Flagged</string>
+             <string>Show if Flagged</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -174,7 +174,7 @@
              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Never display Stein &amp;amp; Bickel's systematic checks for systematicity.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Never</string>
+             <string>Never Show</string>
             </property>
            </widget>
           </item>

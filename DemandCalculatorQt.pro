@@ -150,9 +150,7 @@ DISTFILES += \
     License_ALGLIB.txt \
     License_Tango.txt \
     License_Beezdemand.txt \
-    License_Qt.txt
     License_Qt.txt \
-    License_Beezdemand.txt \
     COPYING \
     README.md \
     SNS.ico \
