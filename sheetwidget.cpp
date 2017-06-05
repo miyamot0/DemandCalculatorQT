@@ -1368,7 +1368,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     return;
                 }
 
-                mObj->FitExponential("[10, 0.01]", mParams);
+                mObj->FitExponential(QString("[%1, 0.01]").arg(localMax).toUtf8().constData(), mParams);
             }
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
@@ -1481,7 +1481,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     return;
                 }
 
-                mObj->FitExponentiated("[10, 0.01]", mParams);
+                mObj->FitExponentiated(QString("[%1, 0.01]").arg(localMax).toUtf8().constData(), mParams);
             }
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
