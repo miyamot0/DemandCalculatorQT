@@ -1335,9 +1335,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             if (kString == "fit")
             {
-                QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
-
-                mObj->SetBounds(mUpperBounds.toUtf8().constData(), "[0.5, 0.001, -inf]");
+                mObj->SetBounds(QString("[%1, +inf, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).toUtf8().constData(), "[0.5, 0.001, -inf]");
                 mObj->FitExponentialWithK("[1, 1, 0.01]");
             }
             else
@@ -1441,9 +1439,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             if (kString == "fit")
             {
-                QString mUpperBounds("[" + QString::number(log10(localMax) + 0.5) + ", +inf, +inf]");
-
-                mObj->SetBounds(mUpperBounds.toUtf8().constData(), "[0.5, 0.1, -inf]");
+                mObj->SetBounds(QString("[%1, +inf, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).toUtf8().constData(), "[0.5, 0.001, -inf]");
                 mObj->FitExponentiatedWithK("[1, 10, 0.01]");
             }
             else
