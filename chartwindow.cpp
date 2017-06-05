@@ -4,10 +4,11 @@
 #include <QHBoxLayout>
 #include "chartwindow.h"
 
-chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget *parent)
+chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, QString mModel, QWidget *parent)
 {
     mDisplayData = stringList;
     modelType = mModel;
+    showStandardized = showChartsStandardized;
 
     QVBoxLayout *windowLayout = new QVBoxLayout;
 
@@ -17,12 +18,12 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
 
     chart = new QChart();
 
-    QFont mTitle("Serif", 14, -1, false);
+    QFont mTitle("Serif", 16, -1, false);
     chart->setTitleFont(mTitle);
 
     auto mLegend = chart->legend();
 
-    QFont mLegendFont("Serif", 10, -1, false);
+    QFont mLegendFont("Serif", 12, -1, false);
     mLegend->setFont(mLegendFont);
     mLegend->setAlignment(Qt::AlignBottom);
 
@@ -35,9 +36,11 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
     axisX->setLinePen(QPen(Qt::black));
     axisX->setMin(0.001);
 
+    QString mTitleDescription = (showStandardized) ? "Standardized " : "";
+
     if (mModel == "linear")
     {
-        setWindowTitle("Linear Demand Model Plots");
+        setWindowTitle(QString("%1Linear Demand Model Plots").arg(mTitleDescription));
 
         axisY = new QLogValueAxis;
         axisY->setBase(10);
@@ -52,7 +55,7 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
     }
     else if (mModel == "hs")
     {
-        setWindowTitle("Exponential Demand Model Plots");
+        setWindowTitle(QString("%1Exponential Demand Model Plots").arg(mTitleDescription));
 
         axisY = new QLogValueAxis;
         axisY->setBase(10);
@@ -67,6 +70,7 @@ chartwindow::chartwindow(QList<QStringList> stringList, QString mModel, QWidget 
     }
     else if (mModel == "koff")
     {
+        setWindowTitle(QString("%1Exponentiated Demand Model Plots").arg(mTitleDescription));
         setWindowTitle("Exponentiated Demand Model Plots");
 
         axisY2 = new QValueAxis;
@@ -195,16 +199,42 @@ void chartwindow::plotLinearSeries(int index)
 
     double highestPrice = rawPricesSplit[rawPricesSplit.count() - 1].toDouble();
 
+    double highestConsumption = -1;
+
+    for (int i = 0; i < rawPricesSplit.length(); i++)
+    {
+        param1 = rawPricesSplit[i].toDouble(&checkValue1);
+        param2 = rawValuesSplit[i].toDouble(&checkValue2);
+
+        if (!checkValue1 || !checkValue2)
+        {
+            break;
+        }
+
+        if (param2 > highestConsumption)
+        {
+            highestConsumption = param2;
+        }
+    }
+
+    double scaling = 100 / exp(highestConsumption);
+
     pmaxLine->clear();
 
     *pmaxLine << QPointF(derivedPmax, 0.001);
-    *pmaxLine << QPointF(derivedPmax, log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax));
+
+    if (showStandardized)
+    {
+        *pmaxLine << QPointF(derivedPmax, exp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)) * scaling);
+    }
+    else
+    {
+        *pmaxLine << QPointF(derivedPmax, log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax));
+    }
 
     pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
 
     axisX->setMax(highestPrice * 2.0);
-
-    double highestConsumption = -1;
 
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
@@ -226,12 +256,14 @@ void chartwindow::plotLinearSeries(int index)
             param2 = 0.001;
         }
 
-        if (param2 > highestConsumption)
+        if (showStandardized)
         {
-            highestConsumption = param2;
+            *dataPoints << QPointF(param1, exp(param2) * scaling);
         }
-
-        *dataPoints << QPointF(param1, param2);
+        else
+        {
+            *dataPoints << QPointF(param1, param2);
+        }
     }
 
     for (double i = 0.001; i < highestPrice * 2; )
@@ -240,7 +272,14 @@ void chartwindow::plotLinearSeries(int index)
 
         if (projectedValue >= 0.001)
         {
-            *demandCurve << QPointF(i, projectedValue);
+            if (showStandardized)
+            {
+                *demandCurve << QPointF(i, exp(projectedValue) * scaling);
+            }
+            else
+            {
+                *demandCurve << QPointF(i, projectedValue);
+            }
         }
 
         if (projectedValue > highestConsumption)
@@ -250,38 +289,46 @@ void chartwindow::plotLinearSeries(int index)
 
         if (i <= 0.1)
         {
-            i += 0.01;
+            i += 0.01 / deltaVar;
         }
         else if (i > 0.1 && i <= 1.0)
         {
-            i += 0.1;
+            i += 0.1 / deltaVar;
         }
         else if (i > 1 && i <= 10)
         {
-            i += 1;
+            i += 1 / deltaVar;
         }
         else if (i > 10 && i <= 100)
         {
-            i += 9;
+            i += 9 / deltaVar;
         }
         else if (i > 100 && i <= 1000)
         {
-            i += 99;
+            i += 99 / deltaVar;
         }
         else if (i > 1000 && i <= 10000)
         {
-            i += 999;
+            i += 999 / deltaVar;
         }
         else if (i > 10000)
         {
-            i += 9999;
+            i += 9999 / deltaVar;
         }
     }
 
-    axisY->setMax(highestConsumption * 2);
-    axisX->setMax(highestPrice * 2);
+    if (showStandardized)
+    {
+        axisY->setMax(200);
+        axisY->setMin(0.01);
+    }
+    else
+    {
+        axisY->setMax(highestConsumption * 2);
+        axisY->setMin(0.01);
+    }
 
-    axisY->setMin(0.01);
+    axisX->setMax(highestPrice * 2);
     axisX->setMin(0.01);
 }
 
@@ -368,16 +415,42 @@ void chartwindow::plotExponentialSeries(int index)
 
     double highestPrice = rawPricesSplit[rawPricesSplit.count() - 1].toDouble();
 
-    pmaxLine->clear();
-
-    *pmaxLine << QPointF(derivedPmax, 0.001);
-    *pmaxLine << QPointF(derivedPmax, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1));
-
-    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
-
     axisX->setMax(highestPrice * 2.0);
 
     double highestConsumption = -1;
+
+    for (int i = 0; i < rawPricesSplit.length(); i++)
+    {
+        param1 = rawPricesSplit[i].toDouble(&checkValue1);
+        param2 = rawValuesSplit[i].toDouble(&checkValue2);
+
+        if (!checkValue1 || !checkValue2)
+        {
+            break;
+        }
+
+        if (param2 > highestConsumption)
+        {
+            highestConsumption = param2;
+        }
+    }
+
+    double scaling = 100 / pow(10, highestConsumption);
+
+    pmaxLine->clear();
+
+    *pmaxLine << QPointF(derivedPmax, 0.001);
+
+    if (showStandardized)
+    {
+        *pmaxLine << QPointF(derivedPmax, pow(10, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1)) * scaling);
+    }
+    else
+    {
+        *pmaxLine << QPointF(derivedPmax, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1));
+    }
+
+    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
 
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
@@ -399,12 +472,14 @@ void chartwindow::plotExponentialSeries(int index)
             param2 = 0.001;
         }
 
-        if (param2 > highestConsumption)
+        if (showStandardized)
         {
-            highestConsumption = param2;
+            *dataPoints << QPointF(param1, pow(10, param2) * scaling);
         }
-
-        *dataPoints << QPointF(param1, param2);
+        else
+        {
+            *dataPoints << QPointF(param1, param2);
+        }
     }
 
     for (double i = 0.001; i < highestPrice * 2; )
@@ -413,9 +488,14 @@ void chartwindow::plotExponentialSeries(int index)
 
         if (projectedValue >= 0.001)
         {
-            qDebug() << i << " was valid in series";
-
-            *demandCurve << QPointF(i, projectedValue);
+            if (showStandardized)
+            {
+                *demandCurve << QPointF(i, pow(10, projectedValue) * scaling);
+            }
+            else
+            {
+                *demandCurve << QPointF(i, projectedValue);
+            }
         }
 
         if (projectedValue > highestConsumption)
@@ -425,38 +505,46 @@ void chartwindow::plotExponentialSeries(int index)
 
         if (i <= 0.1)
         {
-            i += 0.01;
+            i += 0.01 / deltaVar;
         }
         else if (i > 0.1 && i <= 1.0)
         {
-            i += 0.1;
+            i += 0.1 / deltaVar;
         }
         else if (i > 1 && i <= 10)
         {
-            i += 1;
+            i += 1 / deltaVar;
         }
         else if (i > 10 && i <= 100)
         {
-            i += 9;
+            i += 9 / deltaVar;
         }
         else if (i > 100 && i <= 1000)
         {
-            i += 99;
+            i += 99 / deltaVar;
         }
         else if (i > 1000 && i <= 10000)
         {
-            i += 999;
+            i += 999 / deltaVar;
         }
         else if (i > 10000)
         {
-            i += 9999;
+            i += 9999 / deltaVar;
         }
     }
 
-    axisY->setMax(highestConsumption * 2);
-    axisX->setMax(highestPrice * 2);
+    if (showStandardized)
+    {
+        axisY->setMax(200);
+        axisY->setMin(0.01);
+    }
+    else
+    {
+        axisY->setMax(highestConsumption * 2);
+        axisY->setMin(0.01);
+    }
 
-    axisY->setMin(0.01);
+    axisX->setMax(highestPrice * 2);
     axisX->setMin(0.01);
 }
 
@@ -526,13 +614,6 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     if (!checkValue) return;
 
-    pmaxLine->clear();
-
-    *pmaxLine << QPointF(derivedPmax, 0.001);
-    *pmaxLine << QPointF(derivedPmax, exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
-
-    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
-
     rawPrices = mList.at(22);
     rawPrices = rawPrices.replace(QString("["), QString(""));
     rawPrices = rawPrices.replace(QString("]"), QString(""));
@@ -561,6 +642,39 @@ void chartwindow::plotExponentiatedSeries(int index)
             break;
         }
 
+        if (param2 > highestConsumption)
+        {
+            highestConsumption = param2;
+        }
+    }
+
+    double scaling = 100 / highestConsumption;
+
+    pmaxLine->clear();
+
+    *pmaxLine << QPointF(derivedPmax, 0.001);
+
+    if (showStandardized)
+    {
+        *pmaxLine << QPointF(derivedPmax, (exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1)))) * scaling);
+    }
+    else
+    {
+        *pmaxLine << QPointF(derivedPmax, exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
+    }
+
+    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
+
+    for (int i = 0; i < rawPricesSplit.length(); i++)
+    {
+        param1 = rawPricesSplit[i].toDouble(&checkValue1);
+        param2 = rawValuesSplit[i].toDouble(&checkValue2);
+
+        if (!checkValue1 || !checkValue2)
+        {
+            break;
+        }
+
         if (param1 <= 0)
         {
             param1 = 0.001;
@@ -571,12 +685,14 @@ void chartwindow::plotExponentiatedSeries(int index)
             param2 = 0.001;
         }
 
-        if (param2 > highestConsumption)
+        if (showStandardized)
         {
-            highestConsumption = param2;
+            *dataPoints << QPointF(param1, param2 * scaling);
         }
-
-        *dataPoints << QPointF(param1, param2);
+        else
+        {
+            *dataPoints << QPointF(param1, param2);
+        }
     }
 
     for (double i = 0.001; i < highestPrice * 2; )
@@ -585,7 +701,14 @@ void chartwindow::plotExponentiatedSeries(int index)
 
         if (projectedValue >= 0.001)
         {
-            *demandCurve << QPointF(i, projectedValue);
+            if (showStandardized)
+            {
+                *demandCurve << QPointF(i, projectedValue * scaling);
+            }
+            else
+            {
+                *demandCurve << QPointF(i, projectedValue);
+            }
         }
 
         if (projectedValue > highestConsumption)
@@ -595,38 +718,46 @@ void chartwindow::plotExponentiatedSeries(int index)
 
         if (i <= 0.1)
         {
-            i += 0.01;
+            i += 0.01 / deltaVar;
         }
         else if (i > 0.1 && i <= 1.0)
         {
-            i += 0.1;
+            i += 0.1 / deltaVar;
         }
         else if (i > 1 && i <= 10)
         {
-            i += 1;
+            i += 1 / deltaVar;
         }
         else if (i > 10 && i <= 100)
         {
-            i += 9;
+            i += 9 / deltaVar;
         }
         else if (i > 100 && i <= 1000)
         {
-            i += 99;
+            i += 99 / deltaVar;
         }
         else if (i > 1000 && i <= 10000)
         {
-            i += 999;
+            i += 999 / deltaVar;
         }
         else if (i > 10000)
         {
-            i += 9999;
+            i += 9999 / deltaVar;
         }
     }
 
-    axisY2->setMax(highestConsumption * 1.2);
-    axisX->setMax(highestPrice * 2);
+    if (showStandardized)
+    {
+        axisY2->setMax(100);
+        axisY2->setMin(0);
+    }
+    else
+    {
+        axisY2->setMax(highestConsumption * 1.2);
+        axisY2->setMin(0);
+    }
 
-    axisY2->setMin(0);
+    axisX->setMax(highestPrice * 2);
     axisX->setMin(0.01);
 }
 

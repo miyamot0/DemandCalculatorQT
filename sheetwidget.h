@@ -156,7 +156,7 @@ public slots:
     void Calculate(QString scriptName, QString model, QString kString, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                    int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
                    bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0,
-                   bool showCharts);
+                   bool showCharts, bool showChartsStandarized);
 
     void closeEvent(QCloseEvent* event);
     void setCurrentFile(const QString &fileName);

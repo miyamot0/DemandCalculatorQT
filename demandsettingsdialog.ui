@@ -450,13 +450,13 @@
        <item>
         <widget class="QGroupBox" name="groupBoxFigure">
          <property name="title">
-          <string>Visualization Options</string>
+          <string>Figure Output Options</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
            <widget class="QRadioButton" name="figuresDisable">
             <property name="text">
-             <string>Do Not Output Figures</string>
+             <string>Do Not Show</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -466,7 +466,14 @@
           <item>
            <widget class="QRadioButton" name="figuresEnable">
             <property name="text">
-             <string>Output Demand Figures</string>
+             <string>Native Figures</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="figuresEnableStandard">
+            <property name="text">
+             <string>Standardized Figures</string>
             </property>
            </widget>
           </item>

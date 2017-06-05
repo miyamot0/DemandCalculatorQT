@@ -1023,7 +1023,7 @@ bool SheetWidget::isToolWindowShown()
 void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                             int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
-                            bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0, bool showCharts)
+                            bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0, bool showCharts, bool showChartsStandarized)
 {
     /**
      * @brief isRowData
@@ -1560,9 +1560,9 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     resultsDialog->move(demandWindowDialog->pos());
     resultsDialog->show();
 
-    if (showCharts)
+    if (showCharts || showChartsStandarized)
     {
-        chartWindow = new chartwindow(allResults, model, this);
+        chartWindow = new chartwindow(allResults, showChartsStandarized, model, this);
         chartWindow->show();
     }
 }

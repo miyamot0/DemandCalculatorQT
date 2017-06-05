@@ -166,7 +166,8 @@ void DemandSettingsDialog::on_pushButton_clicked()
                     topConsumption, leftConsumption, bottomConsumption, rightConsumption,
                     ui->checkAlways->isChecked(), ui->checkFlag->isChecked(),
                     rem0, replnum, remQ0, replQ0,
-                    ui->figuresEnable->isChecked());
+                    ui->figuresEnable->isChecked(),
+                    ui->figuresEnableStandard->isChecked());
 }
 
 QString DemandSettingsDialog::getModelString()

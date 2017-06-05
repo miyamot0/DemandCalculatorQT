@@ -16,7 +16,7 @@
 class chartwindow : public QMainWindow
 {
 public:
-    explicit chartwindow(QList<QStringList> stringList, QString mModel, QWidget *parent = 0);
+    explicit chartwindow(QList<QStringList> stringList, bool showChartsStandardized, QString mModel, QWidget *parent = 0);
 
     bool eventFilter(QObject *object, QEvent *e);
 
@@ -64,6 +64,10 @@ private:
     QScatterSeries *dataPoints;
 
     QString modelType;
+
+    double deltaVar = 10;
+
+    bool showStandardized;
 
     double param1;
     double param2;
