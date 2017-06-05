@@ -1292,7 +1292,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             << QString::number(a)
                             << QString::number(mObj->GetReport().errpar[0])
                             << QString::number(mObj->GetReport().r2)
-                            << "TO DO"
+                            << "---"
                             << QString::number(b - (a * pbar))
                             << getIntensityString(valuePoints, pricePointsTemp)
                             << QString::number(omaxd)
