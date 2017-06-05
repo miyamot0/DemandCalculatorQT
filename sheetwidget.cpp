@@ -1362,6 +1362,11 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 {
                     mParams << kString.toDouble();
                 }
+                else
+                {
+                    // Sanity check
+                    return;
+                }
 
                 mObj->FitExponential("[10, 0.01]", mParams);
             }
@@ -1469,6 +1474,11 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 else if (mKcheck)
                 {
                     mParams << kString.toDouble();
+                }
+                else
+                {
+                    // Sanity check
+                    return;
                 }
 
                 mObj->FitExponentiated("[10, 0.01]", mParams);
