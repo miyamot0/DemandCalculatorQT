@@ -94,6 +94,8 @@
 
 #include "sheetwidget.h"
 #include "resultsdialog.h"
+#include "commanding.h"
+#include "sheetdelegate.h"
 
 QTXLSX_USE_NAMESPACE
 
@@ -110,6 +112,9 @@ SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
 {
     table = new QTableWidget(10000, 10000, this);
     table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
+
+    undoStack = new QUndoStack(this);
+    table->setItemDelegate(new SheetDelegate());
 
     #ifdef TARGET_OS_MAC
         table->setStyleSheet("QTableView {selection-background-color: #73E2A7; }");
@@ -267,6 +272,17 @@ void SheetWidget::buildMenus()
     clearAction->setIcon(QIcon(":/images/edit-clear.png"));
     connect(clearAction, &QAction::triggered, this, &SheetWidget::clear);
 
+    undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+    undoAction->setShortcut(QKeySequence::Undo);
+    undoAction->setIcon(QIcon(":/images/edit-undo.png"));
+
+    redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+    redoAction->setShortcut(QKeySequence::Redo);
+    redoAction->setIcon(QIcon(":/images/edit-redo.png"));
+
+    table->addAction(undoAction);
+    table->addAction(redoAction);
+
     /** Window actions
      * @brief
      */
@@ -348,6 +364,9 @@ void SheetWidget::buildMenus()
     sheetEditMenu->addAction(copyAction);
     sheetEditMenu->addAction(pasteAction);
     sheetEditMenu->addAction(pasteInvertedAction);
+    sheetEditMenu->addSeparator();
+    sheetEditMenu->addAction(redoAction);
+    sheetEditMenu->addAction(undoAction);
     sheetEditMenu->addSeparator();
     sheetEditMenu->addAction(clearAction);
 
@@ -870,14 +889,24 @@ void SheetWidget::paste()
                 {
                     if (j < columns.length())
                     {
-                        table->item(row, column)->setText(columns[j]);
+                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
+                        QString mOldTest(table->model()->index(row, column).data(Qt::EditRole).toString());
+                        QString mNewTest(columns[j]);
+
+                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
                     }
                 }
                 else
                 {
                     if (j < columns.length())
                     {
-                        table->setItem(row, column, new QTableWidgetItem(columns[j]));
+                        table->setItem(row, column, new QTableWidgetItem(""));
+
+                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
+                        QString mOldTest("");
+                        QString mNewTest(columns[j]);
+
+                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
                     }
                 }
             }
@@ -909,14 +938,24 @@ void SheetWidget::pasteInverted()
                 {
                     if (j < columns.length())
                     {
-                        table->item(row, column)->setText(columns[j]);
+                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
+                        QString mOldTest(table->model()->index(row, column).data(Qt::EditRole).toString());
+                        QString mNewTest(columns[j]);
+
+                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
                     }
                 }
                 else
                 {
                     if (j < columns.length())
                     {
-                        table->setItem(row, column, new QTableWidgetItem(columns[j]));
+                        table->setItem(row, column, new QTableWidgetItem(""));
+
+                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
+                        QString mOldTest("");
+                        QString mNewTest(columns[j]);
+
+                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
                     }
                 }
             }
@@ -929,8 +968,12 @@ void SheetWidget::pasteInverted()
 void SheetWidget::clear()
 {
     foreach (QTableWidgetItem *i, table->selectedItems())
-    {
-        i->setText("");
+    {        
+        const QModelIndex index = table->model()->index(i->row(), i->column(), QModelIndex());
+        QString mOldTest(i->text());
+        QString clear("");
+
+        undoStack->push(new UpdateCommand(&index, mOldTest, clear));
     }
 }
 

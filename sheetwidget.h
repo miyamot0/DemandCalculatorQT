@@ -103,6 +103,9 @@ public:
     QList<QStringList> allResults;
     QList<QStringList> allCharts;
 
+    QUndoStack *undoStack;
+    QTableWidget *table;
+
 public slots:
     void downloadedFile(QNetworkReply *reply);
 
@@ -188,6 +191,11 @@ private:
     QAction *pasteInvertedAction;
     QAction *clearAction;
 
+    // Experimental
+
+    QAction *undoAction;
+    QAction *redoAction;
+
     QAction *openDemandWindow;
 
     QAction *openLicenseDCA;
@@ -202,7 +210,6 @@ private:
     QAction *priceAction;
     QAction *consumptionAction;
 
-    QTableWidget *table;
 
     QStringList pricePoints;
     QStringList consumptionPoints;
@@ -241,6 +248,8 @@ private:
     int mSeriesScoring;
 
     bool mKcheck = false;
+
+
 };
 
 

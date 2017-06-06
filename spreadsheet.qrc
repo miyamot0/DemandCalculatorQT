@@ -16,5 +16,6 @@
         <file>images/preferences-system.png</file>
         <file>images/system-log-out.png</file>
         <file>images/x-office-spreadsheet.png</file>
+        <file>images/edit-undo.png</file>
     </qresource>
 </RCC>

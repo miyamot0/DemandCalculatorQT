@@ -67,7 +67,9 @@ SOURCES += main.cpp\
     Libraries/alglib-3.11.0/src/statistics.cpp \
     demandmodeling.cpp \
     chartwindow.cpp \
-    steincheck.cpp
+    steincheck.cpp \
+    commanding.cpp \
+    sheetdelegate.cpp
 
 HEADERS  += \
     aboutdialog.h \
@@ -93,7 +95,9 @@ HEADERS  += \
     Libraries/alglib-3.11.0/src/stdafx.h \
     demandmodeling.h \
     chartwindow.h \
-    steincheck.h
+    steincheck.h \
+    commanding.h \
+    sheetdelegate.h
 
 FORMS    += \
     aboutdialog.ui \
