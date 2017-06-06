@@ -29,9 +29,6 @@
 UpdateCommand::UpdateCommand(const QModelIndex *mIndex, const QString &oldContent, QString &newContent, QUndoCommand *parent)
     : QUndoCommand(parent)
 {
-    //QAbstractItemModel *mItemModel,
-
-    //mItemModelRef = mItemModel;
     mItemModelRef = mIndex->model();
     mItemIndex = mIndex;
     mNewContent = newContent;
@@ -58,5 +55,54 @@ void UpdateCommand::redo()
     else
     {
         temp->table->setItem(mRow, mColumn, new QTableWidgetItem(mNewContent));
+    }
+}
+
+UpdateCommandBlock::UpdateCommandBlock(const QModelIndex *mIndex, const QStringList &oldContent, QStringList &newContent, QUndoCommand *parent)
+    : QUndoCommand(parent)
+{
+    mTopLeftModelRef = mIndex->model();
+    mTopLeftIndex = mIndex;
+    mNewContent = newContent;
+    mOldContent = oldContent;
+
+    mLeftColumn = mIndex->column();
+    mLeftRow = mIndex->row();
+}
+
+void UpdateCommandBlock::undo()
+{
+    SheetWidget *temp = qobject_cast <SheetWidget *>(mTopLeftModelRef->parent()->parent());
+
+    for (int row = 0; row < mOldContent.count(); row++)
+    {
+        QStringList columns = mOldContent[row].split('\t');
+
+        for (int col = 0; col < columns.count(); col++)
+        {
+            temp->table->item(mLeftRow + row, mLeftColumn + col)->setText(columns[col]);
+        }
+    }
+}
+
+void UpdateCommandBlock::redo()
+{
+    SheetWidget *temp = qobject_cast <SheetWidget *>(mTopLeftModelRef->parent()->parent());
+
+    for (int row = 0; row < mNewContent.count(); row++)
+    {
+        QStringList columns = mNewContent[row].split('\t');
+
+        for (int col = 0; col < columns.count(); col++)
+        {
+            if (temp->table->item(mLeftRow + row, mLeftColumn + col) != NULL)
+            {
+                temp->table->item(mLeftRow + row, mLeftColumn + col)->setText(columns[col]);
+            }
+            else
+            {
+                temp->table->setItem(mLeftRow + row, mLeftColumn + col, new QTableWidgetItem(columns[col]));
+            }
+        }
     }
 }

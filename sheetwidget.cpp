@@ -871,47 +871,81 @@ void SheetWidget::paste()
 {
     QTableWidgetSelectionRange range = table->selectedRanges().first();
     QString pasteString = QApplication::clipboard()->text();
+
     QStringList pasteRows = pasteString.split('\n');
 
     int nRows = pasteRows.count();
     int nCols = pasteRows.first().count('\t') + 1;
 
-    for (int i = 0; i < nRows; ++i) {
-        QStringList columns = pasteRows[i].split('\t');
+    if (nRows < 1 || nCols < 1)
+    {
+        return;
+    }
+    else if (nRows == 1 && nCols == 1)
+    {
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
+        QString mNewTest(pasteRows[0].split('\t')[0]);
 
-        for (int j = 0; j < nCols; ++j) {
-            int row = range.topRow() + i;
-            int column = range.leftColumn() + j;
+        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
+    }
+    else
+    {
+        QStringList mOlderHolder;
+        QStringList mTemp;
 
-            if (row < 10000 && column < 10000)
-            {
-                if (table->item(row, column) != NULL)
+        for (int i = 0; i < nRows; ++i) {
+            QStringList columns = pasteRows[i].split('\t');
+
+            mTemp.clear();
+
+            for (int j = 0; j < nCols; ++j) {
+                int row = range.topRow() + i;
+                int column = range.leftColumn() + j;
+
+                if (row < 10000 && column < 10000)
                 {
-                    if (j < columns.length())
+                    if (table->item(row, column) != NULL)
                     {
-                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
-                        QString mOldTest(table->model()->index(row, column).data(Qt::EditRole).toString());
-                        QString mNewTest(columns[j]);
+                        if (j < columns.length())
+                        {
+                            //const QModelIndex index = table->model()->index(row, column, QModelIndex());
+                            //QString mOldTest(table->model()->index(row, column).data(Qt::EditRole).toString());
+                            //QString mNewTest(columns[j]);
+                            //undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
 
-                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
+                            mTemp << table->item(row, column)->data(Qt::EditRole).toString();
+                        }
                     }
-                }
-                else
-                {
-                    if (j < columns.length())
+                    else
                     {
-                        table->setItem(row, column, new QTableWidgetItem(""));
+                        if (j < columns.length())
+                        {
+                            table->setItem(row, column, new QTableWidgetItem(""));
 
-                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
-                        QString mOldTest("");
-                        QString mNewTest(columns[j]);
+                            //const QModelIndex index = table->model()->index(row, column, QModelIndex());
+                            //QString mOldTest("");
+                            //QString mNewTest(columns[j]);
+                            //undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
 
-                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
+                            mTemp << "";
+                        }
                     }
                 }
             }
+
+            mOlderHolder << mTemp.join('\t');
         }
+        //QStringList
+
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+
+        undoStack->push(new UpdateCommandBlock(&index, mOlderHolder, pasteRows));
     }
+
+    /*
+
+    */
 
     table->viewport()->update();
 }
