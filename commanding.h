@@ -87,4 +87,33 @@ private:
     int mLeftRow = -1;
 };
 
+class UpdateCommandBlockInvert : public QUndoCommand
+{
+public:
+    enum
+    {
+        Id = 65535
+    };
+
+    int id() const override
+    {
+        return Id;
+    }
+
+    UpdateCommandBlockInvert(const QModelIndex *mIndex, const QStringList &oldContent, QStringList &newContent, QUndoCommand *parent = 0);
+
+    void undo() override;
+    void redo() override;
+
+    QStringList mOldContent;
+    QStringList mNewContent;
+
+private:
+    const QAbstractItemModel *mTopLeftModelRef;
+    const QModelIndex *mTopLeftIndex;
+
+    int mLeftColumn = -1;
+    int mLeftRow = -1;
+};
+
 #endif // COMMANDING_H

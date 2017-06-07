@@ -106,3 +106,52 @@ void UpdateCommandBlock::redo()
         }
     }
 }
+
+UpdateCommandBlockInvert::UpdateCommandBlockInvert(const QModelIndex *mIndex, const QStringList &oldContent, QStringList &newContent, QUndoCommand *parent)
+    : QUndoCommand(parent)
+{
+    mTopLeftModelRef = mIndex->model();
+    mTopLeftIndex = mIndex;
+    mNewContent = newContent;
+    mOldContent = oldContent;
+
+    mLeftColumn = mIndex->column();
+    mLeftRow = mIndex->row();
+}
+
+void UpdateCommandBlockInvert::undo()
+{
+    SheetWidget *temp = qobject_cast <SheetWidget *>(mTopLeftModelRef->parent()->parent());
+
+    for (int row = 0; row < mOldContent.count(); row++)
+    {
+        QStringList columns = mOldContent[row].split('\t');
+
+        for (int col = 0; col < columns.count(); col++)
+        {
+            temp->table->item(mLeftRow + col, mLeftColumn + row)->setText(columns[col]);
+        }
+    }
+}
+
+void UpdateCommandBlockInvert::redo()
+{
+    SheetWidget *temp = qobject_cast <SheetWidget *>(mTopLeftModelRef->parent()->parent());
+
+    for (int row = 0; row < mNewContent.count(); row++)
+    {
+        QStringList columns = mNewContent[row].split('\t');
+
+        for (int col = 0; col < columns.count(); col++)
+        {
+            if (temp->table->item(mLeftRow + col, mLeftColumn + row) != NULL)
+            {
+                temp->table->item(mLeftRow + col, mLeftColumn + row)->setText(columns[col]);
+            }
+            else
+            {
+                temp->table->setItem(mLeftRow + col, mLeftColumn + row, new QTableWidgetItem(columns[col]));
+            }
+        }
+    }
+}
