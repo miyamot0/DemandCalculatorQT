@@ -558,7 +558,8 @@ bool SheetWidget::eventFilter(QObject *object, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress)
     {
-        auto keyCode = static_cast<QKeyEvent *>(event);
+        QKeyEvent *keyCode = static_cast<QKeyEvent *>(event);
+
         if (keyCode->key() == (int) Qt::Key_Return)
         {
             if (table->currentRow() + 1 >= table->rowCount())
