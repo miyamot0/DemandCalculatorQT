@@ -894,7 +894,8 @@ void SheetWidget::paste()
         QStringList mOlderHolder;
         QStringList mTemp;
 
-        for (int i = 0; i < nRows; ++i) {
+        for (int i = 0; i < nRows; ++i)
+        {
             QStringList columns = pasteRows[i].split('\t');
 
             mTemp.clear();
@@ -931,8 +932,6 @@ void SheetWidget::paste()
 
         undoStack->push(new UpdateCommandBlock(&index, mOlderHolder, pasteRows));
     }
-
-    //table->viewport()->update();
 }
 
 void SheetWidget::pasteInverted()
@@ -1000,61 +999,70 @@ void SheetWidget::pasteInverted()
 
         undoStack->push(new UpdateCommandBlockInvert(&index, mOlderHolder, pasteRows));
     }
-
-/*
-
-
-    for (int i = 0; i < nRows; ++i) {
-        QStringList columns = pasteRows[i].split('\t');
-
-        for (int j = 0; j < nCols; ++j) {
-            int row = range.topRow() + j;
-            int column = range.leftColumn() + i;
-
-            if (row < 10000 && column < 10000)
-            {
-                if (table->item(row, column) != NULL)
-                {
-                    if (j < columns.length())
-                    {
-                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
-                        QString mOldTest(table->model()->index(row, column).data(Qt::EditRole).toString());
-                        QString mNewTest(columns[j]);
-
-                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
-                    }
-                }
-                else
-                {
-                    if (j < columns.length())
-                    {
-                        table->setItem(row, column, new QTableWidgetItem(""));
-
-                        const QModelIndex index = table->model()->index(row, column, QModelIndex());
-                        QString mOldTest("");
-                        QString mNewTest(columns[j]);
-
-                        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
-                    }
-                }
-            }
-        }
-    }
-
-    table->viewport()->update();
-
-    */
 }
 
 void SheetWidget::clear()
 {
-    foreach (QTableWidgetItem *i, table->selectedItems())
-    {        
-        const QModelIndex index = table->model()->index(i->row(), i->column(), QModelIndex());
-        QString mOldTest(i->text());
+    QTableWidgetSelectionRange range = table->selectedRanges().first();
+
+    int nRows = range.rowCount();
+    int nCols = range.columnCount();
+
+    if (nRows < 1 || nCols < 1)
+    {
+        return;
+    }
+    else if (nRows == 1 && nCols == 1)
+    {
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
         QString clear("");
 
         undoStack->push(new UpdateCommand(&index, mOldTest, clear));
+    }
+    else
+    {
+        QStringList mNewerHolder;
+        QStringList mOlderHolder;
+
+        QStringList mTempNew;
+        QStringList mTemp;
+
+        for (int i = 0; i < nRows; ++i)
+        {
+            mTemp.clear();
+            mTempNew.clear();
+
+            for (int j = 0; j < nCols; ++j)
+            {
+                int row = range.topRow() + i;
+                int column = range.leftColumn() + j;
+
+                qDebug() << row << " " << column;
+
+                if (row < 10000 && column < 10000)
+                {
+                    if (table->item(row, column) != NULL)
+                    {
+                        mTemp << table->item(row, column)->data(Qt::EditRole).toString();
+                        mTempNew << "";
+                    }
+                    else
+                    {
+                        table->setItem(row, column, new QTableWidgetItem(""));
+
+                        mTemp << "";
+                        mTempNew << "";
+                    }
+                }
+            }
+
+            mOlderHolder << mTemp.join('\t');
+            mNewerHolder << mTempNew.join('\t');
+        }
+
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+        undoStack->push(new UpdateCommandBlock(&index, mOlderHolder, mNewerHolder));
     }
 }
 

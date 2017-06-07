@@ -40,7 +40,6 @@ public:
         return Id;
     }
 
-    //QAbstractItemModel *mItemModel,
     UpdateCommand(const QModelIndex *mIndex, const QString &oldContent, QString &newContent, QUndoCommand *parent = 0);
 
     void undo() override;
