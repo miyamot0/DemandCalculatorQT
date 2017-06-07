@@ -212,26 +212,32 @@ void SheetWidget::buildMenus()
      * @brief
      */
 
-    newSheetAction = new QAction("N&ew Sheet", this);
+    newSheetAction = new QAction("N&ew", this);
+    newSheetAction->setShortcut(QKeySequence::New);
     newSheetAction->setIcon(QIcon(":/images/document-new.png"));
     connect(newSheetAction, &QAction::triggered, this, &SheetWidget::clearSheet);
 
-    openSheetAction = new QAction("I&mport a Sheet", this);
-    openSheetAction->setShortcut(QKeySequence("Ctrl+O"));
+    openSheetAction = new QAction("I&mport", this);
+    openSheetAction->setShortcut(QKeySequence::Open);
     openSheetAction->setIcon(QIcon(":/images/document-open.png"));
     connect(openSheetAction, &QAction::triggered, this, &SheetWidget::showOpenFileDialog);
 
-    saveSheetAction = new QAction("S&ave Sheet", this);
-    saveSheetAction->setShortcut(QKeySequence("Ctrl+S"));
+    saveSheetAction = new QAction("S&ave", this);
+    saveSheetAction->setShortcut(QKeySequence::Save);
     saveSheetAction->setIcon(QIcon(":/images/document-save.png"));
     connect(saveSheetAction, &QAction::triggered, this, &SheetWidget::showSaveFileDialog);
+
+    saveAsSheetAction = new QAction("S&ave As", this);
+    saveAsSheetAction->setShortcut(QKeySequence::SaveAs);
+    saveAsSheetAction->setIcon(QIcon(":/images/document-save-as.png"));
+    connect(saveAsSheetAction, &QAction::triggered, this, &SheetWidget::showSaveAsFileDialog);
 
     updateProgramAction = new QAction("C&heck Updates", this);
     updateProgramAction->setIcon(QIcon(":/images/view-refresh.png"));
     connect(updateProgramAction, &QAction::triggered, this, &SheetWidget::checkUpdatesAction);
 
     exitSheetAction = new QAction("E&xit", this);
-    exitSheetAction->setShortcut(QKeySequence("Ctrl+Q"));
+    exitSheetAction->setShortcut(QKeySequence::Quit);
     exitSheetAction->setIcon(QIcon(":/images/system-log-out.png"));
     connect(exitSheetAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 
@@ -248,22 +254,21 @@ void SheetWidget::buildMenus()
      */
 
     cutAction = new QAction("Cut", this);
-    cutAction->setShortcut(QKeySequence("Ctrl+X"));
+    cutAction->setShortcut(QKeySequence::Cut);
     cutAction->setIcon(QIcon(":/images/edit-cut.png"));
     connect(cutAction, &QAction::triggered, this, &SheetWidget::cut);
 
     copyAction = new QAction("Copy", this);
-    copyAction->setShortcut(QKeySequence("Ctrl+C"));
+    copyAction->setShortcut(QKeySequence::Copy);
     copyAction->setIcon(QIcon(":/images/edit-copy.png"));
     connect(copyAction, &QAction::triggered, this, &SheetWidget::copy);
 
     pasteAction = new QAction("Paste", this);
-    pasteAction->setShortcut(QKeySequence("Ctrl+V"));
+    pasteAction->setShortcut(QKeySequence::Paste);
     pasteAction->setIcon(QIcon(":/images/edit-paste.png"));
     connect(pasteAction, &QAction::triggered, this, &SheetWidget::paste);
 
     pasteInvertedAction = new QAction("Paste Transposed", this);
-    pasteInvertedAction->setShortcut(QKeySequence("Ctrl+B"));
     pasteInvertedAction->setIcon(QIcon(":/images/edit-paste.png"));
     connect(pasteInvertedAction, &QAction::triggered, this, &SheetWidget::pasteInverted);
 
@@ -344,6 +349,7 @@ void SheetWidget::buildMenus()
     sheetOptionsMenu->addAction(newSheetAction);
     sheetOptionsMenu->addAction(openSheetAction);
     sheetOptionsMenu->addAction(saveSheetAction);
+    sheetOptionsMenu->addAction(saveAsSheetAction);
 
     separatorAct = sheetOptionsMenu->addSeparator();
 
@@ -417,7 +423,7 @@ void SheetWidget::clearSheet()
     curFile = "";
     setWindowFilePath(curFile);
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QApplication::restoreOverrideCursor();
 }
 
 void SheetWidget::checkUpdatesAction()
@@ -647,6 +653,48 @@ void SheetWidget::updateRecentFileActions()
 }
 
 void SheetWidget::showSaveFileDialog()
+{
+    if (curFile == "")
+    {
+        showSaveAsFileDialog();
+
+        return;
+    }
+
+    if(!curFile.trimmed().isEmpty())
+    {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+
+        QXlsx::Document xlsx;
+
+        int rows = table->rowCount();
+        int cols = table->columnCount();
+
+        QString temp;
+
+        for (int i=0; i<rows; i++)
+        {
+            for (int j=0; j<cols; j++)
+            {
+                QTableWidgetItem *item = table->item(i, j);
+
+                if (item != NULL && !item->text().isEmpty())
+                {
+                    temp = table->item(i, j)->data(Qt::DisplayRole).toString();
+                    xlsx.write(i + 1, j + 1, temp);
+                }
+            }
+        }
+
+        xlsx.saveAs(curFile);
+
+        QApplication::restoreOverrideCursor();
+
+        statusBar()->showMessage(tr("File saved"), 2000);
+    }
+}
+
+void SheetWidget::showSaveAsFileDialog()
 {
 
     QString file_name;

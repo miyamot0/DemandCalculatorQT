@@ -131,6 +131,7 @@ public slots:
     void clearSheet();
     void showOpenFileDialog();
     void showSaveFileDialog();
+    void showSaveAsFileDialog();
 
     void showDemandWindow();
 
@@ -182,6 +183,7 @@ private:
     QAction *newSheetAction;
     QAction *openSheetAction;
     QAction *saveSheetAction;
+    QAction *saveAsSheetAction;
     QAction *updateProgramAction;
     QAction *exitSheetAction;
 
@@ -190,8 +192,6 @@ private:
     QAction *pasteAction;
     QAction *pasteInvertedAction;
     QAction *clearAction;
-
-    // Experimental
 
     QAction *undoAction;
     QAction *redoAction;
