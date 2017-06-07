@@ -181,17 +181,18 @@ void SheetWidget::downloadedFile(QNetworkReply *reply) {
 
     QStringList mVersionList = mNode2.text().split('.');
 
+    if (mVersionList.count() != 3)
+    {
+        return;
+    }
+
     bool hasUpdate = false;
 
-    if (mVersionList[0].toInt() > VERSION_MAJOR)
-    {
-        hasUpdate = true;
-    }
-    else if (mVersionList[1].toInt() > VERSION_MINOR)
-    {
-        hasUpdate = true;
-    }
-    else if (mVersionList[2].toInt() > VERSION_BUILD)
+    QString mNetworkVersionString = QString("%1%2%3").arg(mVersionList[0]).arg(mVersionList[1]).arg(mVersionList[2]);
+
+    QString mLocalVersionString = QString("%1%2%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD);
+
+    if (mNetworkVersionString.toInt() > mLocalVersionString.toInt())
     {
         hasUpdate = true;
     }
