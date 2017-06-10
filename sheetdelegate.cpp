@@ -40,7 +40,8 @@ void SheetDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
     if (edit) {
 
         SheetWidget *temp = qobject_cast <SheetWidget *>(model->parent()->parent());
-        temp->undoStack->push(new UpdateCommand(&index, model->data(index, Qt::EditRole).toString(), edit->text()));
+        QString mNew = edit->text();
+        temp->undoStack->push(new UpdateCommand(&index, model->data(index, Qt::EditRole).toString(), mNew));
         model->setData(index, edit->text(), Qt::EditRole);
 
         return;
