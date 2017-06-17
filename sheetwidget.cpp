@@ -1088,8 +1088,6 @@ void SheetWidget::clear()
                 int row = range.topRow() + i;
                 int column = range.leftColumn() + j;
 
-                qDebug() << row << " " << column;
-
                 if (row < 10000 && column < 10000)
                 {
                     if (table->item(row, column) != NULL)
@@ -1372,12 +1370,28 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     temp = replnum.toDouble();
 
                     mYString.append(replnum);
-                    mYLogString.append(QString::number(log10(temp)));
+
+                    if (model == "linear")
+                    {
+                        mYLogString.append(QString::number(log(temp)));
+                    }
+                    else
+                    {
+                        mYLogString.append(QString::number(log10(temp)));
+                    }
                 }
                 else
                 {
                     mYString.append(valuePoints[i]);
-                    mYLogString.append(QString::number(log10(temp)));
+
+                    if (model == "linear")
+                    {
+                        mYLogString.append(QString::number(log(temp)));
+                    }
+                    else
+                    {
+                        mYLogString.append(QString::number(log10(temp)));
+                    }
                 }
 
                 if (temp > 0 && temp < localMin)
@@ -1415,12 +1429,28 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     temp = replnum.toDouble();
 
                     mYString.append("," + replnum);
-                    mYLogString.append("," + QString::number(log10(temp)));
+
+                    if (model == "linear")
+                    {
+                        mYLogString.append("," + QString::number(log(temp)));
+                    }
+                    else
+                    {
+                        mYLogString.append("," + QString::number(log10(temp)));
+                    }
                 }
                 else
                 {
                     mYString.append("," + valuePoints[i]);
-                    mYLogString.append("," + QString::number(log10(temp)));
+
+                    if (model == "linear")
+                    {
+                        mYLogString.append("," + QString::number(log(temp)));
+                    }
+                    else
+                    {
+                        mYLogString.append("," + QString::number(log10(temp)));
+                    }
                 }
 
                 if (temp > 0 && temp < localMin)
@@ -1436,6 +1466,8 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                 arraySize++;
             }
         }
+
+        mObj->likelyQ0 = localMax;
 
         mXString.append("]");
         mYString.append("]");
@@ -1517,15 +1549,38 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             if (kString == "fit")
             {
-                // K, Q0, Alpha
-                mObj->SetBounds(QString("[%1, +inf, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).toUtf8().constData(),
-                                QString("[0.5, 0.001, -inf]").toUtf8().constData());
+                bool isValid = false;
+                double estimatedIntensity = getIntensityString(valuePoints, pricePointsTemp).toDouble(&isValid);
 
-                mObj->FitExponentialWithK(QString("[%1, %2, 0.01]").arg(((log10(localMax) - log10(localMin)) + 0.5) / 2).arg(localMax).toUtf8().constData());
+                if (isValid)
+                {
+                    // K, Q0, Alpha
+                    mObj->SetBounds(QString("[%1, %2, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).arg(estimatedIntensity * 2).toUtf8().constData(),
+                                    QString("[0.5, 0.001, -inf]").toUtf8().constData());
+                }
+                else
+                {
+                    // K, Q0, Alpha
+                    mObj->SetBounds(QString("[%1, +inf, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).toUtf8().constData(),
+                                    QString("[0.5, 0.001, -inf]").toUtf8().constData());
+                }
+
+                mObj->FitExponentialWithK(QString("[%1, %2, 0.01]").arg(((log10(localMax) - log10(localMin)) + 0.5) / 2).arg(localMax / 2).toUtf8().constData());
             }
             else
             {
-                mObj->SetBounds("[+inf, +inf]", "[0.0001, -inf]");
+
+                bool isValid = false;
+                double estimatedIntensity = getIntensityString(valuePoints, pricePointsTemp).toDouble(&isValid);
+
+                if (isValid)
+                {
+                    mObj->SetBounds(QString("[%1, +inf]").arg(estimatedIntensity * 2).toUtf8().constData(), "[0.0001, -inf]");
+                }
+                else
+                {
+                    mObj->SetBounds("[+inf, +inf]", "[0.0001, -inf]");
+                }
 
                 mParams.clear();
 
@@ -1551,7 +1606,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     return;
                 }
 
-                mObj->FitExponential(QString("[%1, 0.01]").arg(localMax).toUtf8().constData(), mParams);
+                mObj->FitExponential(QString("[%1, 0.01]").arg(localMax / 2).toUtf8().constData(), mParams);
             }
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
@@ -1629,17 +1684,39 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
             if (kString == "fit")
             {
-                // K, Q0, Alpha
-                mObj->SetBounds(QString("[%1, +inf, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).toUtf8().constData(),
-                                QString("[0.5, 0.001, -inf]").toUtf8().constData());
+                bool isValid = false;
+                double estimatedIntensity = getIntensityString(valuePoints, pricePointsTemp).toDouble(&isValid);
 
-                mObj->FitExponentiatedWithK(QString("[%1, %2, 0.01]").arg(((log10(localMax) - log10(localMin)) + 0.5) / 2).arg(localMax).toUtf8().constData());
+                if (isValid)
+                {
+                    // K, Q0, Alpha
+                    mObj->SetBounds(QString("[%1, %2, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).arg(estimatedIntensity * 2).toUtf8().constData(),
+                                    QString("[0.5, 0.001, -inf]").toUtf8().constData());
+                }
+                else
+                {
+                    // K, Q0, Alpha
+                    mObj->SetBounds(QString("[%1, +inf, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).toUtf8().constData(),
+                                    QString("[0.5, 0.001, -inf]").toUtf8().constData());
+                }
+
+                mObj->FitExponentiatedWithK(QString("[%1, %2, 0.01]").arg(((log10(localMax) - log10(localMin)) + 0.5) / 2).arg(localMax / 2).toUtf8().constData());
             }
             else
             {
                 kString.toDouble(&mKcheck);
 
-                mObj->SetBounds("[+inf, +inf]", "[0.0001, -inf]");
+                bool isValid = false;
+                double estimatedIntensity = getIntensityString(valuePoints, pricePointsTemp).toDouble(&isValid);
+
+                if (isValid)
+                {
+                    mObj->SetBounds(QString("[%1, +inf]").arg(estimatedIntensity * 2).toUtf8().constData(), "[0.0001, -inf]");
+                }
+                else
+                {
+                    mObj->SetBounds("[+inf, +inf]", "[0.0001, -inf]");
+                }
 
                 mParams.clear();
 
@@ -1665,7 +1742,7 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     return;
                 }
 
-                mObj->FitExponentiated(QString("[%1, 0.01]").arg(localMax).toUtf8().constData(), mParams);
+                mObj->FitExponentiated(QString("[%1, 0.0001]").arg(localMax / 2).toUtf8().constData(), mParams);
             }
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)

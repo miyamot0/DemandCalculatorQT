@@ -131,8 +131,11 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
     SetStarts(mStarts);
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
-    real_1d_array s = "[1.0, 1.0e-3]";
+
+    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(3 + SignificantDigits());
+    real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
+
     lsfitsetcond(state, epsx, maxits);
 
     alglib::lsfitfit(state, exponential_demand, NULL, &mParams);
@@ -150,7 +153,8 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    real_1d_array s = "[1.0, 1.0e-3, 1.0]";
+    QString mScaleString = QString("[1.0, 1.0e-%1, 1.0]").arg(3 + SignificantDigits());
+    real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
     lsfitsetcond(state, epsx, maxits);
@@ -167,7 +171,8 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    real_1d_array s = "[1.0, 1.0e-3]";
+    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(3 + SignificantDigits());
+    real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
     lsfitsetcond(state, epsx, maxits);
@@ -175,6 +180,27 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     alglib::lsfitfit(state, exponentiated_demand, NULL, &mParams);
 
     lsfitresults(state, info, c, rep);
+
+    qDebug() << "Fitting koff w/o k";
+
+    qDebug() << mStarts << endl;
+    qDebug() << mParams << endl;
+
+}
+
+int demandmodeling::SignificantDigits()
+{
+    double x = abs(likelyQ0);
+    return (x < 10 ? 1 :
+        (x < 100 ? 2 :
+        (x < 1000 ? 3 :
+        (x < 10000 ? 4 :
+        (x < 100000 ? 5 :
+        (x < 1000000 ? 6 :
+        (x < 10000000 ? 7 :
+        (x < 100000000 ? 8 :
+        (x < 1000000000 ? 9 :
+        10)))))))));
 }
 
 void demandmodeling::FitExponentiatedWithK(const char *mStarts)
@@ -184,7 +210,8 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    real_1d_array s = "[1.0, 1.0e-3, 1.0]";
+    QString mScaleString = QString("[1.0, 1.0e-%1, 1.0]").arg(3 + SignificantDigits());
+    real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
     lsfitsetcond(state, epsx, maxits);

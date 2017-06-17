@@ -67,6 +67,8 @@ public:
     void SetStarts(const char *mString);
     void SetBounds(const char *mUpperString, const char *mLowerString);
 
+    int SignificantDigits();
+
     real_1d_array GetParams();
     lsfitstate GetState();
     ae_int_t GetInfo();
@@ -81,6 +83,8 @@ public:
     QStringList GetSteinTest(QStringList &x, QStringList &y);
 
     bool raisedFlag = false;
+
+    double likelyQ0 = -1;
 
 private:
     real_2d_array x;

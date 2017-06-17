@@ -25,6 +25,7 @@
 #include <QWidget>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QtMath>
 #include "chartwindow.h"
 
 chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, QString mModel, QWidget *parent)
@@ -234,6 +235,8 @@ void chartwindow::plotLinearSeries(int index)
             break;
         }
 
+        param2 = exp(param2);
+
         if (param2 > highestConsumption)
         {
             highestConsumption = param2;
@@ -252,7 +255,7 @@ void chartwindow::plotLinearSeries(int index)
     }
     else
     {
-        *pmaxLine << QPointF(derivedPmax, log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax));
+        *pmaxLine << QPointF(derivedPmax, qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)));
     }
 
     pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
@@ -281,11 +284,11 @@ void chartwindow::plotLinearSeries(int index)
 
         if (showStandardized)
         {
-            *dataPoints << QPointF(param1, exp(param2) * scaling);
+            *dataPoints << QPointF(param1, qExp(param2) * scaling);
         }
         else
         {
-            *dataPoints << QPointF(param1, param2);
+            *dataPoints << QPointF(param1, qExp(param2));
         }
     }
 
@@ -301,7 +304,7 @@ void chartwindow::plotLinearSeries(int index)
             }
             else
             {
-                *demandCurve << QPointF(i, projectedValue);
+                *demandCurve << QPointF(i, qExp(projectedValue));
             }
         }
 
@@ -452,6 +455,8 @@ void chartwindow::plotExponentialSeries(int index)
             break;
         }
 
+        param2 = qPow(10, param2);
+
         if (param2 > highestConsumption)
         {
             highestConsumption = param2;
@@ -470,7 +475,7 @@ void chartwindow::plotExponentialSeries(int index)
     }
     else
     {
-        *pmaxLine << QPointF(derivedPmax, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1));
+        *pmaxLine << QPointF(derivedPmax, pow(10, (log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * derivedPmax) - 1))));
     }
 
     pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
@@ -501,13 +506,15 @@ void chartwindow::plotExponentialSeries(int index)
         }
         else
         {
-            *dataPoints << QPointF(param1, param2);
+            *dataPoints << QPointF(param1, pow(10, param2));
         }
     }
 
     for (double i = 0.001; i < highestPrice * 2; )
     {
         double projectedValue = log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * i) - 1);
+
+        projectedValue = pow(10, projectedValue);
 
         if (projectedValue >= 0.001)
         {
