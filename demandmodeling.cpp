@@ -180,12 +180,6 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     alglib::lsfitfit(state, exponentiated_demand, NULL, &mParams);
 
     lsfitresults(state, info, c, rep);
-
-    qDebug() << "Fitting koff w/o k";
-
-    qDebug() << mStarts << endl;
-    qDebug() << mParams << endl;
-
 }
 
 int demandmodeling::SignificantDigits()

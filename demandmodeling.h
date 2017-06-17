@@ -44,7 +44,6 @@
 #ifndef DEMANDMODELING_H
 #define DEMANDMODELING_H
 
-#include <QDebug>
 #include <QMap>
 #include <iostream>
 #include "interpolation.h"
