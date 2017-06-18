@@ -241,7 +241,7 @@ private:
 
     QString mXString;
     QString mYString;
-    QString mYLogString;
+    //QString mYLogString;
 
     QList<QStringList> mSteinResults;
 

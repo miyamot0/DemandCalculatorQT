@@ -61,6 +61,7 @@ class demandmodeling
 public:
     demandmodeling();
 
+    void SetModel(QString mString);
     void SetX(const char *mString);
     void SetY(const char *mString);
     void SetStarts(const char *mString);
@@ -72,6 +73,9 @@ public:
     lsfitstate GetState();
     ae_int_t GetInfo();
     lsfitreport GetReport();
+
+    double getMinimumConsumption();
+    double getMaximumConsumption();
 
     void FitLinear(const char *mStarts);
     void FitExponential(const char *mStarts, QList<double> mParams);
@@ -85,9 +89,13 @@ public:
 
     double likelyQ0 = -1;
 
+    int scaleAssessment = 3;
+
 private:
     real_2d_array x;
     real_1d_array y;
+
+    real_1d_array yStored;
     real_1d_array c;
 
     real_1d_array bndl;
@@ -120,6 +128,8 @@ private:
     QString deltaQPass;
     QString bouncePass;
     QString reversalpass;
+
+    QString modelMode;
 
     int passingMeasures = 0;
 

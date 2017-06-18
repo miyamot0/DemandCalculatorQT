@@ -42,6 +42,12 @@
   */
 
 #include "demandmodeling.h"
+#include <QDebug>
+
+void demandmodeling::SetModel(QString mString)
+{
+    modelMode = mString;
+}
 
 void demandmodeling::SetX(const char *mString)
 {
@@ -51,6 +57,24 @@ void demandmodeling::SetX(const char *mString)
 void demandmodeling::SetY(const char *mString)
 {
     y = mString;
+    yStored = mString;
+
+    likelyQ0 = getMaximumConsumption();
+
+    if (modelMode == "hs")
+    {
+        for (int i=0; i<y.length(); i++)
+        {
+            y[i] = log10(y[i]);
+        }
+    }
+    else if (modelMode == "linear")
+    {
+        for (int i=0; i<y.length(); i++)
+        {
+            y[i] = log(y[i]);
+        }
+    }
 }
 
 void demandmodeling::SetStarts(const char *mString)
@@ -82,6 +106,36 @@ ae_int_t demandmodeling::GetInfo()
 lsfitreport demandmodeling::GetReport()
 {
     return rep;
+}
+
+double demandmodeling::getMinimumConsumption()
+{
+    double minNonZeroConsumption = maxrealnumber;
+
+    for (int i = 0; i < yStored.length(); i++)
+    {
+        if (yStored[i] > 0 && yStored[i] < minNonZeroConsumption)
+        {
+            minNonZeroConsumption = yStored[i];
+        }
+    }
+
+    return minNonZeroConsumption;
+}
+
+double demandmodeling::getMaximumConsumption()
+{
+    double maxNonZeroConsumption = minrealnumber;
+
+    for (int i = 0; i < yStored.length(); i++)
+    {
+        if (yStored[i] > 0 && yStored[i] > maxNonZeroConsumption)
+        {
+            maxNonZeroConsumption = yStored[i];
+        }
+    }
+
+    return maxNonZeroConsumption;
 }
 
 void exponential_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
@@ -132,7 +186,7 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(3 + SignificantDigits());
+    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(scaleAssessment + (SignificantDigits() - 3));
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
@@ -148,12 +202,11 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     SetStarts(mStarts);
 
     QList<double> mParams;
-    mParams << 3;
 
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0e-%1, 1.0]").arg(3 + SignificantDigits());
+    QString mScaleString = QString("[1.0, 1.0, 1.0e-%1]").arg(scaleAssessment + (SignificantDigits() - 3));
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
@@ -171,13 +224,31 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(3 + SignificantDigits());
+    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(scaleAssessment + SignificantDigits());
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
     lsfitsetcond(state, epsx, maxits);
 
     alglib::lsfitfit(state, exponentiated_demand, NULL, &mParams);
+
+    lsfitresults(state, info, c, rep);
+}
+
+void demandmodeling::FitExponentiatedWithK(const char *mStarts)
+{
+    SetStarts(mStarts);
+
+    lsfitcreatef(x, y, c, diffstep, state);
+    lsfitsetbc(state, bndl, bndu);
+
+    QString mScaleString = QString("[1.0, 1.0, 1.0e-%1]").arg(scaleAssessment + SignificantDigits());
+    real_1d_array s = mScaleString.toUtf8().constData();
+    lsfitsetscale(state, s);
+
+    lsfitsetcond(state, epsx, maxits);
+
+    alglib::lsfitfit(state, exponentiated_demand_with_k);
 
     lsfitresults(state, info, c, rep);
 }
@@ -195,24 +266,6 @@ int demandmodeling::SignificantDigits()
         (x < 100000000 ? 8 :
         (x < 1000000000 ? 9 :
         10)))))))));
-}
-
-void demandmodeling::FitExponentiatedWithK(const char *mStarts)
-{
-    SetStarts(mStarts);
-
-    lsfitcreatef(x, y, c, diffstep, state);
-    lsfitsetbc(state, bndl, bndu);
-
-    QString mScaleString = QString("[1.0, 1.0e-%1, 1.0]").arg(3 + SignificantDigits());
-    real_1d_array s = mScaleString.toUtf8().constData();
-    lsfitsetscale(state, s);
-
-    lsfitsetcond(state, epsx, maxits);
-
-    alglib::lsfitfit(state, exponentiated_demand_with_k);
-
-    lsfitresults(state, info, c, rep);
 }
 
 struct QPairFirstComparer
