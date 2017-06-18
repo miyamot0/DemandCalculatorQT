@@ -235,8 +235,6 @@ void chartwindow::plotLinearSeries(int index)
             break;
         }
 
-        param2 = exp(param2);
-
         if (param2 > highestConsumption)
         {
             highestConsumption = param2;
@@ -251,7 +249,7 @@ void chartwindow::plotLinearSeries(int index)
 
     if (showStandardized)
     {
-        *pmaxLine << QPointF(derivedPmax, exp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)) * scaling);
+        *pmaxLine << QPointF(derivedPmax, qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)) * scaling);
     }
     else
     {
@@ -284,11 +282,11 @@ void chartwindow::plotLinearSeries(int index)
 
         if (showStandardized)
         {
-            *dataPoints << QPointF(param1, qExp(param2) * scaling);
+            *dataPoints << QPointF(param1, (param2) * scaling);
         }
         else
         {
-            *dataPoints << QPointF(param1, qExp(param2));
+            *dataPoints << QPointF(param1, (param2));
         }
     }
 
@@ -455,15 +453,13 @@ void chartwindow::plotExponentialSeries(int index)
             break;
         }
 
-        param2 = qPow(10, param2);
-
         if (param2 > highestConsumption)
         {
             highestConsumption = param2;
         }
     }
 
-    double scaling = 100 / pow(10, highestConsumption);
+    double scaling = 100 / highestConsumption;
 
     pmaxLine->clear();
 
@@ -502,11 +498,11 @@ void chartwindow::plotExponentialSeries(int index)
 
         if (showStandardized)
         {
-            *dataPoints << QPointF(param1, pow(10, param2) * scaling);
+            *dataPoints << QPointF(param1, (param2) * scaling);
         }
         else
         {
-            *dataPoints << QPointF(param1, pow(10, param2));
+            *dataPoints << QPointF(param1, (param2));
         }
     }
 
@@ -520,7 +516,7 @@ void chartwindow::plotExponentialSeries(int index)
         {
             if (showStandardized)
             {
-                *demandCurve << QPointF(i, pow(10, projectedValue) * scaling);
+                *demandCurve << QPointF(i, (projectedValue) * scaling);
             }
             else
             {
@@ -707,12 +703,12 @@ void chartwindow::plotExponentiatedSeries(int index)
 
         if (param1 <= 0)
         {
-            param1 = 0.001;
+            param1 = 0.01;
         }
 
         if (param2 <= 0)
         {
-            param2 = 0.001;
+            param2 = 0.01;
         }
 
         if (showStandardized)
@@ -778,7 +774,7 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     if (showStandardized)
     {
-        axisY2->setMax(100);
+        axisY2->setMax(101);
         axisY2->setMin(0);
     }
     else

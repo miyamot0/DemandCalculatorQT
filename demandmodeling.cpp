@@ -42,7 +42,6 @@
   */
 
 #include "demandmodeling.h"
-#include <QDebug>
 
 void demandmodeling::SetModel(QString mString)
 {
