@@ -38,18 +38,16 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     mObj = new demandmodeling();
 }
 
-double CalculationWorker::getPbar(QStringList &xValues)
+double CalculationWorker::getPbar(QList<double> &yValues)
 {
-    QSet<QString> mPrices = QSet<QString>::fromList(xValues);
-
     double sum = 0;
 
-    for (int i = 0; i < mPrices.count(); i++)
+    for (int i = 0; i < yValues.count(); i++)
     {
-        sum = sum + mPrices.values().at(i).toDouble();
+        sum = sum + yValues.at(i);
     }
 
-    return sum / (double) mPrices.count();
+    return sum / (double) yValues.count();
 }
 
 QString CalculationWorker::getKMessage(BehaviorK call)
@@ -593,6 +591,68 @@ void CalculationWorker::working()
                             << QString::number(mLocalStoredValues[i].PriceValues.count())
                             << getCodeString(mObj->GetInfo())
                             << getKMessage(calculationSettings.settingsK)
+                            << mLocalStoredValues[i].Prices
+                            << mLocalStoredValues[i].Consumption;
+            }
+
+            emit workingResult(mTempHolder);
+        }
+        else if (calculationSettings.settingsModel == DemandModel::Linear)
+        {
+            mObj->SetBounds("[+inf, +inf, +inf]", "[-inf, -inf, -inf]");
+            mObj->FitLinear("[1, 1, 1]");
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            {
+                double a = mObj->GetState().c[0];
+                double b = mObj->GetState().c[1];
+                double L = mObj->GetState().c[2];
+                double pmaxd = (1 + b)/a;
+                double omaxd = (L * pow(pmaxd, b)) / exp(a * pmaxd) * pmaxd;
+
+                double pbar = getPbar(mLocalStoredValues[i].PriceValues);
+
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Linear"
+                            << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << QString::number(L)
+                            << QString::number(mObj->GetReport().errpar[2])
+                            << QString::number(b)
+                            << QString::number(mObj->GetReport().errpar[1])
+                            << QString::number(a)
+                            << QString::number(mObj->GetReport().errpar[0])
+                            << QString::number(mObj->GetReport().r2)
+                            << "---"
+                            << QString::number(b - (a * pbar))
+                            << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << QString::number(omaxd)
+                            << QString::number(pmaxd)
+                            << getCodeString(mObj->GetInfo())
+                            << mLocalStoredValues[i].Prices
+                            << mLocalStoredValues[i].Consumption;
+            }
+            else
+            {
+                mTempHolder.clear();
+                mTempHolder << QString::number(i + 1)
+                            << "Linear"
+                            << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << ""
+                            << ""
+                            << ""
+                            << ""
+                            << "TO DO"
+                            << ""
+                            << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << ""
+                            << ""
+                            << getCodeString(mObj->GetInfo())
                             << mLocalStoredValues[i].Prices
                             << mLocalStoredValues[i].Consumption;
             }

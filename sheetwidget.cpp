@@ -1411,7 +1411,8 @@ void SheetWidget::Calculate()
             }
 
             // Pass on Q0?
-            if (calculationSettings->settingsQ0 == Behavior::Drop && pricePointsTemp[i].toDouble() <= 0)
+            if ((calculationSettings->settingsQ0 == Behavior::Drop && pricePointsTemp[i].toDouble() <= 0) ||
+                (calculationSettings->settingsModel == DemandModel::Linear && valuePoints[i].toDouble() <= 0))
             {
                 continue;
             }
@@ -1491,7 +1492,6 @@ void SheetWidget::Calculate()
             {
                 localMin = valuePoints[i].toDouble();
             }
-
         }
 
         mXString.append("]");

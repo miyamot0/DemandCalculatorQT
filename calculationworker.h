@@ -23,7 +23,7 @@ public:
     demandmodeling *mObj;
     DemandModel modelType;
 
-    double getPbar(QStringList &xValues);
+    double getPbar(QList<double> &yValues);
 
     QString getCodeString(ae_int_t code);
     QString getKMessage(BehaviorK call);
