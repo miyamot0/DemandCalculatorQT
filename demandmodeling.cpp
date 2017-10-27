@@ -196,7 +196,6 @@ double demandmodeling::getExponentiatedSSR(double Q0, double alpha, double k)
     return returner;
 }
 
-
 void linear_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
     func = log(c[2]) + (c[1] * log(x[0])) - c[0] * x[0];
@@ -218,10 +217,14 @@ void demandmodeling::FitLinear(const char *mStarts)
 void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 {
     SetStarts(mStarts);
+
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(scaleAssessment + (SignificantDigits() - 3));
+    QString mScaleString = QString("[%1, %2]")
+            .arg(abs((int) (c[0] / c[1])))
+            .arg(1);
+
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
@@ -243,7 +246,11 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0e-%1, 1.0]").arg(scaleAssessment + (SignificantDigits() - 3));
+    QString mScaleString = QString("[%1, %2, %3]")
+            .arg(abs((int) (c[0] / c[1])))
+            .arg(1)
+            .arg(abs((int) (c[2] / c[1])));
+
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
@@ -261,7 +268,10 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(scaleAssessment + 1 + SignificantDigits());
+    QString mScaleString = QString("[%1, %2]")
+            .arg(abs((c[0] / c[1])))
+            .arg(1);
+
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
@@ -272,32 +282,17 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     lsfitresults(state, info, c, rep);
 }
 
-void demandmodeling::FitExponentiatedWithK(const char *mStarts, double q0, double alpha, double k)
+void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 {
     SetStarts(mStarts);
-
-    qDebug() << "Starts: " << mStarts;
 
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    double tempA = 1;
-    double tempQ = c[0] / c[1];
-    double tempK = c[2] / c[1];
-
-    // starts are very bad
-
     QString mScaleString = QString("[%1, %2, %3]")
-            .arg(abs((int) tempQ))
-            .arg(abs((int) tempA))
-            .arg(abs((int) tempK));
-
-    //QString mScaleString = QString("[1.0e%1, 1.0e%2, 1.0%3]")
-    //        .arg(qScale)
-    //        .arg(qScale)
-    //        .arg(aScale);
-
-    qDebug() << "ScaleString: " << mScaleString;
+            .arg(abs((int) (c[0] / c[1])))
+            .arg(1)
+            .arg(abs((int) (c[2] / c[1])));
 
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);

@@ -7,15 +7,6 @@
 
 using namespace std;
 
-struct QPairSecondComparer
-{
-    template<typename T1, typename T2>
-    bool operator()(const QPair<T1,T2> &one, const QPair<T1,T2> &two) const
-    {
-        return one.second > two.second;
-    }
-};
-
 struct BruteForce {
   double p1 = 0;
   double p2 = 0;
@@ -30,8 +21,8 @@ struct BruteForce {
 
 struct BruteForceValues {
     //BruteForce smallParamStartingValueArray[1000];
-    BruteForce mediumParamStartingValueArray[10000];
-    BruteForce largeParamStartingValueArray[100000];
+    //BruteForce mediumParamStartingValueArray[10000];
+    BruteForce largeParamStartingValueArray[1000000];
 };
 
 BruteForceValues provisionalValues;
@@ -43,11 +34,8 @@ bool BruteSorter(BruteForce const& lhs, BruteForce const& rhs) {
 CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, CalculationSettings* mCalculationSettings)
 {
     mLocalStoredValues = mStoredValues;
-
     calculationSettings = *mCalculationSettings;
-
     modelType = calculationSettings.settingsModel;
-
     mObj = new demandmodeling();
 }
 
@@ -210,15 +198,6 @@ void CalculationWorker::startWork()
 
 void CalculationWorker::working()
 {
-    fitResult = new FitResult(modelType);
-    QStringList tempList;
-
-    QString strPrice;
-    QString strConsumption;
-
-    // Holder
-    QString temp;
-
     // Params
     QList<double> mParams;
 
@@ -230,8 +209,6 @@ void CalculationWorker::working()
         mObj->SetX(mLocalStoredValues[i].Prices.toUtf8().constData());
         mObj->SetY(mLocalStoredValues[i].Consumption.toUtf8().constData());
 
-        qDebug() << mLocalStoredValues[i].Prices << " : " << mLocalStoredValues[i].Consumption << " : " << " min " << " max";
-
         mTempHolder.clear();
 
         if (calculationSettings.settingsModel == DemandModel::Exponential)
@@ -239,13 +216,14 @@ void CalculationWorker::working()
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
                 double lowerK = 0.5;
-                double upperK = 10;
+                double upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
                 double kSpan = upperK - lowerK;
                 double tempK = -1;
 
                 double lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
-                double upperQ = mLocalStoredValues[i].LocalMax;
+                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                double qSpan = upperQ - lowerQ;
                 double tempQ = -1;
 
                 double lowerA = 0.99;
@@ -254,13 +232,13 @@ void CalculationWorker::working()
 
                 int counter = 0;
 
-                for (int k = 0; k < 10; k++)
+                for (int k = 0; k < 100; k++)
                 {
-                    tempK = lowerK + (kSpan * (((double) k ) / 10.0));
+                    tempK = lowerK + (kSpan * (((double) k ) / 100.0));
 
                     for (int i = 0; i < 100; i++)
                     {
-                        tempQ = lowerQ + (upperQ * (((double) i ) / 100.0));
+                        tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
 
                         for (int j = 0; j < 100; j++)
                         {
@@ -268,16 +246,16 @@ void CalculationWorker::working()
                             provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
                             provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
 
-                            provisionalValues.mediumParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
-                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p2,
-                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p3);
+                            provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                                  provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                                  provisionalValues.largeParamStartingValueArray[counter].p3);
                             counter++;
                         }
                     }
                 }
 
                 std::sort(provisionalValues.largeParamStartingValueArray,
-                          provisionalValues.largeParamStartingValueArray + 100000,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
 
                 double k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
@@ -314,7 +292,8 @@ void CalculationWorker::working()
                 double lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
 
-                double upperQ = mLocalStoredValues[i].LocalMax;
+                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                double qSpan = upperQ - lowerQ;
 
                 double tempQ = -1;
 
@@ -324,37 +303,37 @@ void CalculationWorker::working()
 
                 int counter = 0;
 
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 1000; i++)
                 {
-                    tempQ = lowerQ + (upperQ * (((double) i ) / 100.0));
+                    tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
 
-                    for (int j = 0; j < 100; j++)
+                    for (int j = 0; j < 1000; j++)
                     {
-                        provisionalValues.mediumParamStartingValueArray[counter].p1 = tempQ;
-                        provisionalValues.mediumParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                        provisionalValues.mediumParamStartingValueArray[counter].p3 = mParams[0];
+                        provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
+                        provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
+                        provisionalValues.largeParamStartingValueArray[counter].p3 = mParams[0];
 
-                        provisionalValues.mediumParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.mediumParamStartingValueArray[counter].p1,
-                                                                                                               provisionalValues.mediumParamStartingValueArray[counter].p2,
-                                                                                                               provisionalValues.mediumParamStartingValueArray[counter].p3);
+                        provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                              provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                              provisionalValues.largeParamStartingValueArray[counter].p3);
 
                         counter++;
                     }
                 }
 
-                std::sort(provisionalValues.mediumParamStartingValueArray,
-                          provisionalValues.mediumParamStartingValueArray + 10000,
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
 
                 mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
                 mObj->FitExponential(QString("[%1, %2]")
-                                    .arg(provisionalValues.mediumParamStartingValueArray[0].p1)
-                                    .arg(provisionalValues.mediumParamStartingValueArray[0].p2)
+                                    .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                    .arg(provisionalValues.largeParamStartingValueArray[0].p2)
                                     .toUtf8()
                                     .constData(), mParams);
             }
 
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5 || (int) mObj->GetInfo() == 7)
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
                 double alpha = mObj->GetState().c[1];
                 double alphase = mObj->GetReport().errpar[1];
@@ -426,13 +405,14 @@ void CalculationWorker::working()
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
                 double lowerK = 0.5;
-                double upperK = 10;
+                double upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
                 double kSpan = upperK - lowerK;
                 double tempK = -1;
 
                 double lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
                 double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                double qSpan = upperQ - lowerQ;
                 double tempQ = -1;
 
                 double lowerA = 0.99;
@@ -441,13 +421,13 @@ void CalculationWorker::working()
 
                 int counter = 0;
 
-                for (int k = 0; k < 10; k++)
+                for (int k = 0; k < 100; k++)
                 {
-                    tempK = lowerK + (kSpan * (((double) k ) / 10.0));
+                    tempK = lowerK + (kSpan * (((double) k ) / 100.0));
 
                     for (int i = 0; i < 100; i++)
                     {
-                        tempQ = lowerQ + (upperQ * (((double) i ) / 100.0));
+                        tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
 
                         for (int j = 0; j < 100; j++)
                         {
@@ -455,17 +435,20 @@ void CalculationWorker::working()
                             provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
                             provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
 
-                            provisionalValues.mediumParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
-                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p2,
-                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p3);
+                            provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                                    provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                                    provisionalValues.largeParamStartingValueArray[counter].p3);
                             counter++;
                         }
                     }
                 }
 
                 std::sort(provisionalValues.largeParamStartingValueArray,
-                          provisionalValues.largeParamStartingValueArray + 100000,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
+
+                provisionalValues.largeParamStartingValueArray[0].p2 = (provisionalValues.largeParamStartingValueArray[0].p2 == 0) ? 0.000000001 :
+                                                                                                                                     provisionalValues.largeParamStartingValueArray[0].p2;
 
                 double k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
 
@@ -476,10 +459,7 @@ void CalculationWorker::working()
                                             .arg(provisionalValues.largeParamStartingValueArray[0].p1)
                                             .arg(provisionalValues.largeParamStartingValueArray[0].p2)
                                             .arg(provisionalValues.largeParamStartingValueArray[0].p3)
-                                            .toUtf8().constData(),
-                        provisionalValues.largeParamStartingValueArray[counter].p1,
-                        provisionalValues.largeParamStartingValueArray[counter].p2,
-                        provisionalValues.largeParamStartingValueArray[counter].p3);
+                                            .toUtf8().constData());
             }
             else
             {
@@ -505,7 +485,8 @@ void CalculationWorker::working()
                 double lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
 
-                double upperQ = upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                double qSpan = upperQ - lowerQ;
 
                 double tempQ = -1;
 
@@ -515,37 +496,40 @@ void CalculationWorker::working()
 
                 int counter = 0;
 
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 1000; i++)
                 {
-                    tempQ = lowerQ + (upperQ * (((double) i ) / 100.0));
+                    tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
 
-                    for (int j = 0; j < 100; j++)
+                    for (int j = 0; j < 1000; j++)
                     {
-                        provisionalValues.mediumParamStartingValueArray[counter].p1 = tempQ;
-                        provisionalValues.mediumParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                        provisionalValues.mediumParamStartingValueArray[counter].p3 = mParams[0];
+                        provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
+                        provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 1000.0))));
+                        provisionalValues.largeParamStartingValueArray[counter].p3 = mParams[0];
 
-                        provisionalValues.mediumParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.mediumParamStartingValueArray[counter].p1,
-                                                                                                                 provisionalValues.mediumParamStartingValueArray[counter].p2,
-                                                                                                                 provisionalValues.mediumParamStartingValueArray[counter].p3);
+                        provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                                provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                                provisionalValues.largeParamStartingValueArray[counter].p3);
 
                         counter++;
                     }
                 }
 
-                std::sort(provisionalValues.mediumParamStartingValueArray,
-                          provisionalValues.mediumParamStartingValueArray + 10000,
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
+
+                provisionalValues.largeParamStartingValueArray[0].p2 = (provisionalValues.largeParamStartingValueArray[0].p2 == 0) ? 0.000000001 :
+                                                                                                                                     provisionalValues.largeParamStartingValueArray[0].p2;
 
                 mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
                 mObj->FitExponentiated(QString("[%1, %2]")
-                                      .arg(provisionalValues.mediumParamStartingValueArray[0].p1)
-                                      .arg(provisionalValues.mediumParamStartingValueArray[0].p2)
+                                      .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                      .arg(provisionalValues.largeParamStartingValueArray[0].p2)
                                       .toUtf8()
                                       .constData(), mParams);
             }
 
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5 || (int) mObj->GetInfo() == 5)
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
                 double alpha = mObj->GetState().c[1];
                 double alphase = mObj->GetReport().errpar[1];
@@ -618,316 +602,5 @@ void CalculationWorker::working()
         }
     }
 
-    //emit workingResult(*fitResult);
-
-//    for (int i=0; i<mLocalStoredValues.length(); i++)
-//    {
-
-/*
-        mObj->likelyQ0 = localMax;
-
-        mXString.append("]");
-        mYString.append("]");
-
-        mObj->SetModel(model);
-        mObj->SetX(mXString.toUtf8().constData());
-        mObj->SetY(mYString.toUtf8().constData());
-
-        if (model == "linear")
-        {
-            mObj->SetBounds("[+inf, +inf, +inf]", "[-inf, -inf, -inf]");
-            mObj->FitLinear("[1, 1, 1]");
-
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
-            {
-                double a = mObj->GetState().c[0];
-                double b = mObj->GetState().c[1];
-                double L = mObj->GetState().c[2];
-
-                double pmaxd = (1 + b)/a;
-                double omaxd = (L * pow(pmaxd, b)) / exp(a * pmaxd) * pmaxd;
-
-                double pbar = getPbar(pricePointsTemp);
-
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Linear"
-                            << getBP0String(valuePoints, pricePointsTemp)
-                            << getBP1String(valuePoints, pricePointsTemp)
-                            << getOmaxEString(valuePoints, pricePointsTemp)
-                            << getPmaxEString(valuePoints, pricePointsTemp)
-                            << QString::number(L)
-                            << QString::number(mObj->GetReport().errpar[2])
-                            << QString::number(b)
-                            << QString::number(mObj->GetReport().errpar[1])
-                            << QString::number(a)
-                            << QString::number(mObj->GetReport().errpar[0])
-                            << QString::number(mObj->GetReport().r2)
-                            << "---"
-                            << QString::number(b - (a * pbar))
-                            << getIntensityString(valuePoints, pricePointsTemp)
-                            << QString::number(omaxd)
-                            << QString::number(pmaxd)
-                            << getCodeString(mObj->GetInfo())
-                            << mXString
-                            << mYString;
-                            //<< mYLogString;
-            }
-            else
-            {
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Linear"
-                            << getBP0String(valuePoints, pricePointsTemp)
-                            << getBP1String(valuePoints, pricePointsTemp)
-                            << getOmaxEString(valuePoints, pricePointsTemp)
-                            << getPmaxEString(valuePoints, pricePointsTemp)
-                            << ""
-                            << ""
-                            << ""
-                            << ""
-                            << "TO DO"
-                            << ""
-                            << getIntensityString(valuePoints, pricePointsTemp)
-                            << ""
-                            << ""
-                            << getCodeString(mObj->GetInfo())
-                            << mXString
-                            << mYString;
-                            //<< mYLogString;
-            }
-
-            allResults.append(mTempHolder);
-        }
-        else if (model == "hs")
-        {
-            kString.toDouble(&mKcheck);
-
-            if (kString == "fit")
-            {
-                // K, Q0, Alpha
-                mObj->SetBounds(QString("[%1, %2, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).arg(localMax * 2).toUtf8().constData(),
-                                QString("[0.5, 0.001, -inf]").toUtf8().constData());
-
-                mObj->FitExponentialWithK(QString("[%1, %2, 0.0001]").arg(((log10(localMax) - log10(localMin)) + 0.5)).arg(localMax).toUtf8().constData());
-            }
-            else
-            {
-                mObj->SetBounds(QString("[%1, +inf]").arg(localMax * 2).toUtf8().constData(), "[0.0001, -inf]");
-
-                mParams.clear();
-
-                if (kString == "ind")
-                {
-                    mParams << (log10(localMax) - log10(localMin)) + 0.5;
-                }
-                else if (kString == "range")
-                {
-                    mParams << (log10(globalMax) - log10(globalMin)) + 0.5;
-                }
-                else if (kString == "share")
-                {
-                    mParams << globalFitK;
-                }
-                else if (mKcheck)
-                {
-                    mParams << kString.toDouble();
-                }
-                else
-                {
-                    // Sanity check
-                    return;
-                }
-
-                mObj->FitExponential(QString("[%1, 0.0001]").arg(localMax).toUtf8().constData(), mParams);
-            }
-
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
-            {
-                double alpha = (kString == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
-                double alphase = (kString == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
-
-                double k = (kString == "fit") ? mObj->GetState().c[0] : mParams.at(0);
-                QString kse = (kString == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
-
-                double q0 = (kString == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
-                double q0se = (kString == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
-
-                double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                double omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                double EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Exponential"
-                            << QString::number(alpha)
-                            << QString::number(alphase)
-                            << QString::number(q0)
-                            << QString::number(q0se)
-                            << getBP1String(valuePoints, pricePointsTemp)
-                            << QString::number(EV)
-                            << getIntensityString(valuePoints, pricePointsTemp)
-                            << QString::number(k)
-                            << kse
-                            << QString::number(omaxd)
-                            << getOmaxEString(valuePoints, pricePointsTemp)
-                            << QString::number(pmaxd)
-                            << getPmaxEString(valuePoints, pricePointsTemp)
-                            << QString::number(mObj->GetReport().rmserror)
-                            << QString::number(mObj->GetReport().r2)
-                            << QString::number(mObj->GetReport().avgerror)
-                            << QString::number(pricePointsTemp.count())
-                            << getCodeString(mObj->GetInfo())
-                            << getKMessage(kString)
-                            << mXString
-                            << mYString;
-            }
-            else
-            {
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Exponential"
-                            << ""
-                            << ""
-                            << getBP1String(valuePoints, pricePointsTemp)
-                            << ""
-                            << getIntensityString(valuePoints, pricePointsTemp)
-                            << ""
-                            << ""
-                            << getOmaxEString(valuePoints, pricePointsTemp)
-                            << ""
-                            << getPmaxEString(valuePoints, pricePointsTemp)
-                            << ""
-                            << ""
-                            << ""
-                            << QString::number(pricePointsTemp.count())
-                            << getCodeString(mObj->GetInfo())
-                            << getKMessage(kString)
-                            << mXString
-                            << mYString;
-            }
-
-            allResults.append(mTempHolder);
-        }
-        else if (model == "koff")
-        {
-            if (kString == "fit")
-            {
-                // K, Q0, Alpha
-                mObj->SetBounds(QString("[%1, %2, +inf]").arg((log10(localMax) - log10(localMin)) + 0.5).arg(localMax * 2).toUtf8().constData(),
-                                QString("[0.5, 0.001, -inf]").toUtf8().constData());
-
-                mObj->FitExponentiatedWithK(QString("[%1, %2, 0.0001]").arg(((log10(localMax) - log10(localMin)) + 0.5)).arg(localMax / 2).toUtf8().constData());
-            }
-            else
-            {
-                kString.toDouble(&mKcheck);
-
-                mObj->SetBounds(QString("[%1, +inf]").arg(localMax * 2).toUtf8().constData(), "[0.0001, -inf]");
-
-                mParams.clear();
-
-                if (kString == "ind")
-                {
-                    mParams << (log10(localMax) - log10(localMin)) + 0.5;
-                }
-                else if (kString == "range")
-                {
-                    mParams << (log10(globalMax) - log10(globalMin)) + 0.5;
-                }
-                else if (kString == "share")
-                {
-                    mParams << globalFitK;
-                }
-                else if (mKcheck)
-                {
-                    mParams << kString.toDouble();
-                }
-                else
-                {
-                    // Sanity check
-                    return;
-                }
-
-                mObj->FitExponentiated(QString("[%1, 0.0001]").arg(localMax / 2).toUtf8().constData(), mParams);
-            }
-
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
-            {
-                double alpha = (kString == "fit") ? mObj->GetState().c[2] : mObj->GetState().c[1];
-                double alphase = (kString == "fit") ? mObj->GetReport().errpar[2] : mObj->GetReport().errpar[1];
-                double k = (kString == "fit") ? mObj->GetState().c[0] : mParams.at(0);
-                QString kse = (kString == "fit") ? QString::number(mObj->GetReport().errpar[0]) : "---";
-
-                double q0 = (kString == "fit") ? mObj->GetState().c[1] : mObj->GetState().c[0];
-                double q0se = (kString == "fit") ? mObj->GetReport().errpar[1] : mObj->GetReport().errpar[0];
-                double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                double omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                double EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Exponentiated"
-                            << QString::number(alpha)
-                            << QString::number(alphase)
-                            << QString::number(q0)
-                            << QString::number(q0se)
-                            << getBP0String(valuePoints, pricePointsTemp)
-                            << getBP1String(valuePoints, pricePointsTemp)
-                            << QString::number(EV)
-                            << getIntensityString(valuePoints, pricePointsTemp)
-                            << QString::number(k)
-                            << kse
-                            << QString::number(omaxd)
-                            << getOmaxEString(valuePoints, pricePointsTemp)
-                            << QString::number(pmaxd)
-                            << getPmaxEString(valuePoints, pricePointsTemp)
-                            << QString::number(mObj->GetReport().rmserror)
-                            << QString::number(mObj->GetReport().r2)
-                            << QString::number(mObj->GetReport().avgerror)
-                            << QString::number(pricePointsTemp.count())
-                            << getCodeString(mObj->GetInfo())
-                            << getKMessage(kString)
-                            << mXString
-                            << mYString;
-            }
-            else
-            {
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Exponentiated"
-                            << ""
-                            << ""
-                            << getBP0String(valuePoints, pricePointsTemp)
-                            << getBP1String(valuePoints, pricePointsTemp)
-                            << ""
-                            << getIntensityString(valuePoints, pricePointsTemp)
-                            << ""
-                            << ""
-                            << getOmaxEString(valuePoints, pricePointsTemp)
-                            << ""
-                            << getPmaxEString(valuePoints, pricePointsTemp)
-                            << ""
-                            << ""
-                            << ""
-                            << QString::number(pricePointsTemp.count())
-                            << getCodeString(mObj->GetInfo())
-                            << getKMessage(kString)
-                            << mXString
-                            << mYString;
-            }
-
-            allResults.append(mTempHolder);
-        }
-
-
-        emit workingResult(*fitResult);
-    }
-*/
-
     emit workFinished();
-
-    // work
 }

@@ -86,7 +86,7 @@ public:
     void FitExponential(const char *mStarts, QList<double> mParams);
     void FitExponentialWithK(const char *mStarts);
     void FitExponentiated(const char *mStarts, QList<double> mParams);
-    void FitExponentiatedWithK(const char *mStarts, double q0, double alpha, double k);
+    void FitExponentiatedWithK(const char *mStarts);
 
     QStringList GetSteinTest(QStringList &x, QStringList &y);
 
@@ -106,12 +106,12 @@ private:
     real_1d_array bndl;
     real_1d_array bndu;
 
-    ae_int_t maxits = 1000;
+    ae_int_t maxits = 5000;
     ae_int_t info;
     lsfitstate state;
     lsfitreport rep;
 
-    double epsx = 0.000000001;
+    double epsx = 0.00000001;
     double diffstep = 0.00000001;
 
     // Stein criteria

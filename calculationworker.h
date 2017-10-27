@@ -21,11 +21,9 @@ public:
 
     CalculationSettings calculationSettings;
 
-    FitResult *fitResult;
     demandmodeling *mObj;
 
     QStringList mTempHolder;
-    //QList<QStringList> allResults;
 
     QString getCodeString(ae_int_t code);
     QString getKMessage(BehaviorK call);
