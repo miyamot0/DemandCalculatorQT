@@ -15,21 +15,18 @@ class CalculationWorker : public QObject
 public:
     CalculationWorker(QList<FittingData> mStoredValues, CalculationSettings *mCalculationSettings);
 
-    DemandModel modelType;
-
     QList<FittingData> mLocalStoredValues;
+    QStringList mTempHolder;
 
     CalculationSettings calculationSettings;
 
     demandmodeling *mObj;
-
-    QStringList mTempHolder;
-
-    QString getCodeString(ae_int_t code);
-    QString getKMessage(BehaviorK call);
+    DemandModel modelType;
 
     double getPbar(QStringList &xValues);
 
+    QString getCodeString(ae_int_t code);
+    QString getKMessage(BehaviorK call);
     QString getPmaxEString(QList<double> &yValues, QList<double> &xValues);
     QString getOmaxEString(QList<double> &yValues, QList<double> &xValues);
     QString getIntensityString(QList<double> &yValues, QList<double> &xValues);

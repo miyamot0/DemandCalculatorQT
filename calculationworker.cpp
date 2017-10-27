@@ -1,9 +1,8 @@
-#include <QDebug>
+//#include <QDebug>
 
 #include "calculationworker.h"
 #include "qstringlist.h"
 #include <QtWidgets>
-#include <limits>
 
 using namespace std;
 

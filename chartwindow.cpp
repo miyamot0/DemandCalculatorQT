@@ -27,8 +27,9 @@
 #include <QHBoxLayout>
 #include <QtMath>
 #include "chartwindow.h"
+#include "calculationsettings.h"
 
-chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, QString mModel, QWidget *parent)
+chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, QWidget *parent)
 {
     mDisplayData = stringList;
     modelType = mModel;
@@ -62,7 +63,7 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
 
     QString mTitleDescription = (showStandardized) ? "Standardized " : "";
 
-    if (mModel == "linear")
+    if (mModel == DemandModel::Linear)
     {
         setWindowTitle(QString("%1Linear Demand Model Plots").arg(mTitleDescription));
 
@@ -77,7 +78,7 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
 
         buildLinearPlot();
     }
-    else if (mModel == "hs")
+    else if (mModel == DemandModel::Exponential)
     {
         setWindowTitle(QString("%1Exponential Demand Model Plots").arg(mTitleDescription));
 
@@ -92,7 +93,7 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
 
         buildExponentialPlot();
     }
-    else if (mModel == "koff")
+    else if (mModel == DemandModel::Exponentiated)
     {
         setWindowTitle(QString("%1Exponentiated Demand Model Plots").arg(mTitleDescription));
         setWindowTitle("Exponentiated Demand Model Plots");
@@ -787,7 +788,7 @@ void chartwindow::plotExponentiatedSeries(int index)
     axisX->setMin(0.01);
 }
 
-bool chartwindow::eventFilter(QObject *object, QEvent *e)
+bool chartwindow::eventFilter(QObject *, QEvent *e)
 {
     if (e->type() == QEvent::ShortcutOverride)
     {
@@ -843,15 +844,15 @@ void chartwindow::on_NextButton_clicked()
 
     currentIndexShown++;
 
-    if (modelType == "linear")
+    if (modelType == DemandModel::Linear)
     {
         plotLinearSeries(currentIndexShown);
     }
-    else if (modelType == "hs")
+    else if (modelType == DemandModel::Exponential)
     {
         plotExponentialSeries(currentIndexShown);
     }
-    else if (modelType == "koff")
+    else if (modelType == DemandModel::Exponentiated)
     {
         plotExponentiatedSeries(currentIndexShown);
     }
@@ -866,15 +867,15 @@ void chartwindow::on_PreviousButton_clicked()
 
     currentIndexShown--;
 
-    if (modelType == "linear")
+    if (modelType == DemandModel::Linear)
     {
         plotLinearSeries(currentIndexShown);
     }
-    else if (modelType == "hs")
+    else if (modelType == DemandModel::Exponential)
     {
         plotExponentialSeries(currentIndexShown);
     }
-    else if (modelType == "koff")
+    else if (modelType == DemandModel::Exponentiated)
     {
         plotExponentiatedSeries(currentIndexShown);
     }

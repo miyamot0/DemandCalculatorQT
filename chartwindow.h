@@ -36,12 +36,14 @@
 #include <QTextStream>
 #include <QtCharts>
 
+#include "calculationsettings.h"
+
 class chartwindow : public QMainWindow
 {
 public:
-    explicit chartwindow(QList<QStringList> stringList, bool showChartsStandardized, QString mModel, QWidget *parent = 0);
+    explicit chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, QWidget *parent = 0);
 
-    bool eventFilter(QObject *object, QEvent *e);
+    bool eventFilter(QObject *, QEvent *e);
 
     void buildLinearPlot();
     void plotLinearSeries(int index);
@@ -86,7 +88,7 @@ private:
     QLineSeries *demandCurve;
     QScatterSeries *dataPoints;
 
-    QString modelType;
+    DemandModel modelType;
 
     double deltaVar = 10;
 
@@ -101,23 +103,19 @@ private:
     double derivedPmax;
 
     // Linear
-
     double linearL;
     double linearb;
     double lineara;
 
     // Exponential
-
     double exponentialAlpha;
     double exponentialQ0;
     double exponentialK;
 
     // Exponentiated
-
     double exponentiatedAlpha;
     double exponentiatedQ0;
     double exponentiatedK;
-
 };
 
 #endif // CHARTWINDOW_H

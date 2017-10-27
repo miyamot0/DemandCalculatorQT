@@ -159,7 +159,7 @@ public slots:
                              int i);
     void getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue);
     void getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, DemandModel mModel,
-                             int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                             int topPrice, int leftPrice, int, int,
                              int topValue, int leftValue, int bottomValue, int rightValue);
 
     void Calculate();
@@ -202,7 +202,6 @@ private:
 
     QAction *priceAction;
     QAction *consumptionAction;
-
 
     QStringList pricePoints;
     QStringList consumptionPoints;

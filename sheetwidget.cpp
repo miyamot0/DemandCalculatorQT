@@ -1534,23 +1534,22 @@ void SheetWidget::WorkUpdate(QStringList results)
 
 void SheetWidget::WorkFinished()
 {
-    qDebug() << "completed" << endl;
-
     statusBar()->showMessage("Calculations Complete.", 3000);
 
-    /*
-    if (displayFigures)
+    if (calculationSettings->settingsChart != ChartingOptions::None)
     {
         statusBar()->showMessage("Drawing figures...", 3000);
 
-        if (discountingED50Dialog->isVisible())
+        if (demandWindowDialog->isVisible())
         {
-            graphicsWindow = new ChartWindow(allResults, tripLogNormal, calculationSettings->chartOption, this);
+            chartWindow = new chartwindow(allResults,
+                                          calculationSettings->settingsChart == ChartingOptions::Standardized,
+                                          calculationSettings->settingsModel,
+                                          this);
         }
 
-        graphicsWindow->show();
+        chartWindow->show();
     }
-    */
 
     if (demandWindowDialog->isVisible())
     {
@@ -1752,7 +1751,7 @@ void SheetWidget::getGlobalMinAndMax(double &globalMin, double &globalMax, bool 
 }
 
 void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, DemandModel mModel,
-                                      int topPrice, int leftPrice, int bottomPrice, int rightPrice,
+                                      int topPrice, int leftPrice, int, int,
                                       int topValue, int leftValue, int bottomValue, int rightValue)
 {
 
