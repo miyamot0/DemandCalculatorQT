@@ -43,6 +43,7 @@
 
 #include "demandmodeling.h"
 
+#include <QDebug>
 void demandmodeling::SetModel(QString mString)
 {
     modelMode = mString;
@@ -147,6 +148,23 @@ void exponential_demand(const real_1d_array &c, const real_1d_array &x, double &
 void exponential_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
 {
     func = log10(c[1]) + c[0] * (exp(-c[2] * c[1] * x[0]) - 1);
+}
+
+double demandmodeling::getExponentialSSR(double Q0, double alpha, double k)
+{
+    if (isnan(Q0) || isnan(alpha) || isnan(k))
+    {
+        return 999999999999;
+    }
+
+    double returner = 0.0;
+
+    for (int i=0; i<x.rows(); i++)
+    {
+        returner += pow((y[i] - (log10(Q0) + k * (exp(-alpha * Q0 * x[i][0]) - 1))), 2);
+    }
+
+    return returner;
 }
 
 void exponentiated_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)

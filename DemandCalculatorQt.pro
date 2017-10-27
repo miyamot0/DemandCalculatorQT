@@ -69,7 +69,11 @@ SOURCES += main.cpp\
     chartwindow.cpp \
     steincheck.cpp \
     commanding.cpp \
-    sheetdelegate.cpp
+    sheetdelegate.cpp \
+    calculationsettings.cpp \
+    calculationworker.cpp \
+    fitresult.cpp \
+    fittingdata.cpp
 
 HEADERS  += \
     aboutdialog.h \
@@ -97,7 +101,11 @@ HEADERS  += \
     chartwindow.h \
     steincheck.h \
     commanding.h \
-    sheetdelegate.h
+    sheetdelegate.h \
+    calculationsettings.h \
+    calculationworker.h \
+    fitresult.h \
+    fittingdata.h
 
 FORMS    += \
     aboutdialog.ui \

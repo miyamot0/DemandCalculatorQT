@@ -96,6 +96,7 @@
 #include "resultsdialog.h"
 #include "commanding.h"
 #include "sheetdelegate.h"
+#include "fittingdata.h"
 
 QTXLSX_USE_NAMESPACE
 
@@ -1200,15 +1201,386 @@ bool SheetWidget::isToolWindowShown()
  * @brief
  */
 
+void SheetWidget::Calculate()
+{
+    if (demandWindowDialog->isVisible())
+    {
+        demandWindowDialog->ToggleButton(false);
+    }
+
+    // Display figures?
+
+    bool isRowData = (calculationSettings->rightPrice - calculationSettings->leftPrice == 0) ? false :
+                                                                                               true;
+    int nSeries = (isRowData) ? calculationSettings->bottomConsumption - calculationSettings->topConsumption + 1 :
+                                nSeries = calculationSettings->rightConsumption - calculationSettings->leftConsumption + 1;
+
+    int dWidth = calculationSettings->rightPrice - calculationSettings->leftPrice + 1;
+    int dLength = calculationSettings->bottomPrice - calculationSettings->topPrice + 1;
+
+    int vWidth = calculationSettings->rightConsumption - calculationSettings->leftConsumption + 1;
+    int vLength = calculationSettings->bottomConsumption - calculationSettings->topConsumption + 1;
+
+    if (!areDimensionsValid(isRowData, dWidth, vWidth, dLength, vLength))
+    {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
+
+        return;
+    }
+
+    QStringList pricePoints;
+
+    if(!arePricePointsValid(pricePoints,
+                            isRowData,
+                            calculationSettings->topPrice,
+                            calculationSettings->leftPrice,
+                            calculationSettings->bottomPrice,
+                            calculationSettings->rightPrice))
+    {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
+
+        return;
+    }
+
+    QStringList valuePoints;
+    QStringList pricePointsTemp;
+
+    mSteinResults.clear();
+    QStringList mTempSteinResults;
+
+    bool raisedFlag = false;
+
+    // Stein Checks, as needed
+    if (calculationSettings->settingsCheck != SystematicCheck::Never)
+    {
+        steinCheckDialog = new SteinCheck();
+
+        for (int i = 0; i < nSeries; i++)
+        {
+            areValuePointsValid(valuePoints,
+                                pricePointsTemp,
+                                pricePoints,
+                                isRowData,
+                                calculationSettings->topConsumption,
+                                calculationSettings->leftConsumption,
+                                calculationSettings->bottomConsumption,
+                                calculationSettings->rightConsumption, i);
+
+            mTempSteinResults.clear();
+            mTempSteinResults = mObj->GetSteinTest(pricePointsTemp, valuePoints);
+            mTempSteinResults[0] = QString::number(i + 1);
+
+            if (mObj->raisedFlag)
+            {
+                raisedFlag = true;
+            }
+
+            mSteinResults.append(mTempSteinResults);
+            steinCheckDialog->appendRow(mTempSteinResults);
+        }
+
+        if (calculationSettings->settingsCheck == SystematicCheck::Always || raisedFlag)
+        {
+            steinCheckDialog->exec();
+
+            if (!steinCheckDialog->canProceed)
+            {
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return;
+            }
+        }
+    }
+
+    // Results dialog?
+
+    statusBar()->showMessage("Beginning calculations...", 3000);
+    allResults.clear();
+
+    // Test for k settings (as needed)
+    double globalMin,
+           globalMax,
+           globalFitK;
+
+    if (calculationSettings->settingsK == BehaviorK::Range)
+    {
+        getGlobalMinAndMax(globalMin,
+                           globalMax,
+                           isRowData,
+                           calculationSettings->topConsumption,
+                           calculationSettings->leftConsumption,
+                           calculationSettings->bottomConsumption,
+                           calculationSettings->rightConsumption);
+    }
+    else if (calculationSettings->settingsK == BehaviorK::Share)
+    {
+        getGlobalMinAndMax(globalMin,
+                           globalMax,
+                           isRowData,
+                           calculationSettings->topConsumption,
+                           calculationSettings->leftConsumption,
+                           calculationSettings->bottomConsumption,
+                           calculationSettings->rightConsumption);
+
+        getDataPointsGlobal(globalFitK,
+                            globalMax,
+                            isRowData,
+                            calculationSettings->settingsModel,
+                            calculationSettings->topPrice,
+                            calculationSettings->leftPrice,
+                            calculationSettings->bottomPrice,
+                            calculationSettings->rightPrice,
+                            calculationSettings->topConsumption,
+                            calculationSettings->leftConsumption,
+                            calculationSettings->bottomConsumption,
+                            calculationSettings->rightConsumption);
+
+    }
+
+    calculationSettings->globalMinConsumption = globalMin;
+    calculationSettings->globalMaxConsumption = globalMax;
+    calculationSettings->globalFitK = globalFitK;
+
+    // todo, results?
+
+    statusBar()->showMessage("Beginning calculations...", 3000);
+    allResults.clear();
+
+    QList<QStringList> mStoredValues;
+    QStringList mStoredValueHolder;
+
+    QList<double> tempDataPrices;
+    QList<double> tempDataConsumption;
+
+    QList<FittingData> mStoredNewValues;
+    FittingData *mData;
+
+    bool xStart = false;
+    bool yStart = false;
+
+    double localMax = -std::numeric_limits<double>::max(),
+           localMin = std::numeric_limits<double>::max();
+
+    for (int i = 0; i < nSeries; i++)
+    {
+        xStart = false;
+        yStart = false;
+
+        localMax = -std::numeric_limits<double>::max(),
+        localMin = std::numeric_limits<double>::max();
+
+        valuePoints.clear();
+        pricePointsTemp.clear();
+
+        areValuePointsValid(valuePoints,
+                            pricePointsTemp,
+                            pricePoints,
+                            isRowData,
+                            calculationSettings->topConsumption,
+                            calculationSettings->leftConsumption,
+                            calculationSettings->bottomConsumption,
+                            calculationSettings->rightConsumption, i);
+
+        tempDataPrices.clear();
+        tempDataConsumption.clear();
+
+        mXString = "[";
+        mYString = "[";
+
+        // Return if doesn't match
+        if (pricePointsTemp.length() != valuePoints.length())
+        {
+            return;
+        }
+
+        for (int i=0; i<pricePointsTemp.length() && i<valuePoints.length(); i++)
+        {
+            // Pass on zero consumptions?
+            if ((calculationSettings->settingsZeroConsumption == Behavior::Drop && valuePoints[i].toDouble() <= 0) ||
+                (calculationSettings->settingsModel == DemandModel::Exponential && valuePoints[i].toDouble() <= 0))
+            {
+                continue;
+            }
+
+            // Pass on Q0?
+            if (calculationSettings->settingsQ0 == Behavior::Drop && pricePointsTemp[i].toDouble() <= 0)
+            {
+                continue;
+            }
+
+            if (!xStart)
+            {
+                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() >= 0)
+                {
+                    mXString.append("[" + QString::number(calculationSettings->customQ0replacement) + "]");
+
+                    tempDataPrices.append(calculationSettings->customQ0replacement);
+                }
+                else
+                {
+                    mXString.append("[" + pricePointsTemp[i] + "]");
+
+                    tempDataPrices.append(pricePointsTemp[i].toDouble());
+                }
+
+                xStart = true;
+            }
+            else
+            {
+                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() >= 0)
+                {
+                    mXString.append(",[" + QString::number(calculationSettings->customQ0replacement) + "]");
+
+                    tempDataPrices.append(calculationSettings->customQ0replacement);
+                }
+                else
+                {
+                    mXString.append(",[" + pricePointsTemp[i] + "]");
+
+                    tempDataPrices.append(pricePointsTemp[i].toDouble());
+                }
+            }
+
+            if (!yStart)
+            {
+                if (calculationSettings->settingsZeroConsumption == Behavior::Modify && valuePoints[i].toDouble() <= 0)
+                {
+                    mYString.append(QString::number(calculationSettings->customZeroConsumptionReplacement));
+
+                    tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
+                }
+                else
+                {
+                    mYString.append(valuePoints[i]);
+
+                    tempDataConsumption.append(valuePoints[i].toDouble());
+                }
+
+                yStart = true;
+            }
+            else
+            {
+                if (calculationSettings->settingsZeroConsumption == Behavior::Modify && valuePoints[i].toDouble() <= 0)
+                {
+                    mYString.append("," + QString::number(calculationSettings->customZeroConsumptionReplacement));
+
+                    tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
+                }
+                else
+                {
+                    mYString.append("," + valuePoints[i]);
+
+                    tempDataConsumption.append(valuePoints[i].toDouble());
+                }
+            }
+
+            if (valuePoints[i].toDouble() > 0 && valuePoints[i].toDouble() > localMax)
+            {
+                localMax = valuePoints[i].toDouble();
+            }
+
+            if (valuePoints[i].toDouble() > 0 && valuePoints[i].toDouble() < localMin)
+            {
+                localMin = valuePoints[i].toDouble();
+            }
+
+        }
+
+        mXString.append("]");
+        mYString.append("]");
+
+        mStoredValueHolder.clear();
+        mStoredValueHolder << mXString << mYString << pricePointsTemp.join(",") << valuePoints.join(",");
+
+        mStoredValues << mStoredValueHolder;
+
+        mStoredNewValues.append(FittingData(mXString, mYString,
+                                            tempDataPrices, tempDataConsumption,
+                                            localMin, localMax));
+    }
+
+    workerThread = new QThread();
+
+    worker = new CalculationWorker(mStoredNewValues, calculationSettings);
+
+    worker->moveToThread(workerThread);
+
+    connect(worker, SIGNAL(workStarted()), workerThread, SLOT(start()));
+    connect(workerThread, SIGNAL(started()), worker, SLOT(working()));
+    connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
+    connect(worker, SIGNAL(workFinished()), workerThread, SLOT(quit()), Qt::DirectConnection);
+    connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
+
+    resultsDialog = new ResultsDialog(this);
+    allResults.clear();
+
+    workerThread->wait();
+    worker->startWork();
+
+}
+
+void SheetWidget::WorkUpdate(QStringList results)
+{
+    allResults.append(results);
+    statusBar()->showMessage(QString("Series #%1 Computed").arg(allResults.count()), 3000);
+}
+
+void SheetWidget::WorkFinished()
+{
+    qDebug() << "completed" << endl;
+
+    statusBar()->showMessage("Calculations Complete.", 3000);
+
+    if (demandWindowDialog->isVisible())
+    {
+        demandWindowDialog->ToggleButton(true);
+        demandWindowDialog->setEnabled(true);
+
+        resultsDialog->setResultsType(calculationSettings->settingsModel);
+        resultsDialog->setResults(allResults);
+        resultsDialog->show();
+    }
+
+
+    /*
+    if (displayFigures)
+    {
+        statusBar()->showMessage("Drawing figures...", 3000);
+
+        if (discountingED50Dialog->isVisible())
+        {
+            graphicsWindow = new ChartWindow(allResults, tripLogNormal, calculationSettings->chartOption, this);
+        }
+
+        graphicsWindow->show();
+    }
+
+    if (discountingED50Dialog->isVisible())
+    {
+        discountingED50Dialog->ToggleButton(true);
+        discountingED50Dialog->setEnabled(true);
+
+        resultsDialog->ImportDataAndShow(calculationSettings->cbArea);
+    }
+    */
+}
+
+/*
+
 void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                             int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                             int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
                             bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0, bool showCharts, bool showChartsStandarized)
 {
-    /**
-     * @brief isRowData
-     * Check if is row-based data
-     */
     bool isRowData = (rightPrice - leftPrice == 0) ? false : true;
     int nSeries = (isRowData) ? bottomConsumption - topConsumption + 1 : nSeries = rightConsumption - leftConsumption + 1;
 
@@ -1294,9 +1666,9 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     else if (kString == "share")
     {
         getGlobalMinAndMax(globalMin, globalMax, isRowData, topConsumption, leftConsumption, bottomConsumption, rightConsumption);
-        getDataPointsGlobal(globalFitK, globalMax, isRowData, model,
-                            topPrice, leftPrice, bottomPrice, rightPrice,
-                            topConsumption, leftConsumption, bottomConsumption, rightConsumption);
+        //getDataPointsGlobal(globalFitK, globalMax, isRowData, model,
+        //                    topPrice, leftPrice, bottomPrice, rightPrice,
+        //                    topConsumption, leftConsumption, bottomConsumption, rightConsumption);
 
     }
 
@@ -1371,31 +1743,12 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
 
                     mYString.append(replnum);
 
-                    /*
-                    if (model == "linear")
-                    {
-                        mYLogString.append(QString::number(log(temp)));
-                    }
-                    else
-                    {
-                        mYLogString.append(QString::number(log10(temp)));
-                    }
-                    */
                 }
                 else
                 {
                     mYString.append(valuePoints[i]);
 
-                    /*
-                    if (model == "linear")
-                    {
-                        mYLogString.append(QString::number(log(temp)));
-                    }
-                    else
-                    {
-                        mYLogString.append(QString::number(log10(temp)));
-                    }
-                    */
+
                 }
 
                 if (temp > 0 && temp < localMin)
@@ -1433,46 +1786,6 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
                     temp = replnum.toDouble();
 
                     mYString.append("," + replnum);
-
-                    /*
-                    if (model == "linear")
-                    {
-                        mYLogString.append("," + QString::number(log(temp)));
-                    }
-                    else
-                    {
-                        mYLogString.append("," + QString::number(log10(temp)));
-                    }
-                    */
-                }
-                else
-                {
-                    mYString.append("," + valuePoints[i]);
-
-                    /*
-                    if (model == "linear")
-                    {
-                        mYLogString.append("," + QString::number(log(temp)));
-                    }
-                    else
-                    {
-                        mYLogString.append("," + QString::number(log10(temp)));
-                    }
-                    */
-                }
-
-                if (temp > 0 && temp < localMin)
-                {
-                    localMin = temp;
-                }
-
-                if (temp > 0 && temp > localMax)
-                {
-                    localMax = temp;
-                }
-
-                arraySize++;
-            }
         }
 
         mObj->likelyQ0 = localMax;
@@ -1787,157 +2100,9 @@ void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
     }
 }
 
-double SheetWidget::getPbar(QStringList &xValues)
-{
-    QSet<QString> mPrices = QSet<QString>::fromList(xValues);
 
-    double sum = 0;
 
-    for (int i = 0; i < mPrices.count(); i++)
-    {
-        sum = sum + mPrices.values().at(i).toDouble();
-    }
-
-    return sum / (double) mPrices.count();
-}
-
-QString SheetWidget::getKMessage(QString call)
-{
-    if (call == "ind")
-    {
-        return QString("Individual Log Range");
-    }
-    else if (call == "range")
-    {
-        return QString("Overall Group Log Range");
-    }
-    else if (call == "fit")
-    {
-        return QString("Individually Fitted");
-    }
-    else if (call == "share")
-    {
-        return QString("Overall Group Fitted");
-    }
-    else
-    {
-        return QString("NA");
-    }
-}
-
-QString SheetWidget::getCodeString(ae_int_t code)
-{
-    switch ((int) code) {
-        case -7:
-            return QString("Error: gradient verification failed");
-            break;
-
-        case 2:
-            return QString("Success: relative step is no more than EpsX");
-            break;
-
-        case 5:
-            return QString("Note: MaxIts steps was taken");
-            break;
-
-        case 7:
-            return QString("Error: stopping conditions are too stringent, further improvement is impossible");
-            break;
-
-        default:
-            return QString("NA");
-            break;
-    }
-}
-
-QString SheetWidget::getPmaxEString(QStringList &yValues, QStringList &xValues)
-{
-    double maxExpendNumber = minrealnumber;
-    double maxPrice = 0.0;
-
-    for (int i = 0; i < yValues.length(); i++)
-    {
-        if ((xValues[i].toDouble() * yValues[i].toDouble()) >= maxExpendNumber)
-        {
-            maxExpendNumber = (xValues[i].toDouble() * yValues[i].toDouble());
-
-            maxPrice = xValues[i].toDouble();
-        }
-    }
-
-    return QString::number(maxPrice);
-}
-
-QString SheetWidget::getOmaxEString(QStringList &yValues, QStringList &xValues)
-{
-    double maxExpendNumber = minrealnumber;
-
-    for (int i = 0; i < yValues.length(); i++)
-    {
-        if ((xValues[i].toDouble() * yValues[i].toDouble()) >= maxExpendNumber)
-        {
-            maxExpendNumber = (xValues[i].toDouble() * yValues[i].toDouble());
-        }
-    }
-
-    return QString::number(maxExpendNumber);
-}
-
-QString SheetWidget::getIntensityString(QStringList &yValues, QStringList &xValues)
-{
-    double minNonZeroPrice = maxrealnumber;
-
-    QString consString = "NA";
-
-    for (int i = 0; i < yValues.length(); i++)
-    {
-        if (xValues[i].toDouble() < minNonZeroPrice)
-        {
-            minNonZeroPrice = xValues[i].toDouble();
-            consString = yValues[i];
-        }
-    }
-
-    return consString;
-}
-
-QString SheetWidget::getBP0String(QStringList &yValues, QStringList &xValues)
-{
-    double maxNonZeroPrice = minrealnumber;
-
-    QString priceString = "NA";
-
-    for (int i = 0; i < yValues.length(); i++)
-    {
-        if (yValues[i].toDouble() <= 0 && xValues[i].toDouble() > maxNonZeroPrice)
-        {
-            maxNonZeroPrice = xValues[i].toDouble();
-
-            priceString = QString::number(maxNonZeroPrice);
-        }
-    }
-
-    return priceString;
-}
-
-QString SheetWidget::getBP1String(QStringList &yValues, QStringList &xValues)
-{
-    double maxNonZeroPrice = minrealnumber;
-
-    QString priceString = "NA";
-
-    for (int i = 0; i < yValues.length(); i++)
-    {
-        if (yValues[i].toDouble() > 0 && xValues[i].toDouble() > maxNonZeroPrice)
-        {
-            maxNonZeroPrice = xValues[i].toDouble();
-
-            priceString = QString::number(maxNonZeroPrice);
-        }
-    }
-
-    return priceString;
-}
+*/
 
 bool SheetWidget::arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
 {
@@ -2127,7 +2292,7 @@ void SheetWidget::getGlobalMinAndMax(double &globalMin, double &globalMax, bool 
     }
 }
 
-void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, QString mModel,
+void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, DemandModel mModel,
                                       int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                                       int topValue, int leftValue, int bottomValue, int rightValue)
 {
@@ -2157,7 +2322,8 @@ void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool is
                     holder2 = table->item(topPrice, c)->data(Qt::DisplayRole).toString();
                     valHolder2 = holder2.toDouble(&valueCheck2);
 
-                    if (mModel == "hs")
+                    // TODO check here, should linear be in as well?
+                    if (mModel == DemandModel::Exponential)
                     {
                         // Drop consumption values of zero
                         if (valHolder1 <= 0)
@@ -2197,7 +2363,7 @@ void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool is
                     holder2 = table->item(c, leftPrice)->data(Qt::DisplayRole).toString();
                     valHolder2 = holder2.toDouble(&valueCheck2);
 
-                    if (mModel == "hs")
+                    if (mModel == DemandModel::Exponential)
                     {
                         // Drop consumption values of zero
                         if (valHolder1 <= 0)
@@ -2249,7 +2415,7 @@ void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool is
     x.append("]");
     y.append("]");
 
-    if (mModel == "hs")
+    if (mModel == DemandModel::Exponential)
     {
         mObj->SetX(x.toUtf8().constData());
         mObj->SetY(y.toUtf8().constData());
@@ -2263,7 +2429,7 @@ void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool is
 
         returnK = mObj->GetParams()[0];
     }
-    else if (mModel == "koff")
+    else if (mModel == DemandModel::Exponential)
     {
         mObj->SetX(x.toUtf8().constData());
         mObj->SetY(y.toUtf8().constData());

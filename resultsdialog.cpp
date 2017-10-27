@@ -160,19 +160,19 @@ QStringList ResultsDialog::getExponentiatedKeys()
     return mReturnKeys;
 }
 
-void ResultsDialog::setResultsType(QString mModel)
+void ResultsDialog::setResultsType(DemandModel mModel)
 {
     QStringList mColumns;
 
-    if (mModel == "hs")
+    if (mModel == DemandModel::Exponential)
     {
         mColumns = getExponentialKeys();
     }
-    else if (mModel == "koff")
+    else if (mModel == DemandModel::Exponentiated)
     {
         mColumns = getExponentiatedKeys();
     }
-    else if (mModel == "linear")
+    else if (mModel == DemandModel::Linear)
     {
         mColumns = getLinearKeys();
     }

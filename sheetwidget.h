@@ -85,6 +85,8 @@
 #include "demandmodeling.h"
 #include "steincheck.h"
 
+#include "calculationworker.h"
+#include "calculationsettings.h"
 #include "chartwindow.h"
 #include "resultsdialog.h"
 #include "licensedialog.h"
@@ -105,6 +107,9 @@ public:
 
     QUndoStack *undoStack;
     QTableWidget *table;
+
+    CalculationSettings *calculationSettings;
+
 
 public slots:
     void downloadedFile(QNetworkReply *reply);
@@ -153,31 +158,26 @@ public slots:
                              bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue,
                              int i);
     void getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue);
-    void getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, QString mModel,
+    void getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, DemandModel mModel,
                              int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                              int topValue, int leftValue, int bottomValue, int rightValue);
 
+    void Calculate();
+
+    /*
     void Calculate(QString scriptName, QString model, QString kString, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
                    int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
                    bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0,
                    bool showCharts, bool showChartsStandarized);
+    */
 
     void closeEvent(QCloseEvent* event);
     void setCurrentFile(const QString &fileName);
     void updateRecentFileActions();
     void checkUpdatesAction();
 
-private slots:
-    QString getCodeString(ae_int_t code);
-    QString getKMessage(QString call);
-
-    double getPbar(QStringList &xValues);
-
-    QString getPmaxEString(QStringList &yValues, QStringList &xValues);
-    QString getOmaxEString(QStringList &yValues, QStringList &xValues);
-    QString getIntensityString(QStringList &yValues, QStringList &xValues);
-    QString getBP0String(QStringList &yValues, QStringList &xValues);
-    QString getBP1String(QStringList &yValues, QStringList &xValues);
+    void WorkUpdate(QStringList results);
+    void WorkFinished();
 
 private:
     QAction *newSheetAction;
@@ -249,6 +249,8 @@ private:
 
     bool mKcheck = false;
 
+    QThread *workerThread;
+    CalculationWorker *worker;
 
 };
 

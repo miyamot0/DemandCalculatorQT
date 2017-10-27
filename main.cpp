@@ -23,10 +23,12 @@
 
 #include <QApplication>
 #include "sheetwidget.h"
+#include "fitresult.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    qRegisterMetaType<FitResult>("FitResult");
 
     SheetWidget mNewSheet;
     mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));

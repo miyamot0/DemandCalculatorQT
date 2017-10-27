@@ -67,6 +67,8 @@ public:
     void SetStarts(const char *mString);
     void SetBounds(const char *mUpperString, const char *mLowerString);
 
+    double getExponentialSSR(double Q0, double alpha, double k);
+
     int SignificantDigits();
 
     real_1d_array GetParams();

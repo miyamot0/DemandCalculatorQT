@@ -26,6 +26,7 @@
 
 #include <QDialog>
 #include <QtWidgets>
+#include <calculationsettings.h>
 
 namespace Ui {
 class ResultsDialog;
@@ -43,7 +44,7 @@ public:
     explicit ResultsDialog(QWidget *parent = 0);
 
     void setResults(QList<QStringList> mData);
-    void setResultsType(QString mModel);
+    void setResultsType(DemandModel mModel);
     ~ResultsDialog();
 
 public slots:
