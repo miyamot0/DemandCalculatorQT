@@ -109,7 +109,7 @@ QString CalculationWorker::getCodeString(ae_int_t code)
             break;
 
         default:
-            return QString("NA");
+            return QString("Code: %1").arg((int) code);
             break;
     }
 }
@@ -238,8 +238,8 @@ void CalculationWorker::working()
         {
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
-                double lowerK = log10(0.5);
-                double upperK = log10(log10(mLocalStoredValues[i].LocalMax) + 1);
+                double lowerK = 0.5;
+                double upperK = 10;
                 double kSpan = upperK - lowerK;
                 double tempK = -1;
 
@@ -248,15 +248,15 @@ void CalculationWorker::working()
                 double upperQ = mLocalStoredValues[i].LocalMax;
                 double tempQ = -1;
 
-                double lowerA = 0.96;
-                double upperA = 1.04;
+                double lowerA = 0.99;
+                double upperA = 1.07;
                 double aSpan = upperA - lowerA;
 
                 int counter = 0;
 
                 for (int k = 0; k < 10; k++)
                 {
-                    tempK = lowerK + (kSpan * (((double) i ) / 100.0));
+                    tempK = lowerK + (kSpan * (((double) k ) / 10.0));
 
                     for (int i = 0; i < 100; i++)
                     {
@@ -268,16 +268,16 @@ void CalculationWorker::working()
                             provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
                             provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
 
-                            provisionalValues.mediumParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.mediumParamStartingValueArray[counter].p1,
-                                                                                                                   provisionalValues.mediumParamStartingValueArray[counter].p2,
-                                                                                                                   provisionalValues.mediumParamStartingValueArray[counter].p3);
+                            provisionalValues.mediumParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p3);
                             counter++;
                         }
                     }
                 }
 
-                std::sort(provisionalValues.mediumParamStartingValueArray,
-                          provisionalValues.mediumParamStartingValueArray + 100000,
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 100000,
                           &BruteSorter);
 
                 double k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
@@ -285,9 +285,9 @@ void CalculationWorker::working()
                 mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(), "[0.0001, -inf, 0.5]");
 
                 mObj->FitExponentialWithK(QString("[%1, %2, %3]")
-                                          .arg(provisionalValues.mediumParamStartingValueArray[0].p1)
-                                          .arg(provisionalValues.mediumParamStartingValueArray[0].p2)
-                                          .arg(provisionalValues.mediumParamStartingValueArray[0].p3)
+                                          .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                          .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                          .arg(provisionalValues.largeParamStartingValueArray[0].p3)
                                           .toUtf8().constData());
             }
             else
@@ -318,8 +318,8 @@ void CalculationWorker::working()
 
                 double tempQ = -1;
 
-                double lowerA = 0.96;
-                double upperA = 1.04;
+                double lowerA = 0.99;
+                double upperA = 1.07;
                 double aSpan = upperA - lowerA;
 
                 int counter = 0;
@@ -354,7 +354,7 @@ void CalculationWorker::working()
                                     .constData(), mParams);
             }
 
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5 || (int) mObj->GetInfo() == 7)
             {
                 double alpha = mObj->GetState().c[1];
                 double alphase = mObj->GetReport().errpar[1];
@@ -425,7 +425,61 @@ void CalculationWorker::working()
         {
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
+                double lowerK = 0.5;
+                double upperK = 10;
+                double kSpan = upperK - lowerK;
+                double tempK = -1;
 
+                double lowerQ = mLocalStoredValues[i].LocalMin;
+                    lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
+                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                double tempQ = -1;
+
+                double lowerA = 0.99;
+                double upperA = 1.07;
+                double aSpan = upperA - lowerA;
+
+                int counter = 0;
+
+                for (int k = 0; k < 10; k++)
+                {
+                    tempK = lowerK + (kSpan * (((double) k ) / 10.0));
+
+                    for (int i = 0; i < 100; i++)
+                    {
+                        tempQ = lowerQ + (upperQ * (((double) i ) / 100.0));
+
+                        for (int j = 0; j < 100; j++)
+                        {
+                            provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
+                            provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
+                            provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
+
+                            provisionalValues.mediumParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p3);
+                            counter++;
+                        }
+                    }
+                }
+
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 100000,
+                          &BruteSorter);
+
+                double k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
+
+                mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
+                                "[0.0001, -inf, 0.5]");
+
+                mObj->FitExponentiatedWithK(QString("[%1, %2, %3]")
+                                            .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                            .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                            .arg(provisionalValues.largeParamStartingValueArray[0].p3)
+                                            .toUtf8().constData(),
+                        provisionalValues.largeParamStartingValueArray[counter].p1,
+                        provisionalValues.largeParamStartingValueArray[counter].p2,
+                        provisionalValues.largeParamStartingValueArray[counter].p3);
             }
             else
             {
@@ -451,12 +505,12 @@ void CalculationWorker::working()
                 double lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
 
-                double upperQ = mLocalStoredValues[i].LocalMax;
+                double upperQ = upperQ = mLocalStoredValues[i].LocalMax * 1.5;
 
                 double tempQ = -1;
 
-                double lowerA = 0.96;
-                double upperA = 1.04;
+                double lowerA = 0.99;
+                double upperA = 1.07;
                 double aSpan = upperA - lowerA;
 
                 int counter = 0;
@@ -491,7 +545,7 @@ void CalculationWorker::working()
                                       .constData(), mParams);
             }
 
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5 || (int) mObj->GetInfo() == 5)
             {
                 double alpha = mObj->GetState().c[1];
                 double alphase = mObj->GetReport().errpar[1];
@@ -538,10 +592,13 @@ void CalculationWorker::working()
                             << "Exponentiated"
                             << ""
                             << ""
+                            << ""
+                            << ""
                             << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
                             << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
                             << ""
                             << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                            << ""
                             << ""
                             << ""
                             << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)

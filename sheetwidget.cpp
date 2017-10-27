@@ -2428,9 +2428,11 @@ void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool is
         QString mUpperBound("[" + QString::number(mMaxK) + ", +inf, 1]");
 
         mObj->SetBounds(mUpperBound.toUtf8().constData(), "[0.1, 0.1, -inf]");
-        mObj->FitExponentiatedWithK("[1, 10, 0.0001]");
 
-        returnK = mObj->GetParams()[0];
+        // TODO fix here
+        //mObj->FitExponentiatedWithK("[1, 10, 0.0001]");
+
+        //returnK = mObj->GetParams()[0];
     }
 }
 

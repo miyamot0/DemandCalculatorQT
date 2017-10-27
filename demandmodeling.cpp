@@ -176,7 +176,7 @@ void exponentiated_demand(const real_1d_array &c, const real_1d_array &x, double
 
 void exponentiated_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
-    func = c[1] * pow(10, (c[0] * (exp(-c[2] * c[1] * x[0]) - 1)));
+    func = c[0] * pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1)));
 }
 
 double demandmodeling::getExponentiatedSSR(double Q0, double alpha, double k)
@@ -261,7 +261,7 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(scaleAssessment + SignificantDigits());
+    QString mScaleString = QString("[1.0, 1.0e-%1]").arg(scaleAssessment + 1 + SignificantDigits());
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
@@ -272,14 +272,33 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     lsfitresults(state, info, c, rep);
 }
 
-void demandmodeling::FitExponentiatedWithK(const char *mStarts)
+void demandmodeling::FitExponentiatedWithK(const char *mStarts, double q0, double alpha, double k)
 {
     SetStarts(mStarts);
+
+    qDebug() << "Starts: " << mStarts;
 
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0, 1.0e-%1]").arg(scaleAssessment + SignificantDigits());
+    double tempA = 1;
+    double tempQ = c[0] / c[1];
+    double tempK = c[2] / c[1];
+
+    // starts are very bad
+
+    QString mScaleString = QString("[%1, %2, %3]")
+            .arg(abs((int) tempQ))
+            .arg(abs((int) tempA))
+            .arg(abs((int) tempK));
+
+    //QString mScaleString = QString("[1.0e%1, 1.0e%2, 1.0%3]")
+    //        .arg(qScale)
+    //        .arg(qScale)
+    //        .arg(aScale);
+
+    qDebug() << "ScaleString: " << mScaleString;
+
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 

@@ -86,7 +86,7 @@ public:
     void FitExponential(const char *mStarts, QList<double> mParams);
     void FitExponentialWithK(const char *mStarts);
     void FitExponentiated(const char *mStarts, QList<double> mParams);
-    void FitExponentiatedWithK(const char *mStarts);
+    void FitExponentiatedWithK(const char *mStarts, double q0, double alpha, double k);
 
     QStringList GetSteinTest(QStringList &x, QStringList &y);
 
