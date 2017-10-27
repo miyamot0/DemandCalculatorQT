@@ -1362,7 +1362,6 @@ void SheetWidget::Calculate()
     QList<double> tempDataConsumption;
 
     QList<FittingData> mStoredNewValues;
-    FittingData *mData;
 
     bool xStart = false;
     bool yStart = false;
@@ -1525,7 +1524,6 @@ void SheetWidget::Calculate()
 
     workerThread->wait();
     worker->startWork();
-
 }
 
 void SheetWidget::WorkUpdate(QStringList results)
@@ -1540,17 +1538,6 @@ void SheetWidget::WorkFinished()
 
     statusBar()->showMessage("Calculations Complete.", 3000);
 
-    if (demandWindowDialog->isVisible())
-    {
-        demandWindowDialog->ToggleButton(true);
-        demandWindowDialog->setEnabled(true);
-
-        resultsDialog->setResultsType(calculationSettings->settingsModel);
-        resultsDialog->setResults(allResults);
-        resultsDialog->show();
-    }
-
-
     /*
     if (displayFigures)
     {
@@ -1563,15 +1550,17 @@ void SheetWidget::WorkFinished()
 
         graphicsWindow->show();
     }
-
-    if (discountingED50Dialog->isVisible())
-    {
-        discountingED50Dialog->ToggleButton(true);
-        discountingED50Dialog->setEnabled(true);
-
-        resultsDialog->ImportDataAndShow(calculationSettings->cbArea);
-    }
     */
+
+    if (demandWindowDialog->isVisible())
+    {
+        demandWindowDialog->ToggleButton(true);
+        demandWindowDialog->setEnabled(true);
+
+        resultsDialog->setResultsType(calculationSettings->settingsModel);
+        resultsDialog->setResults(allResults);
+        resultsDialog->show();
+    }
 }
 
 /*

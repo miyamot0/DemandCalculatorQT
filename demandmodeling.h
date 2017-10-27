@@ -54,6 +54,8 @@
 #include <math.h>
 #include "optimization.h"
 
+#include "calculationsettings.h"
+
 using namespace alglib;
 
 class demandmodeling
@@ -61,7 +63,7 @@ class demandmodeling
 public:
     demandmodeling();
 
-    void SetModel(QString mString);
+    void SetModel(DemandModel model);
     void SetX(const char *mString);
     void SetY(const char *mString);
     void SetStarts(const char *mString);
@@ -131,7 +133,7 @@ private:
     QString bouncePass;
     QString reversalpass;
 
-    QString modelMode;
+    DemandModel modelMode;
 
     int passingMeasures = 0;
 

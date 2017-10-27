@@ -44,9 +44,9 @@
 #include "demandmodeling.h"
 
 #include <QDebug>
-void demandmodeling::SetModel(QString mString)
+void demandmodeling::SetModel(DemandModel model)
 {
-    modelMode = mString;
+    modelMode = model;
 }
 
 void demandmodeling::SetX(const char *mString)
@@ -61,14 +61,14 @@ void demandmodeling::SetY(const char *mString)
 
     likelyQ0 = getMaximumConsumption();
 
-    if (modelMode == "hs")
+    if (modelMode == DemandModel::Exponential)
     {
         for (int i=0; i<y.length(); i++)
         {
             y[i] = log10(y[i]);
         }
     }
-    else if (modelMode == "linear")
+    else if (modelMode == DemandModel::Linear)
     {
         for (int i=0; i<y.length(); i++)
         {
@@ -145,7 +145,7 @@ void exponential_demand(const real_1d_array &c, const real_1d_array &x, double &
     func = log10(c[0]) + k * (exp(-c[1] * c[0] * x[0]) - 1);
 }
 
-void exponential_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
+void exponential_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
     func = log10(c[1]) + c[0] * (exp(-c[2] * c[1] * x[0]) - 1);
 }
@@ -174,12 +174,12 @@ void exponentiated_demand(const real_1d_array &c, const real_1d_array &x, double
     func = c[0] * pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1)));
 }
 
-void exponentiated_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
+void exponentiated_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
     func = c[1] * pow(10, (c[0] * (exp(-c[2] * c[1] * x[0]) - 1)));
 }
 
-void linear_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
+void linear_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
     func = log(c[2]) + (c[1] * log(x[0])) - c[0] * x[0];
 }

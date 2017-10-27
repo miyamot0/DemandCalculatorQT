@@ -225,18 +225,16 @@ void CalculationWorker::working()
     // All series
     for (int i=0; i<mLocalStoredValues.length(); i++)
     {
-        QString model("hs");
-
         mObj->likelyQ0 = mLocalStoredValues[i].LocalMax;
-        mObj->SetModel(model);
+        mObj->SetModel(calculationSettings.settingsModel);
         mObj->SetX(mLocalStoredValues[i].Prices.toUtf8().constData());
         mObj->SetY(mLocalStoredValues[i].Consumption.toUtf8().constData());
 
-        qDebug() << mLocalStoredValues[i].Prices << " : " << mLocalStoredValues[i].Consumption << " : " << model << " min " << " max";
+        qDebug() << mLocalStoredValues[i].Prices << " : " << mLocalStoredValues[i].Consumption << " : " << " min " << " max";
 
         mTempHolder.clear();
 
-        if (model == "hs")
+        if (calculationSettings.settingsModel == DemandModel::Exponential)
         {
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
@@ -323,13 +321,6 @@ void CalculationWorker::working()
                 std::sort(provisionalValues.mediumParamStartingValueArray,
                           provisionalValues.mediumParamStartingValueArray + 10000,
                           &BruteSorter);
-
-                /*
-                qDebug() << "Q0: " << QString::number(provisionalValues.mediumParamStartingValueArray[0].p1) <<
-                            "A: " << QString::number(provisionalValues.mediumParamStartingValueArray[0].p2) <<
-                            "K: " << QString::number(provisionalValues.mediumParamStartingValueArray[0].p3) <<
-                            "err: " << QString::number(provisionalValues.mediumParamStartingValueArray[0].err);
-                */
 
                 mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
                 mObj->FitExponential(QString("[%1, %2]")
