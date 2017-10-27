@@ -147,7 +147,7 @@ void exponential_demand(const real_1d_array &c, const real_1d_array &x, double &
 
 void exponential_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
-    func = log10(c[1]) + c[0] * (exp(-c[2] * c[1] * x[0]) - 1);
+    func = log10(c[0]) + c[2] * (exp(-c[1] * c[0] * x[0]) - 1);
 }
 
 double demandmodeling::getExponentialSSR(double Q0, double alpha, double k)
@@ -178,6 +178,24 @@ void exponentiated_demand_with_k(const real_1d_array &c, const real_1d_array &x,
 {
     func = c[1] * pow(10, (c[0] * (exp(-c[2] * c[1] * x[0]) - 1)));
 }
+
+double demandmodeling::getExponentiatedSSR(double Q0, double alpha, double k)
+{
+    if (isnan(Q0) || isnan(alpha) || isnan(k))
+    {
+        return 999999999999;
+    }
+
+    double returner = 0.0;
+
+    for (int i=0; i<x.rows(); i++)
+    {
+        returner += pow((y[i] - (Q0 * pow(10, (k * (exp(-alpha * Q0 * x[i][0]) - 1))))), 2);
+    }
+
+    return returner;
+}
+
 
 void linear_demand(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
@@ -218,12 +236,14 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 {
     SetStarts(mStarts);
 
+    qDebug() << mStarts;
+
     QList<double> mParams;
 
     lsfitcreatef(x, y, c, diffstep, state);
     lsfitsetbc(state, bndl, bndu);
 
-    QString mScaleString = QString("[1.0, 1.0, 1.0e-%1]").arg(scaleAssessment + (SignificantDigits() - 3));
+    QString mScaleString = QString("[1.0, 1.0e-%1, 1.0]").arg(scaleAssessment + (SignificantDigits() - 3));
     real_1d_array s = mScaleString.toUtf8().constData();
     lsfitsetscale(state, s);
 
