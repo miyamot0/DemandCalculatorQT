@@ -72,6 +72,8 @@ public:
     double getExponentialSSR(double Q0, double alpha, double k);
     double getExponentiatedSSR(double Q0, double alpha, double k);
 
+    void TestMixedModel();
+
     int SignificantDigits();
 
     real_1d_array GetParams();
@@ -105,6 +107,8 @@ private:
 
     real_1d_array bndl;
     real_1d_array bndu;
+
+    real_1d_array trueX;
 
     ae_int_t maxits = 5000;
     ae_int_t info;
