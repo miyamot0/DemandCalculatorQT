@@ -170,6 +170,7 @@ public slots:
     void checkUpdatesAction();
 
     void WorkUpdate(QStringList results);
+    void StatusUpdate(QString msg);
     void WorkFinished();
 
 private:

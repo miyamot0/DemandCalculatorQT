@@ -1516,6 +1516,7 @@ void SheetWidget::Calculate()
     connect(worker, SIGNAL(workStarted()), workerThread, SLOT(start()));
     connect(workerThread, SIGNAL(started()), worker, SLOT(working()));
     connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
+    connect(worker, SIGNAL(statusUpdate(QString)), this, SLOT(StatusUpdate(QString)));
     connect(worker, SIGNAL(workFinished()), workerThread, SLOT(quit()), Qt::DirectConnection);
     connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
 
@@ -1530,6 +1531,11 @@ void SheetWidget::WorkUpdate(QStringList results)
 {
     allResults.append(results);
     statusBar()->showMessage(QString("Series #%1 Computed").arg(allResults.count()), 3000);
+}
+
+void SheetWidget::StatusUpdate(QString msg)
+{
+    statusBar()->showMessage(msg, 3000);
 }
 
 void SheetWidget::WorkFinished()
@@ -1846,62 +1852,6 @@ void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool is
                 }
             }
         }
-    }
-
-    QString x = "";
-    QString y = "";
-
-    x.append("[");
-    y.append("[");
-
-    qSort(mDataPoints.begin(), mDataPoints.end(), QPairFirstComparer());
-
-    for (int i = 0; i < mDataPoints.count(); i++)
-    {
-        if (i == 0)
-        {
-            x.append("[" + QString::number(mDataPoints[i].first) + "]");
-            y.append(QString::number(mDataPoints[i].second));
-        }
-        else
-        {
-            x.append(",[" + QString::number(mDataPoints[i].first) + "]");
-            y.append("," + QString::number(mDataPoints[i].second));
-        }
-    }
-
-    x.append("]");
-    y.append("]");
-
-    if (mModel == DemandModel::Exponential)
-    {
-        mObj->SetX(x.toUtf8().constData());
-        mObj->SetY(y.toUtf8().constData());
-
-        double mMaxK = log10(globalMax) + 0.5;
-
-        QString mUpperBound("[" + QString::number(mMaxK) + ", +inf, 1]");
-
-        mObj->SetBounds(mUpperBound.toUtf8().constData(), "[0.1, 0.1, -inf]");
-        mObj->FitExponentialWithK("[1, 10, 0.0001]");
-
-        returnK = mObj->GetParams()[0];
-    }
-    else if (mModel == DemandModel::Exponential)
-    {
-        mObj->SetX(x.toUtf8().constData());
-        mObj->SetY(y.toUtf8().constData());
-
-        double mMaxK = log10(globalMax) + 0.5;
-
-        QString mUpperBound("[" + QString::number(mMaxK) + ", +inf, 1]");
-
-        mObj->SetBounds(mUpperBound.toUtf8().constData(), "[0.1, 0.1, -inf]");
-
-        // TODO fix here
-        //mObj->FitExponentiatedWithK("[1, 10, 0.0001]");
-
-        //returnK = mObj->GetParams()[0];
     }
 }
 

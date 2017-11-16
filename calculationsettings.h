@@ -75,6 +75,7 @@ public:
     SystematicCheck settingsCheck;
 
     ChartingOptions settingsChart;
+
 };
 
 #endif // CALCULATIONSETTINGS_H

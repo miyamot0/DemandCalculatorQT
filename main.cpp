@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
     mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
     mNewSheet.show();
 
+    /*
     try
     {
         demandmodeling mModel;
@@ -46,7 +47,7 @@ int main(int argc, char *argv[])
     {
         qDebug() << err.msg.c_str();
     }
-
+    */
 
     return app.exec();
 }

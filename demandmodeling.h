@@ -87,6 +87,10 @@ public:
     void FitLinear(const char *mStarts);
     void FitExponential(const char *mStarts, QList<double> mParams);
     void FitExponentialWithK(const char *mStarts);
+
+    void FitSharedExponentialK(const char *mStarts, QList<real_1d_array> *arrayHolder);
+    void FitSharedExponentiatedK(const char *mStarts, QList<real_1d_array> *arrayHolder);
+
     void FitExponentiated(const char *mStarts, QList<double> mParams);
     void FitExponentiatedWithK(const char *mStarts);
 

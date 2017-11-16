@@ -33,8 +33,11 @@ public:
     QString getBP0String(QList<double> &yValues, QList<double> &xValues);
     QString getBP1String(QList<double> &yValues, QList<double> &xValues);
 
+    QList<real_1d_array> sharedHolder;
+
 signals:
     void workStarted();
+    void statusUpdate(const QString &value);
     void workingResult(const QStringList &value);
     void workFinished();
 
