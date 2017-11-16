@@ -2,6 +2,7 @@
 #define CALCULATIONWORKER_H
 
 #include <QObject>
+#include <QVector>
 
 #include "demandmodeling.h"
 #include "calculationsettings.h"
@@ -34,6 +35,58 @@ public:
     QString getBP1String(QList<double> &yValues, QList<double> &xValues);
 
     QList<real_1d_array> sharedHolder;
+
+    real_1d_array savedGlobalFits;
+
+    QVector<QVector<QString>> tempMatrix;
+
+    QList<real_1d_array> arrayHolder;
+
+    // Params
+    QList<double> mParams;
+
+    QVector<QPair<double, double>> bestParams;
+    QVector<QPair<double, double>> paramHolder;
+
+    QStringList bu,
+                bl,
+                starts,
+                xHolder,
+                yHolder,
+                xReference;
+
+    int cntr;
+    int values;
+    int counter;
+
+    double lowerK;
+    double upperK;
+    double kSpan;
+    double tempK;
+
+    double lowerQ;
+    double upperQ;
+    double qSpan;
+    double tempQ;
+
+    double lowerA;
+    double upperA;
+    double aSpan;
+
+    double holdingBestK;
+    double holdingBestSSR;
+    double holdingTempSSR;
+
+    double alpha;
+    double alphase;
+
+    double k;
+    QString kse;
+    double q0;
+    double q0se;
+    double pmaxd;
+    double omaxd;
+    double EV;
 
 signals:
     void workStarted();

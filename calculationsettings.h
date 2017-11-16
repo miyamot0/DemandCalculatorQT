@@ -58,8 +58,7 @@ public:
         rightConsumption;
 
     double globalMaxConsumption,
-           globalMinConsumption,
-           globalFitK;
+           globalMinConsumption;
 
     DemandModel settingsModel;
 

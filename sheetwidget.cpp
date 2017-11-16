@@ -1308,8 +1308,7 @@ void SheetWidget::Calculate()
 
     // Test for k settings (as needed)
     double globalMin,
-           globalMax,
-           globalFitK;
+           globalMax;
 
     if (calculationSettings->settingsK == BehaviorK::Range)
     {
@@ -1331,8 +1330,7 @@ void SheetWidget::Calculate()
                            calculationSettings->bottomConsumption,
                            calculationSettings->rightConsumption);
 
-        getDataPointsGlobal(globalFitK,
-                            globalMax,
+        getDataPointsGlobal(globalMax,
                             isRowData,
                             calculationSettings->settingsModel,
                             calculationSettings->topPrice,
@@ -1348,7 +1346,6 @@ void SheetWidget::Calculate()
 
     calculationSettings->globalMinConsumption = globalMin;
     calculationSettings->globalMaxConsumption = globalMax;
-    calculationSettings->globalFitK = globalFitK;
 
     // todo, results?
 
@@ -1756,7 +1753,7 @@ void SheetWidget::getGlobalMinAndMax(double &globalMin, double &globalMax, bool 
     }
 }
 
-void SheetWidget::getDataPointsGlobal(double &returnK, double globalMax, bool isRowData, DemandModel mModel,
+void SheetWidget::getDataPointsGlobal(double, bool isRowData, DemandModel mModel,
                                       int topPrice, int leftPrice, int, int,
                                       int topValue, int leftValue, int bottomValue, int rightValue)
 {

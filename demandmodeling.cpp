@@ -43,7 +43,6 @@
 
 #include "demandmodeling.h"
 
-#include <QDebug>
 void demandmodeling::SetModel(DemandModel model)
 {
     modelMode = model;
@@ -282,9 +281,6 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 {
     SetStarts(mStarts);
 
-    qDebug() << "Fitting Exponential model... with k as param...";
-    qDebug() << "Start values: " << mStarts;
-
     QList<double> mParams;
 
     lsfitcreatef(x, y, c, diffstep, state);
@@ -333,20 +329,19 @@ void demandmodeling::FitSharedExponentialK(const char *mStarts, QList<real_1d_ar
             .arg("1");
     */
 
-    //qDebug() << mScaleString;
-
     //real_1d_array s = mScaleString.toUtf8().constData();
     //lsfitsetscale(state, s);
 
     lsfitsetcond(state,
                  epsx,
-                 maxits);
+                 50);
 
-    alglib::lsfitfit(state, exponential_demand_with_k_shared, NULL, arrayHolder);
+    alglib::lsfitfit(state,
+                     exponential_demand_with_k_shared,
+                     NULL,
+                     arrayHolder);
 
     lsfitresults(state, info, c, rep);
-
-    qDebug() << c.tostring(5).c_str();
 }
 
 void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams)
@@ -405,7 +400,6 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts, QList<real_1d_
     lsfitsetbc(state, bndl, bndu);
 
     //scale?
-
     //double q0ave =   (c[0] + c[2] + c[4]) / 3;
     //double alphave = (c[1] + c[3] + c[5]) / 3;
 
@@ -420,126 +414,21 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts, QList<real_1d_
             .arg("1");
     */
 
-    //qDebug() << mScaleString;
-
     //real_1d_array s = mScaleString.toUtf8().constData();
     //lsfitsetscale(state, s);
 
     lsfitsetcond(state,
                  epsx,
-                 maxits);
+                 50);
 
     alglib::lsfitfit(state, exponentiated_demand_with_k_shared, NULL, arrayHolder);
 
     lsfitresults(state, info, c, rep);
-
-    qDebug() << c.tostring(5).c_str();
 }
 
+// Deprecated test method
 void demandmodeling::TestMixedModel()
 {
-    SetModel(DemandModel::Exponential);
-
-    //trueX = "[1.5,2.5,3.0,0.5,1.0,1.5,2.0,2.5,3.0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0]";
-
-    //QString tempX("[[1.5],[2.5],[3.0],[0.5],[1.0],[1.5],[2.0],[2.5],[3.0],[0.5],[1.0],[1.5],[2.0],[2.5],[3.0],[4.0],[5.0]]");
-
-    QString tempX("[[0],[1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12],[13],[14],[15],[16]]");
-    QString tempY("[3,2,2,"
-                  " 3,2,2,2,2,2,"
-                  " 1,1,1,1,1,1,1,1]");
-
-    QList<real_1d_array> holder;
-    holder.append(real_1d_array("[1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]"));
-    holder.append(real_1d_array("[0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0]"));
-    holder.append(real_1d_array("[0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1]"));
-    holder.append(real_1d_array("[1.5,2.5,3.0,"
-                                " 0.5,1.0,1.5,2.0,2.5,3.0,"
-                                " 0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0]"));
-
-    QStringList starts;
-    QStringList bl;
-    QStringList bu;
-
-    for (int i=0; i<holder.count() - 1; i++)
-    {
-        //starts << "1" << "1";
-        bl << "-inf" << "-inf";
-        bu << "+inf" << "+inf";
-    }
-
-    //starts << "1";
-
-    starts << "5" << "0.019802627" <<
-              "2.75" << "0.014184635" <<
-              "1.142857143" << "0.008534902" <<
-              "1.649598509";
-
-    bl << "0.5";
-    bu << "+inf";
-    //bu << "1.649598509";
-
-    QString tempStarts  = "[" + starts.join(',') + "]";
-    qDebug() << "Temp Starts: " << tempStarts;
-
-    SetStarts(tempStarts.toUtf8().constData());
-
-    SetX(tempX.toUtf8().constData());
-    SetY(tempY.toUtf8().constData());
-
-    QString tempUpper = QString("[" + bu.join(',') + "]");
-    qDebug() << "Temp Upper: "<< tempUpper.toUtf8().constData();
-
-    QString tempLower = QString("[" + bl.join(',') + "]");
-    qDebug() << "Temp Lower: "<< tempLower.toUtf8().constData();
-
-    lsfitcreatef(x,
-                 y,
-                 c,
-                 diffstep,
-                 state);
-
-    SetBounds(QString("[" + bu.join(',') + "]").toUtf8().constData(),
-              QString("[" + bl.join(',') + "]").toUtf8().constData());
-
-    lsfitsetbc(state, bndl, bndu);
-
-
-    //scale?
-
-    /*
-    double q0ave =   (c[0] + c[2] + c[4]) / 3;
-    double alphave = (c[1] + c[3] + c[5]) / 3;
-
-    QString mScaleString = QString("[%1, %2, %3, %4, %5, %6, %7]")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1");
-    */
-
-    //qDebug() << mScaleString;
-
-    //real_1d_array s = mScaleString.toUtf8().constData();
-    //lsfitsetscale(state, s);
-
-    //lsfitsetbc(state, bndl, bndu);
-
-    //qDebug() << "bndl: " << bndl.tostring(2).c_str();
-    //qDebug() << "bndu: " << bndu.tostring(2).c_str();
-
-    lsfitsetcond(state,
-                 epsx,
-                 maxits);
-
-    alglib::lsfitfit(state, exponential_demand_with_k_shared, NULL, &holder);
-
-    lsfitresults(state, info, c, rep);
-
-    qDebug() << c.tostring(5).c_str();
 
 }
 

@@ -10,9 +10,11 @@ Features include:
   - Full range of BE outcome metrics (empirical and derived), saveable in common spreadsheet file formats
 
 ### Version
-1.0.0.0
+1.4.0.0
 
 ### Changelog
+ * 1.4.0.0 - Update to global regression k
+ ...
  * 1.0.0.0 - alpha build
 
 ### Referenced Works (F/OSS software)

@@ -196,25 +196,10 @@ void CalculationWorker::startWork()
 
 void CalculationWorker::working()
 {
-    real_1d_array savedGlobalFits;
-
-    // Params
-    QList<double> mParams;
-
-    QStringList bu,
-                bl,
-                starts,
-                xHolder,
-                yHolder,
-                xReference;
-
-    int cntr = 0;
-
     sharedHolder.clear();
 
-    QList<QStringList> tempHolder;
-
-    int values = 0;
+    cntr = 0;
+    values = 0;
 
     for (int i=0; i<mLocalStoredValues.length(); i++)
     {
@@ -224,8 +209,12 @@ void CalculationWorker::working()
         }
     }
 
-    QVector<QVector<QString>> tempMatrix;
+    tempMatrix.clear();
     tempMatrix.reserve(mLocalStoredValues.length());
+
+    xReference.clear();
+    xHolder.clear();
+    yHolder.clear();
 
     if (calculationSettings.settingsK == BehaviorK::Share)
     {
@@ -250,7 +239,7 @@ void CalculationWorker::working()
             }
         }
 
-        QList<real_1d_array> arrayHolder;
+        arrayHolder.clear();
         for (int v = 0; v < tempMatrix.length(); v++)
         {
             arrayHolder.append(real_1d_array(QString("[%1]").arg(tempMatrix[v].toList().join(",")).toUtf8().constData()));
@@ -258,37 +247,34 @@ void CalculationWorker::working()
 
         arrayHolder.append(real_1d_array(QString("[%1]").arg(xHolder.join(',')).toUtf8().constData()));
 
-
-
-        QVector<QPair<double, double>> bestParams;
+        bestParams.clear();
         bestParams.resize(mLocalStoredValues.length());
 
-        QVector<QPair<double, double>> paramHolder;
+        paramHolder.clear();
         paramHolder.resize(mLocalStoredValues.length());
 
-        int counter = 0;
+        counter = 0;
 
         if (calculationSettings.settingsModel == DemandModel::Exponential)
         {
-            // Exponential only
-            double lowerK = 0.5;
-            double upperK = log10(calculationSettings.globalMaxConsumption) * 2;
-            double kSpan = upperK - lowerK;
-            double tempK = -1;
+            lowerK = 0.5;
+            upperK = log10(calculationSettings.globalMaxConsumption) * 2;
+            kSpan = upperK - lowerK;
+            tempK = -1;
 
-            double lowerQ = calculationSettings.globalMinConsumption;
+            lowerQ = calculationSettings.globalMinConsumption;
                 lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
-            double upperQ = calculationSettings.globalMaxConsumption * 1.5;
-            double qSpan = upperQ - lowerQ;
-            double tempQ = -1;
+            upperQ = calculationSettings.globalMaxConsumption * 1.5;
+            qSpan = upperQ - lowerQ;
+            tempQ = -1;
 
-            double lowerA = 0.99;
-            double upperA = 1.07;
-            double aSpan = upperA - lowerA;
+            lowerA = 0.99;
+            upperA = 1.07;
+            aSpan = upperA - lowerA;
 
-            double holdingBestK = lowerK,
-                   holdingBestSSR = maxrealnumber,
-                   holdingTempSSR = 0;
+            holdingBestK = lowerK;
+            holdingBestSSR = maxrealnumber;
+            holdingTempSSR = 0;
 
             for (int k = 0; k < 100; k++)
             {
@@ -367,51 +353,36 @@ void CalculationWorker::working()
 
             starts << QString::number(holdingBestK);
 
-            QString tempStarts  = "[" + starts.join(',') + "]";
-            //qDebug() << "Temp Starts: " << tempStarts;
-
             mObj->SetX(QString("[" + xReference.join(",") + "]").toUtf8().constData());
-            //qDebug() << QString("[" + xReference.join(",") + "]");
-
             mObj->SetY(QString("[" + yHolder.join(",") + "]").toUtf8().constData());
-            //qDebug() << QString("[" + yHolder.join(",") + "]");
+            mObj->SetBounds(QString("[" + bu.join(',') + "]").toUtf8().constData(), QString("[" + bl.join(',') + "]").toUtf8().constData());
 
-            QString tempUpper = QString("[" + bu.join(',') + "]");
-            //qDebug() << "Temp Upper: "<< tempUpper.toUtf8().constData();
+            emit statusUpdate(QString("Fitting K parameter globally..."));
 
-            QString tempLower = QString("[" + bl.join(',') + "]");
-            //qDebug() << "Temp Lower: "<< tempLower.toUtf8().constData();
-
-            mObj->SetBounds(tempUpper.toUtf8().constData(), tempLower.toUtf8().constData());
-
-            mObj->FitSharedExponentialK(tempStarts.toUtf8().constData(), &arrayHolder);
+            mObj->FitSharedExponentialK(QString("[" + starts.join(',') + "]").toUtf8().constData(), &arrayHolder);
 
             savedGlobalFits = mObj->GetParams();
         }
         else if (calculationSettings.settingsModel == DemandModel::Exponentiated)
         {
-            // Exponential only
-            double lowerK = 0.5;
-            double upperK = log10(calculationSettings.globalMaxConsumption) * 2;
-            double kSpan = upperK - lowerK;
-            double tempK = -1;
+            lowerK = 0.5;
+            upperK = log10(calculationSettings.globalMaxConsumption) * 2;
+            kSpan = upperK - lowerK;
+            tempK = -1;
 
-            double lowerQ = calculationSettings.globalMinConsumption;
+            lowerQ = calculationSettings.globalMinConsumption;
                 lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
+            upperQ = calculationSettings.globalMaxConsumption * 1.5;
+            qSpan = upperQ - lowerQ;
+            tempQ = -1;
 
-            double upperQ = calculationSettings.globalMaxConsumption * 1.5;
+            lowerA = 0.99;
+            upperA = 1.07;
+            aSpan = upperA - lowerA;
 
-            double qSpan = upperQ - lowerQ;
-
-            double tempQ = -1;
-
-            double lowerA = 0.99;
-            double upperA = 1.07;
-            double aSpan = upperA - lowerA;
-
-            double holdingBestK = lowerK,
-                   holdingBestSSR = maxrealnumber,
-                   holdingTempSSR = 0;
+            holdingBestK = lowerK;
+            holdingBestSSR = maxrealnumber;
+            holdingTempSSR = 0;
 
             for (int k = 0; k < 100; k++)
             {
@@ -422,8 +393,8 @@ void CalculationWorker::working()
                 for (int series = 0; series < mLocalStoredValues.length(); series++)
                 {
                     counter = 0;
-                    mObj->SetModel(DemandModel::Exponentiated);
 
+                    mObj->SetModel(DemandModel::Exponentiated);
                     mObj->SetX(mLocalStoredValues[series].Prices.toUtf8().constData());
                     mObj->SetY(mLocalStoredValues[series].Consumption.toUtf8().constData());
 
@@ -490,24 +461,13 @@ void CalculationWorker::working()
 
             starts << QString::number(holdingBestK);
 
-            QString tempStarts  = "[" + starts.join(',') + "]";
-            qDebug() << "Temp Starts: " << tempStarts;
-
             mObj->SetX(QString("[" + xReference.join(",") + "]").toUtf8().constData());
-            qDebug() << QString("[" + xReference.join(",") + "]");
-
             mObj->SetY(QString("[" + yHolder.join(",") + "]").toUtf8().constData());
-            qDebug() << QString("[" + yHolder.join(",") + "]");
+            mObj->SetBounds(QString("[" + bu.join(',') + "]").toUtf8().constData(), QString("[" + bl.join(',') + "]").toUtf8().constData());
 
-            QString tempUpper = QString("[" + bu.join(',') + "]");
-            qDebug() << "Temp Upper: "<< tempUpper.toUtf8().constData();
+            emit statusUpdate(QString("Fitting K parameter globally..."));
 
-            QString tempLower = QString("[" + bl.join(',') + "]");
-            qDebug() << "Temp Lower: "<< tempLower.toUtf8().constData();
-
-            mObj->SetBounds(tempUpper.toUtf8().constData(), tempLower.toUtf8().constData());
-
-            mObj->FitSharedExponentiatedK(tempStarts.toUtf8().constData(), &arrayHolder);
+            mObj->FitSharedExponentiatedK(QString("[" + starts.join(',') + "]").toUtf8().constData(), &arrayHolder);
 
             savedGlobalFits = mObj->GetParams();
         }
@@ -527,22 +487,22 @@ void CalculationWorker::working()
         {
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
-                double lowerK = 0.5;
-                double upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
-                double kSpan = upperK - lowerK;
-                double tempK = -1;
+                lowerK = 0.5;
+                upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
+                kSpan = upperK - lowerK;
+                tempK = -1;
 
-                double lowerQ = mLocalStoredValues[i].LocalMin;
+                lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
-                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                double qSpan = upperQ - lowerQ;
-                double tempQ = -1;
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
+                tempQ = -1;
 
-                double lowerA = 0.99;
-                double upperA = 1.07;
-                double aSpan = upperA - lowerA;
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
 
-                int counter = 0;
+                counter = 0;
 
                 for (int k = 0; k < 100; k++)
                 {
@@ -570,7 +530,7 @@ void CalculationWorker::working()
                           provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
 
-                double k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
+                k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
 
                 mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(), "[0.0001, -inf, 0.5]");
 
@@ -595,26 +555,25 @@ void CalculationWorker::working()
                 else if (calculationSettings.settingsK == BehaviorK::Share)
                 {
                     mParams << savedGlobalFits[savedGlobalFits.length() - 1];
-                    //mParams << calculationSettings.globalFitK;
                 }
                 else if (calculationSettings.settingsK == BehaviorK::Custom)
                 {
                     mParams << calculationSettings.customK;
                 }
 
-                double lowerQ = mLocalStoredValues[i].LocalMin;
+                lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
 
-                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                double qSpan = upperQ - lowerQ;
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
 
-                double tempQ = -1;
+                tempQ = -1;
 
-                double lowerA = 0.99;
-                double upperA = 1.07;
-                double aSpan = upperA - lowerA;
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
 
-                int counter = 0;
+                counter = 0;
 
                 for (int i = 0; i < 1000; i++)
                 {
@@ -648,19 +607,19 @@ void CalculationWorker::working()
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
-                double alpha = mObj->GetState().c[1];
-                double alphase = mObj->GetReport().errpar[1];
+                alpha = mObj->GetState().c[1];
+                alphase = mObj->GetReport().errpar[1];
 
-                double k = (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0);
-                QString kse = (calculationSettings.settingsK == BehaviorK::Fit) ? QString::number(mObj->GetReport().errpar[2]) : "---";
+                k = (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0);
+                kse = (calculationSettings.settingsK == BehaviorK::Fit) ? QString::number(mObj->GetReport().errpar[2]) : "---";
 
-                double q0 = mObj->GetState().c[0];
-                double q0se = mObj->GetReport().errpar[0];
+                q0 = mObj->GetState().c[0];
+                q0se = mObj->GetReport().errpar[0];
 
-                double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                double omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
+                pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
+                omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
 
-                double EV = 1/(alpha * pow(k, 1.5) * 100);
+                EV = 1/(alpha * pow(k, 1.5) * 100);
 
                 mTempHolder.clear();
                 mTempHolder << QString::number(i + 1)
@@ -717,22 +676,22 @@ void CalculationWorker::working()
         {
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
-                double lowerK = 0.5;
-                double upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
-                double kSpan = upperK - lowerK;
-                double tempK = -1;
+                lowerK = 0.5;
+                upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
+                kSpan = upperK - lowerK;
+                tempK = -1;
 
-                double lowerQ = mLocalStoredValues[i].LocalMin;
+                lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
-                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                double qSpan = upperQ - lowerQ;
-                double tempQ = -1;
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
+                tempQ = -1;
 
-                double lowerA = 0.99;
-                double upperA = 1.07;
-                double aSpan = upperA - lowerA;
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
 
-                int counter = 0;
+                counter = 0;
 
                 for (int k = 0; k < 100; k++)
                 {
@@ -763,7 +722,7 @@ void CalculationWorker::working()
                 provisionalValues.largeParamStartingValueArray[0].p2 = (provisionalValues.largeParamStartingValueArray[0].p2 == 0) ? 0.000000001 :
                                                                                                                                      provisionalValues.largeParamStartingValueArray[0].p2;
 
-                double k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
+                k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
 
                 mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
                                 "[0.0001, -inf, 0.5]");
@@ -796,19 +755,19 @@ void CalculationWorker::working()
                     mParams << calculationSettings.customK;
                 }
 
-                double lowerQ = mLocalStoredValues[i].LocalMin;
+                lowerQ = mLocalStoredValues[i].LocalMin;
                     lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
 
-                double upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                double qSpan = upperQ - lowerQ;
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
 
-                double tempQ = -1;
+                tempQ = -1;
 
-                double lowerA = 0.99;
-                double upperA = 1.07;
-                double aSpan = upperA - lowerA;
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
 
-                int counter = 0;
+                counter = 0;
 
                 for (int i = 0; i < 1000; i++)
                 {
@@ -845,17 +804,17 @@ void CalculationWorker::working()
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
-                double alpha = mObj->GetState().c[1];
-                double alphase = mObj->GetReport().errpar[1];
-                double k = (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0);
-                QString kse = (calculationSettings.settingsK == BehaviorK::Fit) ? QString::number(mObj->GetReport().errpar[2]) : "---";
+                alpha = mObj->GetState().c[1];
+                alphase = mObj->GetReport().errpar[1];
+                k = (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0);
+                kse = (calculationSettings.settingsK == BehaviorK::Fit) ? QString::number(mObj->GetReport().errpar[2]) : "---";
 
-                double q0 = mObj->GetState().c[0];
-                double q0se = mObj->GetReport().errpar[0];
-                double pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                double omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
+                q0 = mObj->GetState().c[0];
+                q0se = mObj->GetReport().errpar[0];
+                pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
+                omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
 
-                double EV = 1/(alpha * pow(k, 1.5) * 100);
+                EV = 1/(alpha * pow(k, 1.5) * 100);
 
                 mTempHolder.clear();
                 mTempHolder << QString::number(i + 1)
