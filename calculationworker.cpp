@@ -507,14 +507,11 @@ void CalculationWorker::working()
     // All series
     for (int i=0; i<mLocalStoredValues.length(); i++)
     {
-        if (mLocalStoredValues[i].PriceValues.length() < 3)
+        if (calculationSettings.settingsModel != DemandModel::Linear && mLocalStoredValues[i].PriceValues.length() < 3)
         {
-            QString mModelTag = (calculationSettings.settingsModel == DemandModel::Exponential) ? "Exponential" :
-                                (calculationSettings.settingsModel == DemandModel::Exponentiated) ? "Exponentiated" : "Linear";
-
             mTempHolder.clear();
             mTempHolder << QString::number(i + 1)
-                << mModelTag
+                << ((calculationSettings.settingsModel == DemandModel::Exponential) ? "Exponential" :"Exponentiated")
                 << "---"
                 << "---"
                 << "---"
@@ -536,6 +533,35 @@ void CalculationWorker::working()
                 << getKMessage(calculationSettings.settingsK)
                 << mLocalStoredValues[i].Prices
                 << mLocalStoredValues[i].Consumption;
+
+            emit workingResult(mTempHolder);
+
+            continue;
+        }
+        else if (calculationSettings.settingsModel == DemandModel::Linear && mLocalStoredValues[i].PriceValues.length() < 3)
+        {
+            mTempHolder.clear();
+            mTempHolder << QString::number(i + 1)
+                        << "Linear"
+                        << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                        << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                        << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                        << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                        << "---"
+                        << "---"
+                        << "---"
+                        << "---"
+                        << "---"
+                        << "---"
+                        << "---"
+                        << "---"
+                        << "---"
+                        << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
+                        << "---"
+                        << "---"
+                        << "---"
+                        << mLocalStoredValues[i].Prices
+                        << mLocalStoredValues[i].Consumption;
 
             emit workingResult(mTempHolder);
 
