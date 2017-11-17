@@ -1377,11 +1377,20 @@ void SheetWidget::Calculate()
         for (int i=0; i<pricePointsTemp.length() && i<valuePoints.length(); i++)
         {
             // Pass on zero consumptions?
-            if ((calculationSettings->settingsZeroConsumption == Behavior::Drop && valuePoints[i].toDouble() <= 0) ||
-                (calculationSettings->settingsModel == DemandModel::Exponential && valuePoints[i].toDouble() <= 0))
+            if (calculationSettings->settingsZeroConsumption == Behavior::Drop && valuePoints[i].toDouble() <= 0)
             {
+                qDebug() << "Skipped Series: " << i;
+
                 continue;
             }
+
+            //If Exponential or Linear
+            //if ((calculationSettings->settingsModel == DemandModel::Exponential && valuePoints[i].toDouble() <= 0) ||
+            //    (calculationSettings->settingsModel == DemandModel::Linear && valuePoints[i].toDouble() <= 0))
+            //{
+
+            //    return;
+            //}
 
             // Pass on Q0?
             if ((calculationSettings->settingsQ0 == Behavior::Drop && pricePointsTemp[i].toDouble() <= 0) ||

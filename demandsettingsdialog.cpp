@@ -164,22 +164,34 @@ void DemandSettingsDialog::on_pushButton_clicked()
 
     if (temp->calculationSettings->settingsQ0 == Behavior::Modify)
     {
-        QString replnum = getReplaceZeroConsumptionString();
-        bool isValidNumber = false;
-
-        replnum.toDouble(&isValidNumber);
-
-        if (isValidNumber)
+        if (ui->breakpointModifyValueHundredth->isChecked())
         {
-            temp->calculationSettings->customQ0replacement = replnum.toDouble(&isValidNumber);
+            temp->calculationSettings->customQ0replacement = 0.01;
         }
-        else
+        else if (ui->breakpointModifyValueTenth->isChecked())
         {
-            QMessageBox messageBox;
-            messageBox.critical(this, "Error", "Your custom supplied Y replacement is not valid.");
-            messageBox.show();
+            temp->calculationSettings->customQ0replacement = 0.1;
+        }
+        else if (ui->breakpointModifyValueCustom->isChecked())
+        {
+            QString replnum = getReplaceZeroConsumptionString();
 
-            return;
+            bool isValidNumber = false;
+
+            replnum.toDouble(&isValidNumber);
+
+            if (isValidNumber)
+            {
+                temp->calculationSettings->customQ0replacement = replnum.toDouble(&isValidNumber);
+            }
+            else
+            {
+                QMessageBox messageBox;
+                messageBox.critical(this, "Error", "Your custom supplied Y replacement is not valid.");
+                messageBox.show();
+
+                return;
+            }
         }
     }
 
@@ -260,11 +272,11 @@ BehaviorK DemandSettingsDialog::getBehaviorK()
 
 Behavior DemandSettingsDialog::getBehaviorZeroConsumption()
 {
-    if (ui->q0DropValue->isChecked())
+    if (ui->breakpointDropValue->isChecked())
     {
         return Behavior::Drop;
     }
-    else if (ui->q0KeepValue->isChecked())
+    else if (ui->breakpointKeepValue->isChecked())
     {
         return Behavior::Keep;
     }
