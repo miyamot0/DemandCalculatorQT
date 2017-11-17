@@ -10,33 +10,28 @@ Features include:
   - Full range of BE outcome metrics (empirical and derived), saveable in common spreadsheet file formats
 
 ### Version
-1.0.0.0
+1.4.0.0
 
 ### Changelog
+ * 1.4.0.0 - Update to global regression k
+ ...
  * 1.0.0.0 - alpha build
 
 ### Referenced Works (F/OSS software)
 The Small N Stats Demand Calculator uses a number of open source projects to work properly:
-* R Statistical Package - GPLv2+ (GPL 3.0 Licensed). Copyright (C) 2000-17. The R Core Team [Site](https://www.r-project.org/)
+* ALGLIB (3.11.0) - GPLv3 Licensed. Copyright 1994-2017 ALGLIB Project. [Site](http://www.alglib.net/)
 * Qt Framework (5.8) - LGPL 3.0 (GPL 3.0 Licensed). Copyright (C). Qt Team [Site](https://www.qt.io/)
 * Qt Examples (Spreadsheet, Recent Files) - BSD-3 Clause. Copyright (C). Qt Team [Site](https://www.qt.io/)
-* Gnome icons - GPLv3 Licensed. Copyright (C) "GNOME Project" [Site](http://www.gnome.org)
+* Tango icon set - Public Domain Licensed. Copyright (C) 2009, "Tango Desktop Project" [Site](http://tango.freedesktop.org/Tango_Desktop_Project)
 
 ### Referenced Works (R packages/scripts)
 * beezdemand R package - GPLv2+ Licensed. Copyright (c) 2016, Brent Kaplan [Github](https://github.com/brentkaplan/beezdemand)
-* nlmrt R Package - GPLv2+ Licensed. Copyright (C) 2016. John C. Nash
-* devtools R package - GPLv2+ Licensed. Copyright (c) 2016, Hadley Wickham, Winston Chang, R Core Team [Github](https://github.com/hadley/devtools)
-* digest R package - GPLv2+ Licensed. Copyright (c) 2016, Dirk Eddelbuettel with contributions by Antoine Lucas, Jarek Tuszynski, Henrik Bengtsson, Simon Urbanek, Mario Frasca, Bryan Lewis, Murray Stokely, Hannes Muehleisen, Duncan Murdoch, Jim Hester, Wush Wu, Qiang Kou, Thierry Onkelinx, Michel Lang and Viliam Simko [Github](https://github.com/eddelbuettel/digest)
-* nlstools R Package - GPLv2+ Licensed. Copyright(C) 2015 Florent Baty and Marie-Laure Delignette - Muller, with contributions from Sandrine Charles, Jean - Pierre Flandrois, and Christian Ritz
-* nls R Package (stats) - GPLv2+ (GPL 3.0 Licensed). Copyright (C) 1999-1999 Saikat DebRoy, Douglas M. Bates, Jose C. Pinheiro.
-* nls R Package (stats) - GPLv2+ (GPL 3.0 Licensed). Copyright (C) 2000-17. The R Core Team.
-* base64enc R Package - GPLv2+ (GPL 3.0 Licensed). Copyright (c) 2015, Simon Urbanek
-* jsonlite R Package - MIT Licensed. Copyright (c) 2017, Jeroen Ooms.
 
 ### Referenced Works (academic works)
 The Small N Stats Demand Calculator is based on the following academic works:
 * Hursh, S. R. and Silberberg, A. (2008). Economic demand and essential value. Psychological Review, 115, 186?198.
 * Koffarnus, M. N., Franck, C. T., Stein, J. and Bickel, W. K. (2015). A modified exponential behavioral economic demand model to better describe consumption data. Experimental Clinical Psychopharmacology, 23, 504-512.
+* Stein, J. S., Koffarnus, M. N., Snider, S. E., Quisenberry, A. J., & Bickel, W. K. (2015). Identification and management of nonsystematic purchase task data: toward best practice. Experimental and clinical psychopharmacology, 23(5), 377-386.
 
 ### Acknowledgements and Credits
 * Brent Kaplan, Applied Behavioral Economics Laboratory, University of Kansas (www.behavioraleconlab.com) [Github](https://github.com/brentkaplan)
@@ -45,12 +40,10 @@ The Small N Stats Demand Calculator is based on the following academic works:
 * Chris Franck, Laboratory for Interdisciplinary Statistical Analysis - Virginia Tech
 
 ### Installation
-You will need the R open-source statistical package for model fitting/charting to be performed.
-Once DemandCalculator is installed, it will perform a one-time install the necessary R packages (internet required).
-DemandCalculator is a ClickOnce application, the program will automatically update as the program is refined.
+The Demand Curve Analyzer must be installed and will automatically update as the program is refined.
 
 ### Download
-All downloads, if/when posted, will be hosted at [Small N Stats](http://www.smallnstats.com/DemandAnalysis.html).
+All downloads, if/when posted, will be hosted at [Small N Stats](http://www.smallnstats.com).
 
 ### Development
 Want to contribute? Great! Emails or PM's are welcome.

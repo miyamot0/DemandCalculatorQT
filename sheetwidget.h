@@ -72,20 +72,23 @@
 #define SHEETWIDGET_H
 
 #include <QMainWindow>
-#include <QProcess>
 #include <QWidget>
 #include <QTableWidget>
 #include <QtGui>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QDomDocument>
 
 #include "sheetselectdialog.h"
 #include "demandsettingsdialog.h"
+#include "demandmodeling.h"
+#include "steincheck.h"
 
-#include "steincheckdialog.h"
+#include "calculationworker.h"
+#include "calculationsettings.h"
+#include "chartwindow.h"
 #include "resultsdialog.h"
-#include "statusdialog.h"
-
-#include "fitworker.h"
-
 #include "licensedialog.h"
 #include "creditsdialog.h"
 #include "aboutdialog.h"
@@ -95,15 +98,21 @@ class SheetWidget : public QMainWindow
     Q_OBJECT
 
 public:
-    SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandString, QWidget *parent = 0);
+    SheetWidget(QWidget *parent = 0);
 
-    void ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData, int topPrice, int leftPrice, int bottomPrice, int rightPrice, int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption);
     void convertExcelColumn(QString &mString, int column);
 
     QList<QStringList> allResults;
     QList<QStringList> allCharts;
 
+    QUndoStack *undoStack;
+    QTableWidget *table;
+
+    CalculationSettings *calculationSettings;
+
+
 public slots:
+    void downloadedFile(QNetworkReply *reply);
 
 protected:
     void buildMenus();
@@ -127,6 +136,7 @@ public slots:
     void clearSheet();
     void showOpenFileDialog();
     void showSaveFileDialog();
+    void showSaveAsFileDialog();
 
     void showDemandWindow();
 
@@ -135,33 +145,39 @@ public slots:
 
     void showDCALicenseWindow();
     void showBeezdemandLicenseWindow();
-    void showFitDemandLicenseWindow();
+    void showALGLIBLicenseWindow();
     void showQTLicenseWindow();
-    void showGnomeLicenseWindow();
+    void showTangoLicenseWindow();
 
     bool isToolWindowShown();
 
     bool areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength);
+
+    bool arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay);
     void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints,
                              bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue,
                              int i);
+    void getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue);
+    void getDataPointsGlobal(double, bool isRowData, DemandModel mModel,
+                             int topPrice, int leftPrice, int, int,
+                             int topValue, int leftValue, int bottomValue, int rightValue);
 
-    void Calculate(QString scriptName, QString model, QString kString, int topPrice, int leftPrice, int bottomPrice, int rightPrice,
-                   int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
-                   bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0,
-                   bool showCharts);
-
-    void WorkFinished(QStringList status);
+    void Calculate();
 
     void closeEvent(QCloseEvent* event);
     void setCurrentFile(const QString &fileName);
     void updateRecentFileActions();
     void checkUpdatesAction();
 
+    void WorkUpdate(QStringList results);
+    void StatusUpdate(QString msg);
+    void WorkFinished();
+
 private:
     QAction *newSheetAction;
     QAction *openSheetAction;
     QAction *saveSheetAction;
+    QAction *saveAsSheetAction;
     QAction *updateProgramAction;
     QAction *exitSheetAction;
 
@@ -171,13 +187,16 @@ private:
     QAction *pasteInvertedAction;
     QAction *clearAction;
 
+    QAction *undoAction;
+    QAction *redoAction;
+
     QAction *openDemandWindow;
 
     QAction *openLicenseDCA;
     QAction *openLicenseBeezdemand;
-    QAction *openLicenseFitDemand;
+    QAction *openLicenseALGLIB;
     QAction *openLicenseQt;
-    QAction *openLicenseGnome;
+    QAction *openLicenseTango;
 
     QAction *openAbout;
     QAction *openFAQ;
@@ -185,59 +204,19 @@ private:
     QAction *priceAction;
     QAction *consumptionAction;
 
-    QTableWidget *table;
-
     QStringList pricePoints;
     QStringList consumptionPoints;
     QStringList idValues;
 
     SheetSelectDialog *sheetSelectDialog;
     DemandSettingsDialog *demandWindowDialog;
-    SteinCheckDialog *steinCheckDialog;
-
-    StatusDialog *statusDialog;
+    SteinCheck *steinCheckDialog;
     LicenseDialog *licenseDialog;
-
     AboutDialog *aboutDialog;
     CreditsDialog *creditsDialog;
 
+    chartwindow *chartWindow;
     ResultsDialog *resultsDialog;
-
-    QString mModel;
-    QString commandParameter;
-    QStringList mInstallCommands;
-
-    bool isCoreRPresent;
-    bool isCoreSVGSupportPresent;
-
-    bool isChecking;
-    bool isConditional;
-
-    QString mCallK;
-    QString mCallX;
-    QString mCallY;
-
-    QString mRem0;
-    QString mReplnum;
-
-    QString mRemQ0;
-    QString mReplQ0;
-
-    QString mFigureFlag;
-
-    /**
-     * @brief Thread object which will let us manipulate the running thread
-     */
-    QThread *thread;
-
-    /**
-     * @brief Object which contains methods that should be runned in another thread
-     */
-    FitWorker *worker;
-
-    QStringList mSeriesCommands;
-
-    bool displayFigures;
 
     QString settingsFile;
 
@@ -248,6 +227,24 @@ private:
     QString curFile;
 
     QAction *separatorAct;
+
+    QNetworkAccessManager *manager;
+
+    demandmodeling *mObj;
+
+    QString mXString;
+    QString mYString;
+    //QString mYLogString;
+
+    QList<QStringList> mSteinResults;
+
+    int mSeriesScoring;
+
+    bool mKcheck = false;
+
+    QThread *workerThread;
+    CalculationWorker *worker;
+
 };
 
 

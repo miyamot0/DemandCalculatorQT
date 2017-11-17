@@ -25,6 +25,7 @@
 #define DEMANDSETTINGSDIALOG_H
 
 #include <QDialog>
+#include "calculationsettings.h"
 
 namespace Ui {
 class DemandSettingsDialog;
@@ -38,6 +39,17 @@ public:
     explicit DemandSettingsDialog(QWidget *parent = 0);
     ~DemandSettingsDialog();
 
+    DemandModel getModel();
+
+    BehaviorK getBehaviorK();
+
+    Behavior getBehaviorQ0();
+    Behavior getBehaviorZeroConsumption();
+
+    SystematicCheck getSystematicCheck();
+
+    ChartingOptions getCharting();
+
 public slots:
     void UpdatePrices(QString label, int top, int left, int bottom, int right);
     void UpdateConsumption(QString label, int top, int left, int bottom, int right);
@@ -45,13 +57,7 @@ public slots:
     void WindowStateActive(bool status);
 
 private slots:
-    QString getModelString();
-    QString getKString();
-
-    QString getRemQZeroString();
     QString getReplaceQ0String();
-
-    QString getRemZeroString();
     QString getReplaceZeroConsumptionString();
 
     void on_modelingLinear_toggled(bool checked);

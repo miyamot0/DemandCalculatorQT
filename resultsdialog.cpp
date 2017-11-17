@@ -28,9 +28,8 @@
 
 #include "resultsdialog.h"
 #include "ui_resultsdialog.h"
-#include "sheetwidget.h"
 
-ResultsDialog::ResultsDialog(QWidget *parent, QString jsonString) :
+ResultsDialog::ResultsDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::ResultsDialog)
 {
@@ -45,97 +44,57 @@ ResultsDialog::ResultsDialog(QWidget *parent, QString jsonString) :
         )
     );
 
-    graphicalOutputDialog = new GraphicalOutputDialog(this);
-
     copyAction = new QAction("Copy", this);
     copyAction->setShortcut(QKeySequence("Ctrl+C"));
     copyAction->setIcon(QIcon(":/images/edit-copy.png"));
     connect(copyAction, &QAction::triggered, this, &ResultsDialog::copy);
 
     addAction(copyAction);
+}
 
-    jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8(), &err);
-    jsonArr = jsonDoc.array();
-
-    QStringList keyList;
-
-    for (int i=0; i < jsonArr.count(); i++)
+void ResultsDialog::setResults(QList<QStringList> mData)
+{
+    for(int i=0; i<mData.count(); i++)
     {
-        jsonVal = jsonArr.at(i);
-        jsonObj = jsonVal.toObject();
-
-        if (jsonObj["figure"].toString().contains("SKIP", Qt::CaseInsensitive))
-        {
-            skipFlag = true;
-        }
-
-        if (!skipFlag)
-        {
-            graphicalOutputDialog->appendBase64(jsonObj["figure"].toString());
-        }
-
-        if (i == 0)
-        {
-            if (jsonObj["Equation"].toString().contains("hs"))
-            {
-                keyList = getExponentialKeys();
-            }
-            else if (jsonObj["Equation"].toString().contains("koff"))
-            {
-                keyList = getExponentiatedKeys();
-            }
-            else
-            {
-                keyList = getLinearKeys();
-            }
-        }
-
-        if (i == 0)
-        {
-            ui->tableWidget->clearContents();
-
-            for (int j=0; j<keyList.length(); j++)
-            {
-                ui->tableWidget->insertColumn(ui->tableWidget->columnCount());
-                ui->tableWidget->setHorizontalHeaderItem(ui->tableWidget->columnCount() - 1, new QTableWidgetItem(keyList.at(j)));
-            }
-        }
-
         ui->tableWidget->insertRow(ui->tableWidget->rowCount());
 
-        for (int j=0; j<keyList.length(); j++)
+        QStringList mList = mData.at(i);
+
+        for(int j=0; j<mList.count(); j++)
         {
-            QString label = "";
-
-            QJsonValueRef mObj = jsonObj[keyList.at(j)];
-
-            if (mObj.isDouble())
-            {
-                label = QString::number(mObj.toDouble());
-            }
-            else if (mObj.isString())
-            {
-                label = mObj.toString();
-            }
-
-            QTableWidgetItem *item = new QTableWidgetItem(label);
+            QTableWidgetItem *item = new QTableWidgetItem(mList.at(j));
             item->setFlags(item->flags() ^ Qt::ItemIsEditable);
             ui->tableWidget->setItem(ui->tableWidget->rowCount() - 1, j, item);
         }
     }
 
-    if (!skipFlag)
-    {
-        graphicalOutputDialog->show();
-    }
+    ui->tableWidget->viewport()->update();
 }
 
 QStringList ResultsDialog::getLinearKeys()
 {
     QStringList mReturnKeys;
-    mReturnKeys << "ID" << "Equation"
-                << "BP1" << "Intensity"
-                << "Omaxe" << "Pmaxe";
+    mReturnKeys << "ID"
+                << "Equation"
+                << "BP0"
+                << "BP1"
+                << "Omaxe"
+                << "Pmaxe"
+                << "L"
+                << "Lse"
+                << "b"
+                << "bse"
+                << "a"
+                << "ase"
+                << "R2"
+                << "Elasticity"
+                << "MeanElasticity"
+                << "Intensity"
+                << "Omaxd"
+                << "Pmaxd"
+                << "Notes"
+                << "Prices"
+                << "Consumption";
 
     return mReturnKeys;
 }
@@ -143,12 +102,29 @@ QStringList ResultsDialog::getLinearKeys()
 QStringList ResultsDialog::getExponentialKeys()
 {
     QStringList mReturnKeys;
-    mReturnKeys << "ID" << "Equation"
-                << "Alpha" << "AlphaHigh" << "AlphaLow" << "Alphase"
-                << "Q0d" << "Q0High" << "Q0Low" << "Q0se"
-                << "BP1" << "EV" << "Intensity" << "K"
-                << "Omaxd" << "Omaxe" << "Pmaxd" << "Pmaxe"
-                << "AbsSS"  << "R2" << "SdRes" << "N" << "Notes" ;
+    mReturnKeys << "ID"
+                << "Equation"
+                << "Alpha"
+                << "Alphase"
+                << "Q0d"
+                << "Q0dse"
+                << "BP1"
+                << "EV"
+                << "Intensity"
+                << "K"
+                << "Kse"
+                << "Omaxd"
+                << "Omaxe"
+                << "Pmaxd"
+                << "Pmaxe"
+                << "RMSError"
+                << "R2"
+                << "avgerror"
+                << "N"
+                << "Notes"
+                << "K Method"
+                << "Prices"
+                << "Consumption";
 
     return mReturnKeys;
 }
@@ -156,14 +132,58 @@ QStringList ResultsDialog::getExponentialKeys()
 QStringList ResultsDialog::getExponentiatedKeys()
 {
     QStringList mReturnKeys;
-    mReturnKeys << "ID" << "Equation"
-                << "Alpha" << "AlphaHigh" << "AlphaLow" << "Alphase"
-                << "Q0d" << "Q0High" << "Q0Low" << "Q0se"
-                << "BP0" << "BP1" << "EV" << "Intensity" << "K"
-                << "Omaxd" << "Omaxe" << "Pmaxd" << "Pmaxe"
-                << "AbsSS"  << "R2" << "SdRes" << "N" << "Notes" ;
+    mReturnKeys << "ID"
+                << "Equation"
+                << "Alpha"
+                << "Alphase"
+                << "Q0d"
+                << "Q0dse"
+                << "BP0"
+                << "BP1"
+                << "EV"
+                << "Intensity"
+                << "K"
+                << "Kse"
+                << "Omaxd"
+                << "Omaxe"
+                << "Pmaxd"
+                << "Pmaxe"
+                << "RMSError"
+                << "R2"
+                << "SdRes"
+                << "N"
+                << "Notes"
+                << "K Method"
+                << "Prices"
+                << "Consumption";
 
     return mReturnKeys;
+}
+
+void ResultsDialog::setResultsType(DemandModel mModel)
+{
+    QStringList mColumns;
+
+    if (mModel == DemandModel::Exponential)
+    {
+        mColumns = getExponentialKeys();
+    }
+    else if (mModel == DemandModel::Exponentiated)
+    {
+        mColumns = getExponentiatedKeys();
+    }
+    else if (mModel == DemandModel::Linear)
+    {
+        mColumns = getLinearKeys();
+    }
+
+    ui->tableWidget->clear();
+
+    for (int i = 0; i < mColumns.count(); i++)
+    {
+        ui->tableWidget->insertColumn(ui->tableWidget->columnCount());
+        ui->tableWidget->setHorizontalHeaderItem(ui->tableWidget->columnCount() - 1, new QTableWidgetItem(mColumns.at(i)));
+    }
 }
 
 ResultsDialog::~ResultsDialog()

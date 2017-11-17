@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/application-exit.png</file>
-        <file>images/applications-other.png</file>
         <file>images/document-new.png</file>
         <file>images/document-open.png</file>
         <file>images/document-save.png</file>
@@ -9,10 +7,15 @@
         <file>images/edit-copy.png</file>
         <file>images/edit-cut.png</file>
         <file>images/edit-paste.png</file>
-        <file>images/printer.png</file>
         <file>images/SNS.png</file>
-        <file>images/system-run.png</file>
-        <file>images/text-x-generic.png</file>
         <file>images/view-refresh.png</file>
+        <file>images/applications-system.png</file>
+        <file>images/document-save-as.png</file>
+        <file>images/edit-redo.png</file>
+        <file>images/format-justify-center.png</file>
+        <file>images/preferences-system.png</file>
+        <file>images/system-log-out.png</file>
+        <file>images/x-office-spreadsheet.png</file>
+        <file>images/edit-undo.png</file>
     </qresource>
 </RCC>

@@ -66,6 +66,26 @@
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
 
+   ====================================================================================
+
+   ALGLIB 3.11.0 (source code generated 2017-05-11)
+   Copyright (c) Sergey Bochkanov (ALGLIB project).
+
+   >>> SOURCE LICENSE >>>
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation (www.fsf.org); either version 2 of the
+   License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   A copy of the GNU General Public License is available at
+   http://www.fsf.org/licensing/licenses
+   >>> END OF LICENSE >>>
+
   */
 
 #include <QtWidgets>
@@ -74,18 +94,32 @@
 
 #include "sheetwidget.h"
 #include "resultsdialog.h"
-#include "statusdialog.h"
+#include "commanding.h"
+#include "sheetdelegate.h"
+#include "fittingdata.h"
 
 QTXLSX_USE_NAMESPACE
 
-SheetWidget::SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandString, QWidget *parent) : QMainWindow(parent)
+struct QPairFirstComparer
 {
-    isCoreRPresent = rInstalled;
-    isCoreSVGSupportPresent = isSVGinstalled;
-    commandParameter = commandString;
+    template<typename T1, typename T2>
+    bool operator()(const QPair<T1,T2> &one, const QPair<T1,T2> &two) const
+    {
+        return one.first < two.first;
+    }
+};
 
+SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
+{
     table = new QTableWidget(10000, 10000, this);
     table->setSizeAdjustPolicy(QTableWidget::AdjustToContents);
+
+    undoStack = new QUndoStack(this);
+    table->setItemDelegate(new SheetDelegate());
+
+    #ifdef TARGET_OS_MAC
+        table->setStyleSheet("QTableView {selection-background-color: #73E2A7; }");
+    #endif
 
     QString value;
 
@@ -118,34 +152,60 @@ SheetWidget::SheetWidget(bool rInstalled, bool isSVGinstalled, QString commandSt
 
     #endif
 
-    statusDialog = new StatusDialog(isCoreRPresent, isCoreSVGSupportPresent, commandParameter, this);
-    statusDialog->setModal(true);
-    statusDialog->show();
-
-    if (!isCoreRPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup R");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program was not found on your machine (at least within the normal path). If installed already, please add the binary to your path. If not yet installed, you can download the R program from this location:<br/><br/> <a href='https://www.r-project.org//'>The R Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-    }
-
-    if (!isCoreSVGSupportPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup xQuartz");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program uses xQuartz on OSX to to generate high quality images. This was not found "
-                            "on your machine (at least within the normal path). If not yet installed, you "
-                            "can download and install xQuartz from this location:<br/><br/> <a href='https://www.xquartz.org/'>"
-                            "The xQuartz Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-    }
-
     table->installEventFilter( this );
+
+    manager = new QNetworkAccessManager(this);
+    connect(manager, SIGNAL(finished(QNetworkReply*)), this, SLOT(downloadedFile(QNetworkReply*)) );
+
+    #ifdef _WIN32
+        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/DemandCurveRepository/Updates.xml")));
+    #elif TARGET_OS_MAC
+        manager->get(QNetworkRequest(QUrl("http://www.smallnstats.com/DemandCurveRepositoryMac/Updates.xml")));
+    #endif
+
+    mObj = new demandmodeling();
+}
+
+void SheetWidget::downloadedFile(QNetworkReply *reply) {
+    QByteArray data = reply->readAll();
+
+    QDomDocument versionXML;
+
+    if(!versionXML.setContent(data))
+    {
+        return;
+    }
+
+    QDomElement root = versionXML.documentElement();
+    QDomElement mNode = root.namedItem("PackageUpdate").toElement();
+    QDomElement mNode2 = mNode.namedItem("Version").toElement();
+
+    QStringList mVersionList = mNode2.text().split('.');
+
+    if (mVersionList.count() != 3)
+    {
+        return;
+    }
+
+    bool hasUpdate = false;
+
+    QString mNetworkVersionString = QString("%1%2%3").arg(mVersionList[0]).arg(mVersionList[1]).arg(mVersionList[2]);
+
+    QString mLocalVersionString = QString("%1%2%3").arg(VERSION_MAJOR).arg(VERSION_MINOR).arg(VERSION_BUILD);
+
+    if (mNetworkVersionString.toInt() > mLocalVersionString.toInt())
+    {
+        hasUpdate = true;
+    }
+
+    if (hasUpdate)
+    {
+        QMessageBox *msgBox = new QMessageBox;
+        msgBox->setWindowTitle("Updates");
+        msgBox->setText("There is an update available!");
+        msgBox->setWindowModality(Qt::NonModal);
+        msgBox->show();
+    }
 }
 
 void SheetWidget::buildMenus()
@@ -154,27 +214,33 @@ void SheetWidget::buildMenus()
      * @brief
      */
 
-    newSheetAction = new QAction("N&ew Sheet", this);
+    newSheetAction = new QAction("N&ew", this);
+    newSheetAction->setShortcut(QKeySequence::New);
     newSheetAction->setIcon(QIcon(":/images/document-new.png"));
     connect(newSheetAction, &QAction::triggered, this, &SheetWidget::clearSheet);
 
-    openSheetAction = new QAction("I&mport a Sheet", this);
-    openSheetAction->setShortcut(QKeySequence("Ctrl+O"));
+    openSheetAction = new QAction("I&mport", this);
+    openSheetAction->setShortcut(QKeySequence::Open);
     openSheetAction->setIcon(QIcon(":/images/document-open.png"));
     connect(openSheetAction, &QAction::triggered, this, &SheetWidget::showOpenFileDialog);
 
-    saveSheetAction = new QAction("S&ave Sheet", this);
-    saveSheetAction->setShortcut(QKeySequence("Ctrl+S"));
+    saveSheetAction = new QAction("S&ave", this);
+    saveSheetAction->setShortcut(QKeySequence::Save);
     saveSheetAction->setIcon(QIcon(":/images/document-save.png"));
     connect(saveSheetAction, &QAction::triggered, this, &SheetWidget::showSaveFileDialog);
+
+    saveAsSheetAction = new QAction("S&ave As", this);
+    saveAsSheetAction->setShortcut(QKeySequence::SaveAs);
+    saveAsSheetAction->setIcon(QIcon(":/images/document-save-as.png"));
+    connect(saveAsSheetAction, &QAction::triggered, this, &SheetWidget::showSaveAsFileDialog);
 
     updateProgramAction = new QAction("C&heck Updates", this);
     updateProgramAction->setIcon(QIcon(":/images/view-refresh.png"));
     connect(updateProgramAction, &QAction::triggered, this, &SheetWidget::checkUpdatesAction);
 
     exitSheetAction = new QAction("E&xit", this);
-    exitSheetAction->setShortcut(QKeySequence("Ctrl+Q"));
-    exitSheetAction->setIcon(QIcon(":/images/application-exit.png"));
+    exitSheetAction->setShortcut(QKeySequence::Quit);
+    exitSheetAction->setIcon(QIcon(":/images/system-log-out.png"));
     connect(exitSheetAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 
     /** Window actions
@@ -182,7 +248,7 @@ void SheetWidget::buildMenus()
      */
 
     openDemandWindow = new QAction("D&emand Curve Analysis", this);
-    openDemandWindow->setIcon(QIcon(":/images/applications-other.png"));
+    openDemandWindow->setIcon(QIcon(":/images/applications-system.png"));
     connect(openDemandWindow, &QAction::triggered, this, &SheetWidget::showDemandWindow);
 
     /** Edit actions
@@ -190,22 +256,21 @@ void SheetWidget::buildMenus()
      */
 
     cutAction = new QAction("Cut", this);
-    cutAction->setShortcut(QKeySequence("Ctrl+X"));
+    cutAction->setShortcut(QKeySequence::Cut);
     cutAction->setIcon(QIcon(":/images/edit-cut.png"));
     connect(cutAction, &QAction::triggered, this, &SheetWidget::cut);
 
     copyAction = new QAction("Copy", this);
-    copyAction->setShortcut(QKeySequence("Ctrl+C"));
+    copyAction->setShortcut(QKeySequence::Copy);
     copyAction->setIcon(QIcon(":/images/edit-copy.png"));
     connect(copyAction, &QAction::triggered, this, &SheetWidget::copy);
 
     pasteAction = new QAction("Paste", this);
-    pasteAction->setShortcut(QKeySequence("Ctrl+V"));
+    pasteAction->setShortcut(QKeySequence::Paste);
     pasteAction->setIcon(QIcon(":/images/edit-paste.png"));
     connect(pasteAction, &QAction::triggered, this, &SheetWidget::paste);
 
     pasteInvertedAction = new QAction("Paste Transposed", this);
-    pasteInvertedAction->setShortcut(QKeySequence("Ctrl+B"));
     pasteInvertedAction->setIcon(QIcon(":/images/edit-paste.png"));
     connect(pasteInvertedAction, &QAction::triggered, this, &SheetWidget::pasteInverted);
 
@@ -214,6 +279,17 @@ void SheetWidget::buildMenus()
     clearAction->setIcon(QIcon(":/images/edit-clear.png"));
     connect(clearAction, &QAction::triggered, this, &SheetWidget::clear);
 
+    undoAction = undoStack->createUndoAction(this, tr("&Undo"));
+    undoAction->setShortcut(QKeySequence::Undo);
+    undoAction->setIcon(QIcon(":/images/edit-undo.png"));
+
+    redoAction = undoStack->createRedoAction(this, tr("&Redo"));
+    redoAction->setShortcut(QKeySequence::Redo);
+    redoAction->setIcon(QIcon(":/images/edit-redo.png"));
+
+    table->addAction(undoAction);
+    table->addAction(redoAction);
+
     /** Window actions
      * @brief
      */
@@ -221,31 +297,31 @@ void SheetWidget::buildMenus()
     demandWindowDialog = new DemandSettingsDialog(this);
 
     openLicenseDCA = new QAction("DCA License (GPL-V3)", this);
-    openLicenseDCA->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseDCA->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseDCA, &QAction::triggered, this, &SheetWidget::showDCALicenseWindow);
 
     openLicenseBeezdemand = new QAction("Beezdemand License (GPL-V3)", this);
-    openLicenseBeezdemand->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseBeezdemand->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseBeezdemand, &QAction::triggered, this, &SheetWidget::showBeezdemandLicenseWindow);
 
-    openLicenseFitDemand = new QAction("fitDemand License (GPL-V3)", this);
-    openLicenseFitDemand->setIcon(QIcon(":/images/text-x-generic.png"));
-    connect(openLicenseFitDemand, &QAction::triggered, this, &SheetWidget::showFitDemandLicenseWindow);
+    openLicenseALGLIB = new QAction("ALGLIB License (GPL-V3)", this);
+    openLicenseALGLIB->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseALGLIB, &QAction::triggered, this, &SheetWidget::showALGLIBLicenseWindow);
 
     openLicenseQt = new QAction("Qt License (LGPL-V3, GPL-V3)", this);
-    openLicenseQt->setIcon(QIcon(":/images/text-x-generic.png"));
+    openLicenseQt->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseQt, &QAction::triggered, this, &SheetWidget::showQTLicenseWindow);
 
-    openLicenseGnome = new QAction("Gnome Icons License (GPL-V3)", this);
-    openLicenseGnome->setIcon(QIcon(":/images/text-x-generic.png"));
-    connect(openLicenseGnome, &QAction::triggered, this, &SheetWidget::showGnomeLicenseWindow);
+    openLicenseTango = new QAction("Tango Icons License (Public Domain)", this);
+    openLicenseTango->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseTango, &QAction::triggered, this, &SheetWidget::showTangoLicenseWindow);
 
     openAbout = new QAction("Credits", this);
-    openAbout->setIcon(QIcon(":/images/text-x-generic.png"));
+    openAbout->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openAbout, &QAction::triggered, this, &SheetWidget::showCreditsWindow);
 
     openFAQ = new QAction("FAQ", this);
-    openFAQ->setIcon(QIcon(":/images/text-x-generic.png"));
+    openFAQ->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openFAQ, &QAction::triggered, this, &SheetWidget::showFAQWindow);
 
     /** Window helper actions
@@ -253,16 +329,17 @@ void SheetWidget::buildMenus()
      */
 
     priceAction = new QAction("Set Prices", this);
-    priceAction->setIcon(QIcon(":/images/system-run.png"));
+    priceAction->setIcon(QIcon(":/images/preferences-system.png"));
     connect(priceAction, &QAction::triggered, this, &SheetWidget::updatePriceModalWindow);
 
     consumptionAction = new QAction("Set Consumption", this);
-    consumptionAction->setIcon(QIcon(":/images/system-run.png"));
+    consumptionAction->setIcon(QIcon(":/images/preferences-system.png"));
     connect(consumptionAction, &QAction::triggered, this, &SheetWidget::updateConsumptionModalWindow);
 
     for (int i = 0; i < MaxRecentFiles; ++i) {
         recentFileActs[i] = new QAction(this);
         recentFileActs[i]->setVisible(false);
+        recentFileActs[i]->setIcon(QIcon(":/images/format-justify-center.png"));
         connect(recentFileActs[i], SIGNAL(triggered()), this, SLOT(openRecentFile()));
     }
 
@@ -274,6 +351,7 @@ void SheetWidget::buildMenus()
     sheetOptionsMenu->addAction(newSheetAction);
     sheetOptionsMenu->addAction(openSheetAction);
     sheetOptionsMenu->addAction(saveSheetAction);
+    sheetOptionsMenu->addAction(saveAsSheetAction);
 
     separatorAct = sheetOptionsMenu->addSeparator();
 
@@ -295,6 +373,9 @@ void SheetWidget::buildMenus()
     sheetEditMenu->addAction(pasteAction);
     sheetEditMenu->addAction(pasteInvertedAction);
     sheetEditMenu->addSeparator();
+    sheetEditMenu->addAction(redoAction);
+    sheetEditMenu->addAction(undoAction);
+    sheetEditMenu->addSeparator();
     sheetEditMenu->addAction(clearAction);
 
     QMenu *sheetCalculationsMenu = menuBar()->addMenu(tr("&Demand"));
@@ -303,9 +384,9 @@ void SheetWidget::buildMenus()
     QMenu *sheetLicensesMenu = menuBar()->addMenu(tr("&Licenses"));
     sheetLicensesMenu->addAction(openLicenseDCA);
     sheetLicensesMenu->addAction(openLicenseBeezdemand);
-    sheetLicensesMenu->addAction(openLicenseFitDemand);
+    sheetLicensesMenu->addAction(openLicenseALGLIB);
     sheetLicensesMenu->addAction(openLicenseQt);
-    sheetLicensesMenu->addAction(openLicenseGnome);
+    sheetLicensesMenu->addAction(openLicenseTango);
     sheetLicensesMenu->addAction(openAbout);
 
     QMenu *sheetAboutMenu = menuBar()->addMenu(tr("&Help"));
@@ -344,7 +425,7 @@ void SheetWidget::clearSheet()
     curFile = "";
     setWindowFilePath(curFile);
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QApplication::restoreOverrideCursor();
 }
 
 void SheetWidget::checkUpdatesAction()
@@ -479,7 +560,8 @@ bool SheetWidget::eventFilter(QObject *object, QEvent *event)
 {
     if (event->type() == QEvent::KeyPress)
     {
-        auto keyCode = static_cast<QKeyEvent *>(event);
+        QKeyEvent *keyCode = static_cast<QKeyEvent *>(event);
+
         if (keyCode->key() == (int) Qt::Key_Return)
         {
             if (table->currentRow() + 1 >= table->rowCount())
@@ -575,6 +657,48 @@ void SheetWidget::updateRecentFileActions()
 
 void SheetWidget::showSaveFileDialog()
 {
+    if (curFile == "")
+    {
+        showSaveAsFileDialog();
+
+        return;
+    }
+
+    if(!curFile.trimmed().isEmpty())
+    {
+        QApplication::setOverrideCursor(Qt::WaitCursor);
+
+        QXlsx::Document xlsx;
+
+        int rows = table->rowCount();
+        int cols = table->columnCount();
+
+        QString temp;
+
+        for (int i=0; i<rows; i++)
+        {
+            for (int j=0; j<cols; j++)
+            {
+                QTableWidgetItem *item = table->item(i, j);
+
+                if (item != NULL && !item->text().isEmpty())
+                {
+                    temp = table->item(i, j)->data(Qt::DisplayRole).toString();
+                    xlsx.write(i + 1, j + 1, temp);
+                }
+            }
+        }
+
+        xlsx.saveAs(curFile);
+
+        QApplication::restoreOverrideCursor();
+
+        statusBar()->showMessage(tr("File saved"), 2000);
+    }
+}
+
+void SheetWidget::showSaveAsFileDialog()
+{
 
     QString file_name;
     QString fileFilter = "Spreadsheet (*.xlsx)";
@@ -632,33 +756,6 @@ void SheetWidget::showSaveFileDialog()
 
 void SheetWidget::showDemandWindow()
 {
-    if (!isCoreRPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup up");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program was not found on your machine (at least within the normal path). If installed already, please add the binary to your path. If not yet installed, you can download the R program from this location:<br/><br/> <a href='https://www.r-project.org//'>The R Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-
-        return;
-    }
-
-    if (!isCoreSVGSupportPresent)
-    {
-        QMessageBox rMessageBox;
-        rMessageBox.setWindowTitle("Please install/setup xQuartz");
-        rMessageBox.setTextFormat(Qt::RichText);
-        rMessageBox.setText("<p>The R program uses xQuartz on OSX to to generate high quality images. This was not found "
-                            "on your machine (at least within the normal path). If not yet installed, you "
-                            "can download and install xQuartz from this location:<br/><br/> <a href='https://www.xquartz.org/'>"
-                            "The xQuartz Project</a><p>");
-        rMessageBox.setStandardButtons(QMessageBox::Ok);
-        rMessageBox.exec();
-
-        return;
-    }
-
     if (isToolWindowShown())
     {
         return;
@@ -679,10 +776,7 @@ void SheetWidget::showBeezdemandLicenseWindow()
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_Beezdemand.text\"";
-
+            mFilePath = runDirectory.filePath("License_Beezdemand.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
@@ -691,24 +785,21 @@ void SheetWidget::showBeezdemandLicenseWindow()
     licenseDialog->show();
 }
 
-void SheetWidget::showFitDemandLicenseWindow()
+void SheetWidget::showALGLIBLicenseWindow()
 {
     QString mFilePath = "";
 
     #ifdef _WIN32
-            mFilePath = "License_fitDemand.txt";
+            mFilePath = "License_ALGLIB.txt";
     #elif TARGET_OS_MAC
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_fitDemand.text\"";
-
+            mFilePath = runDirectory.filePath("License_ALGLIB.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
-    licenseDialog->setWindowTitle("fitDemand License (GPL-V3)");
+    licenseDialog->setWindowTitle("ALGLIB License (GPL-V3)");
     licenseDialog->setModal(true);
     licenseDialog->show();
 }
@@ -723,10 +814,7 @@ void SheetWidget::showDCALicenseWindow()
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "COPYING\"";
-
+            mFilePath = runDirectory.filePath("COPYING");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
@@ -745,10 +833,7 @@ void SheetWidget::showQTLicenseWindow()
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_Qt.txt\"";
-
+            mFilePath = runDirectory.filePath("License_Qt.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
@@ -757,24 +842,21 @@ void SheetWidget::showQTLicenseWindow()
     licenseDialog->show();
 }
 
-void SheetWidget::showGnomeLicenseWindow()
+void SheetWidget::showTangoLicenseWindow()
 {
     QString mFilePath = "";
 
     #ifdef _WIN32
-            mFilePath = "License_gnome_icons.txt";
+            mFilePath = "License_Tango.txt";
     #elif TARGET_OS_MAC
             QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
             runDirectory.cdUp();
             runDirectory.cd("Resources");
-            mFilePath = "\"" + runDirectory.path() + "/";
-
-            mFilePath = mFilePath + "License_gnome_icons.txt\"";
-
+            mFilePath = runDirectory.filePath("License_Tango.txt");
     #endif
 
     licenseDialog = new LicenseDialog(mFilePath, this);
-    licenseDialog->setWindowTitle("Gnome Icon Set License (GPL-V3)");
+    licenseDialog->setWindowTitle("Tango Icons License (Public Domain)");
     licenseDialog->setModal(true);
     licenseDialog->show();
 }
@@ -840,39 +922,67 @@ void SheetWidget::paste()
 {
     QTableWidgetSelectionRange range = table->selectedRanges().first();
     QString pasteString = QApplication::clipboard()->text();
+
     QStringList pasteRows = pasteString.split('\n');
 
     int nRows = pasteRows.count();
     int nCols = pasteRows.first().count('\t') + 1;
 
-    for (int i = 0; i < nRows; ++i) {
-        QStringList columns = pasteRows[i].split('\t');
+    if (nRows < 1 || nCols < 1)
+    {
+        return;
+    }
+    else if (nRows == 1 && nCols == 1)
+    {
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
+        QString mNewTest(pasteRows[0].split('\t')[0]);
 
-        for (int j = 0; j < nCols; ++j) {
-            int row = range.topRow() + i;
-            int column = range.leftColumn() + j;
+        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
+    }
+    else
+    {
+        QStringList mOlderHolder;
+        QStringList mTemp;
 
-            if (row < 10000 && column < 10000)
-            {
-                if (table->item(row, column) != NULL)
+        for (int i = 0; i < nRows; ++i)
+        {
+            QStringList columns = pasteRows[i].split('\t');
+
+            mTemp.clear();
+
+            for (int j = 0; j < nCols; ++j) {
+                int row = range.topRow() + i;
+                int column = range.leftColumn() + j;
+
+                if (row < 10000 && column < 10000)
                 {
-                    if (j < columns.length())
+                    if (table->item(row, column) != NULL)
                     {
-                        table->item(row, column)->setText(columns[j]);
+                        if (j < columns.length())
+                        {
+                            mTemp << table->item(row, column)->data(Qt::EditRole).toString();
+                        }
                     }
-                }
-                else
-                {
-                    if (j < columns.length())
+                    else
                     {
-                        table->setItem(row, column, new QTableWidgetItem(columns[j]));
+                        if (j < columns.length())
+                        {
+                            table->setItem(row, column, new QTableWidgetItem(""));
+
+                            mTemp << "";
+                        }
                     }
                 }
             }
-        }
-    }
 
-    table->viewport()->update();
+            mOlderHolder << mTemp.join('\t');
+        }
+
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+
+        undoStack->push(new UpdateCommandBlock(&index, mOlderHolder, pasteRows));
+    }
 }
 
 void SheetWidget::pasteInverted()
@@ -884,41 +994,124 @@ void SheetWidget::pasteInverted()
     int nRows = pasteRows.count();
     int nCols = pasteRows.first().count('\t') + 1;
 
-    for (int i = 0; i < nRows; ++i) {
-        QStringList columns = pasteRows[i].split('\t');
+    if (nRows < 1 || nCols < 1)
+    {
+        return;
+    }
+    else if (nRows == 1 && nCols == 1)
+    {
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
+        QString mNewTest(pasteRows[0].split('\t')[0]);
 
-        for (int j = 0; j < nCols; ++j) {
-            int row = range.topRow() + j;
-            int column = range.leftColumn() + i;
+        undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
+    }
+    else
+    {
+        QStringList mOlderHolder;
+        QStringList mTemp;
 
-            if (row < 10000 && column < 10000)
+        for (int i = 0; i < nRows; ++i)
+        {
+            QStringList columns = pasteRows[i].split('\t');
+
+            mTemp.clear();
+
+            for (int j = 0; j < nCols; ++j)
             {
-                if (table->item(row, column) != NULL)
+                int row = range.topRow() + j;
+                int column = range.leftColumn() + i;
+
+                if (row < 10000 && column < 10000)
                 {
-                    if (j < columns.length())
+                    if (table->item(row, column) != NULL)
                     {
-                        table->item(row, column)->setText(columns[j]);
+                        if (j < columns.length())
+                        {
+                            mTemp << table->item(row, column)->data(Qt::EditRole).toString();
+                        }
                     }
-                }
-                else
-                {
-                    if (j < columns.length())
+                    else
                     {
-                        table->setItem(row, column, new QTableWidgetItem(columns[j]));
+                        if (j < columns.length())
+                        {
+                            table->setItem(row, column, new QTableWidgetItem(""));
+
+                            mTemp << "";
+                        }
                     }
                 }
             }
-        }
-    }
 
-    table->viewport()->update();
+            mOlderHolder << mTemp.join('\t');
+        }
+
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+
+        undoStack->push(new UpdateCommandBlockInvert(&index, mOlderHolder, pasteRows));
+    }
 }
 
 void SheetWidget::clear()
 {
-    foreach (QTableWidgetItem *i, table->selectedItems())
+    QTableWidgetSelectionRange range = table->selectedRanges().first();
+
+    int nRows = range.rowCount();
+    int nCols = range.columnCount();
+
+    if (nRows < 1 || nCols < 1)
     {
-        i->setText("");
+        return;
+    }
+    else if (nRows == 1 && nCols == 1)
+    {
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
+        QString clear("");
+
+        undoStack->push(new UpdateCommand(&index, mOldTest, clear));
+    }
+    else
+    {
+        QStringList mNewerHolder;
+        QStringList mOlderHolder;
+
+        QStringList mTempNew;
+        QStringList mTemp;
+
+        for (int i = 0; i < nRows; ++i)
+        {
+            mTemp.clear();
+            mTempNew.clear();
+
+            for (int j = 0; j < nCols; ++j)
+            {
+                int row = range.topRow() + i;
+                int column = range.leftColumn() + j;
+
+                if (row < 10000 && column < 10000)
+                {
+                    if (table->item(row, column) != NULL)
+                    {
+                        mTemp << table->item(row, column)->data(Qt::EditRole).toString();
+                        mTempNew << "";
+                    }
+                    else
+                    {
+                        table->setItem(row, column, new QTableWidgetItem(""));
+
+                        mTemp << "";
+                        mTempNew << "";
+                    }
+                }
+            }
+
+            mOlderHolder << mTemp.join('\t');
+            mNewerHolder << mTempNew.join('\t');
+        }
+
+        const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
+        undoStack->push(new UpdateCommandBlock(&index, mOlderHolder, mNewerHolder));
     }
 }
 
@@ -1008,132 +1201,96 @@ bool SheetWidget::isToolWindowShown()
  * @brief
  */
 
-void SheetWidget::Calculate(QString scriptName, QString model, QString kString,
-                            int topPrice, int leftPrice, int bottomPrice, int rightPrice,
-                            int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption,
-                            bool checkValues, bool notify, QString rem0, QString replnum, QString remQ0, QString replQ0, bool showCharts)
+void SheetWidget::Calculate()
 {
+    if (demandWindowDialog->isVisible())
+    {
+        demandWindowDialog->ToggleButton(false);
+    }
 
-    displayFigures = showCharts;
-    mModel = model;
-    isChecking = checkValues;
-    isConditional = notify;
-    mCallK = kString;
-    mRem0 = rem0;
-    mReplnum = replnum;
-    mRemQ0 = remQ0;
-    mReplQ0 = replQ0;
-    mFigureFlag = (showCharts) ? "TRUE" : "FALSE";
+    // Display figures?
 
-    /**
-     * @brief isRowData
-     * Check if is row-based data
-     */
-    bool isRowData = (rightPrice - leftPrice == 0) ? false : true;
+    bool isRowData = (calculationSettings->rightPrice - calculationSettings->leftPrice == 0) ? false :
+                                                                                               true;
+    int nSeries = (isRowData) ? calculationSettings->bottomConsumption - calculationSettings->topConsumption + 1 :
+                                nSeries = calculationSettings->rightConsumption - calculationSettings->leftConsumption + 1;
 
-    int dWidth = rightPrice - leftPrice + 1;
-    int dLength = bottomPrice - topPrice + 1;
+    int dWidth = calculationSettings->rightPrice - calculationSettings->leftPrice + 1;
+    int dLength = calculationSettings->bottomPrice - calculationSettings->topPrice + 1;
 
-    int vWidth = rightConsumption - leftConsumption + 1;
-    int vLength = bottomConsumption - topConsumption + 1;
+    int vWidth = calculationSettings->rightConsumption - calculationSettings->leftConsumption + 1;
+    int vLength = calculationSettings->bottomConsumption - calculationSettings->topConsumption + 1;
 
     if (!areDimensionsValid(isRowData, dWidth, vWidth, dLength, vLength))
     {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
+
         return;
     }
 
-    ConstructFrameElements(pricePoints, consumptionPoints, idValues, isRowData,
-                           topPrice, leftPrice, bottomPrice, rightPrice,
-                           topConsumption, leftConsumption, bottomConsumption, rightConsumption);
+    QStringList pricePoints;
 
-    QStringList mArgList;
-
-    #ifdef _WIN32
-
-    mArgList << scriptName;
-
-    #elif TARGET_OS_MAC
-
-    QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
-    runDirectory.cdUp();
-    runDirectory.cd("Resources");
-    QString scriptDir = "\"" + runDirectory.path() + "/";
-
-    mArgList << scriptDir + scriptName + "\"";
-
-    #endif
-
-    mArgList << model;
-    mArgList << idValues.join(",");
-    mArgList << pricePoints.join(",");
-    mArgList << consumptionPoints.join(",");
-
-    mSeriesCommands.clear();
-    mSeriesCommands << mArgList.join(" ");
-
-    allResults.clear();
-
-    thread = new QThread();
-    worker = new FitWorker(commandParameter, mSeriesCommands);
-
-    worker->moveToThread(thread);
-
-    connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-    connect(thread, SIGNAL(started()), worker, SLOT(working()));
-    connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-    connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
-
-    thread->wait();
-    worker->startWork();
-
-    demandWindowDialog->WindowStateActive(false);
-}
-
-void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &consumptionPoints, QStringList &idValues, bool isRowData,
-                                         int topPrice, int leftPrice, int bottomPrice, int rightPrice,
-                                         int topConsumption, int leftConsumption, int bottomConsumption, int rightConsumption)
-{
-    QStringList mTempPriceList;
-
-    pricePoints.clear();
-    consumptionPoints.clear();
-    idValues.clear();
-
-    QString holder;
-    bool valueCheck;
-
-    if (isRowData)
+    if(!arePricePointsValid(pricePoints,
+                            isRowData,
+                            calculationSettings->topPrice,
+                            calculationSettings->leftPrice,
+                            calculationSettings->bottomPrice,
+                            calculationSettings->rightPrice))
     {
-        int r = topPrice;
-
-        /**
-          Loop through delays, confirm THESE are valid first
-          */
-        for (int c = leftPrice; c <= rightPrice; c++)
+        if (demandWindowDialog->isVisible())
         {
-            if (table->item(r, c) == NULL)
+            demandWindowDialog->ToggleButton(true);
+        }
+
+        return;
+    }
+
+    QStringList valuePoints;
+    QStringList pricePointsTemp;
+
+    mSteinResults.clear();
+    QStringList mTempSteinResults;
+
+    bool raisedFlag = false;
+
+    // Stein Checks, as needed
+    if (calculationSettings->settingsCheck != SystematicCheck::Never)
+    {
+        steinCheckDialog = new SteinCheck();
+
+        for (int i = 0; i < nSeries; i++)
+        {
+            areValuePointsValid(valuePoints,
+                                pricePointsTemp,
+                                pricePoints,
+                                isRowData,
+                                calculationSettings->topConsumption,
+                                calculationSettings->leftConsumption,
+                                calculationSettings->bottomConsumption,
+                                calculationSettings->rightConsumption, i);
+
+            mTempSteinResults.clear();
+            mTempSteinResults = mObj->GetSteinTest(pricePointsTemp, valuePoints);
+            mTempSteinResults[0] = QString::number(i + 1);
+
+            if (mObj->raisedFlag)
             {
-                QMessageBox::critical(this, "Error",
-                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
-
-                if (demandWindowDialog->isVisible())
-                {
-                    demandWindowDialog->ToggleButton(true);
-                }
-
-                return;
+                raisedFlag = true;
             }
 
-            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
-            holder.toDouble(&valueCheck);
+            mSteinResults.append(mTempSteinResults);
+            steinCheckDialog->appendRow(mTempSteinResults);
+        }
 
-            mTempPriceList << table->item(r, c)->data(Qt::DisplayRole).toString();
+        if (calculationSettings->settingsCheck == SystematicCheck::Always || raisedFlag)
+        {
+            steinCheckDialog->exec();
 
-            if (!valueCheck)
+            if (!steinCheckDialog->canProceed)
             {
-                QMessageBox::critical(this, "Error",
-                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
-
                 if (demandWindowDialog->isVisible())
                 {
                     demandWindowDialog->ToggleButton(true);
@@ -1142,328 +1299,339 @@ void SheetWidget::ConstructFrameElements(QStringList &pricePoints, QStringList &
                 return;
             }
         }
+    }
 
-        /**
+    // Results dialog?
+    statusBar()->showMessage("Beginning calculations...", 3000);
+    allResults.clear();
 
-          */
+    // Test for k settings (as needed)
+    double globalMin,
+           globalMax;
 
-        for (int r2 = topConsumption; r2 <= bottomConsumption; r2++)
+    if (calculationSettings->settingsK == BehaviorK::Range || calculationSettings->settingsK == BehaviorK::Share)
+    {
+        getGlobalMinAndMax(globalMin,
+                           globalMax,
+                           isRowData,
+                           calculationSettings->topConsumption,
+                           calculationSettings->leftConsumption,
+                           calculationSettings->bottomConsumption,
+                           calculationSettings->rightConsumption);
+    }
+
+    calculationSettings->globalMinConsumption = globalMin;
+    calculationSettings->globalMaxConsumption = globalMax;
+
+    // todo, results?
+
+    statusBar()->showMessage("Beginning calculations...", 3000);
+    allResults.clear();
+
+    QList<QStringList> mStoredValues;
+    QStringList mStoredValueHolder;
+
+    QList<double> tempDataPrices;
+    QList<double> tempDataConsumption;
+
+    QList<FittingData> mStoredNewValues;
+
+    bool xStart = false;
+    bool yStart = false;
+
+    double localMax = -std::numeric_limits<double>::max(),
+           localMin = std::numeric_limits<double>::max();
+
+    for (int i = 0; i < nSeries; i++)
+    {
+        xStart = false;
+        yStart = false;
+
+        localMax = -std::numeric_limits<double>::max(),
+        localMin = std::numeric_limits<double>::max();
+
+        valuePoints.clear();
+        pricePointsTemp.clear();
+
+        areValuePointsValid(valuePoints,
+                            pricePointsTemp,
+                            pricePoints,
+                            isRowData,
+                            calculationSettings->topConsumption,
+                            calculationSettings->leftConsumption,
+                            calculationSettings->bottomConsumption,
+                            calculationSettings->rightConsumption, i);
+
+        tempDataPrices.clear();
+        tempDataConsumption.clear();
+
+        mXString = "[";
+        mYString = "[";
+
+        // Return if doesn't match
+        if (pricePointsTemp.length() != valuePoints.length())
         {
-            for (int c = leftConsumption; c <= rightConsumption; c++)
+            return;
+        }
+
+        for (int i=0; i<pricePointsTemp.length() && i<valuePoints.length(); i++)
+        {
+            // Pass on zero consumptions?
+            if (calculationSettings->settingsZeroConsumption == Behavior::Drop && valuePoints[i].toDouble() <= 0)
             {
-                if (table->item(r2, c) != NULL)
+                continue;
+            }
+
+            // TODO: Linear workaround
+            //If Exponential or Linear
+            //if ((calculationSettings->settingsModel == DemandModel::Exponential && valuePoints[i].toDouble() <= 0) ||
+            //    (calculationSettings->settingsModel == DemandModel::Linear && valuePoints[i].toDouble() <= 0))
+            //{
+
+            //    return;
+            //}
+
+            if (pricePointsTemp[i].toDouble() <= 0 && calculationSettings->settingsQ0 == Behavior::Drop)
+            {
+                continue;
+            }
+
+            if (!xStart)
+            {
+                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() <= 0)
                 {
-                    holder = table->item(r2, c)->data(Qt::DisplayRole).toString();
-                    holder = holder.toDouble(&valueCheck);
+                    mXString.append("[" + QString::number(calculationSettings->customQ0replacement) + "]");
 
-                    if (valueCheck)
-                    {
-                        holder = holder;
-
-                        pricePoints << mTempPriceList[c - leftConsumption];
-                        consumptionPoints << table->item(r2, c)->data(Qt::DisplayRole).toString();
-                        idValues << QString::number(r2 - topConsumption + 1);
-                    }
+                    tempDataPrices.append(calculationSettings->customQ0replacement);
                 }
+                else
+                {
+                    mXString.append("[" + pricePointsTemp[i] + "]");
+
+                    tempDataPrices.append(pricePointsTemp[i].toDouble());
+                }
+
+                xStart = true;
+            }
+            else
+            {
+                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() <= 0)
+                {
+                    mXString.append(",[" + QString::number(calculationSettings->customQ0replacement) + "]");
+
+                    tempDataPrices.append(calculationSettings->customQ0replacement);
+                }
+                else
+                {
+                    mXString.append(",[" + pricePointsTemp[i] + "]");
+
+                    tempDataPrices.append(pricePointsTemp[i].toDouble());
+                }
+            }
+
+            if (!yStart)
+            {
+                if (calculationSettings->settingsZeroConsumption == Behavior::Modify && valuePoints[i].toDouble() <= 0)
+                {
+                    mYString.append(QString::number(calculationSettings->customZeroConsumptionReplacement));
+
+                    tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
+                }
+                else
+                {
+                    mYString.append(valuePoints[i]);
+
+                    tempDataConsumption.append(valuePoints[i].toDouble());
+                }
+
+                yStart = true;
+            }
+            else
+            {
+                if (calculationSettings->settingsZeroConsumption == Behavior::Modify && valuePoints[i].toDouble() <= 0)
+                {
+                    mYString.append("," + QString::number(calculationSettings->customZeroConsumptionReplacement));
+
+                    tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
+                }
+                else
+                {
+                    mYString.append("," + valuePoints[i]);
+
+                    tempDataConsumption.append(valuePoints[i].toDouble());
+                }
+            }
+
+            if (valuePoints[i].toDouble() > 0 && valuePoints[i].toDouble() > localMax)
+            {
+                localMax = valuePoints[i].toDouble();
+            }
+
+            if (valuePoints[i].toDouble() > 0 && valuePoints[i].toDouble() < localMin)
+            {
+                localMin = valuePoints[i].toDouble();
+            }
+        }
+
+        mXString.append("]");
+        mYString.append("]");
+
+        mStoredValueHolder.clear();
+        mStoredValueHolder << mXString << mYString << pricePointsTemp.join(",") << valuePoints.join(",");
+
+        mStoredValues << mStoredValueHolder;
+
+        mStoredNewValues.append(FittingData(mXString, mYString,
+                                            tempDataPrices, tempDataConsumption,
+                                            localMin, localMax));
+    }
+
+    workerThread = new QThread();
+
+    worker = new CalculationWorker(mStoredNewValues, calculationSettings);
+
+    worker->moveToThread(workerThread);
+
+    connect(worker, SIGNAL(workStarted()), workerThread, SLOT(start()));
+    connect(workerThread, SIGNAL(started()), worker, SLOT(working()));
+    connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
+    connect(worker, SIGNAL(statusUpdate(QString)), this, SLOT(StatusUpdate(QString)));
+    connect(worker, SIGNAL(workFinished()), workerThread, SLOT(quit()), Qt::DirectConnection);
+    connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
+
+    resultsDialog = new ResultsDialog(this);
+    allResults.clear();
+
+    workerThread->wait();
+    worker->startWork();
+}
+
+void SheetWidget::WorkUpdate(QStringList results)
+{
+    allResults.append(results);
+    statusBar()->showMessage(QString("Series #%1 Computed").arg(allResults.count()), 3000);
+}
+
+void SheetWidget::StatusUpdate(QString msg)
+{
+    statusBar()->showMessage(msg, 3000);
+}
+
+void SheetWidget::WorkFinished()
+{
+    statusBar()->showMessage("Calculations Complete.", 3000);
+
+    if (calculationSettings->settingsChart != ChartingOptions::None)
+    {
+        statusBar()->showMessage("Drawing figures...", 3000);
+
+        if (demandWindowDialog->isVisible())
+        {
+            chartWindow = new chartwindow(allResults,
+                                          calculationSettings->settingsChart == ChartingOptions::Standardized,
+                                          calculationSettings->settingsModel,
+                                          this);
+        }
+
+        chartWindow->show();
+    }
+
+    if (demandWindowDialog->isVisible())
+    {
+        demandWindowDialog->ToggleButton(true);
+        demandWindowDialog->setEnabled(true);
+
+        resultsDialog->setResultsType(calculationSettings->settingsModel);
+        resultsDialog->setResults(allResults);
+        resultsDialog->show();
+    }
+}
+
+bool SheetWidget::arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
+{
+    pricePoints.clear();
+
+    QString holder;
+    bool valueCheck = true;
+
+    if (isRowData)
+    {
+        int r = topDelay;
+
+        for (int c = leftDelay; c <= rightDelay; c++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            pricePoints << holder;
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
             }
         }
     }
     else
     {
-        int c = leftPrice;
+        int c = leftDelay;
 
-        /**
-          Loop through delays, confirm THESE are valid first
-          */
-        for (int r = topPrice; r <= bottomPrice; r++)
+        for (int r = topDelay; r <= bottomDelay; r++)
         {
             if (table->item(r, c) == NULL)
             {
                 QMessageBox::critical(this, "Error",
-                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
 
                 if (demandWindowDialog->isVisible())
                 {
                     demandWindowDialog->ToggleButton(true);
                 }
 
-                return;
+                return false;
             }
 
             holder = table->item(r, c)->data(Qt::DisplayRole).toString();
             holder.toDouble(&valueCheck);
 
-            mTempPriceList << table->item(r, c)->data(Qt::DisplayRole).toString();
+            pricePoints << holder;
 
             if (!valueCheck)
             {
                 QMessageBox::critical(this, "Error",
-                                      "One of your pricing measures doesn't look correct. Please re-check these values or selections.");
+                                      "One of your price measures doesn't look correct. Please re-check these values or selections.");
 
                 if (demandWindowDialog->isVisible())
                 {
                     demandWindowDialog->ToggleButton(true);
                 }
 
-                return;
-            }
-        }
-
-        for (int c2 = leftConsumption; c2 <= rightConsumption; c2++)
-        {
-            for (int r = topConsumption; r <= bottomConsumption; r++)
-            {
-                if (table->item(r, c2) != NULL)
-                {
-                    holder = table->item(r, c2)->data(Qt::DisplayRole).toString();
-                    holder = holder.toDouble(&valueCheck);
-
-                    if (valueCheck)
-                    {
-                        holder = holder;
-
-                        pricePoints << mTempPriceList[c2 - leftConsumption];
-                        consumptionPoints << table->item(r, c2)->data(Qt::DisplayRole).toString();
-                        idValues << QString::number(c2 - leftConsumption + 1);
-                    }
-                }
+                return false;
             }
         }
     }
-}
 
-void SheetWidget::WorkFinished(QStringList status)
-{
-    QStringList mSplitCommand = status.first().split(" ");
-
-    if (mSplitCommand.first().contains("checkSystematic.R"))
-    {
-        if (isChecking)
-        {
-            steinCheckDialog = new SteinCheckDialog(this, status.at(1));
-            steinCheckDialog->setModal(true);
-            steinCheckDialog->exec();
-
-            if (steinCheckDialog->canProceed)
-            {
-                QStringList mArgList;
-
-                #ifdef _WIN32
-
-                mArgList << "fitDemand.R";
-
-                #elif TARGET_OS_MAC
-                QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
-
-                runDirectory.cdUp();
-                runDirectory.cd("Resources");
-                QString scriptDir = "\"" + runDirectory.path() + "/";
-
-                mArgList << scriptDir + "fitDemand.R" + "\"";
-
-                #endif
-
-                mArgList << mModel;
-                mArgList << idValues.join(",");
-                mArgList << pricePoints.join(",");
-                mArgList << consumptionPoints.join(",");
-                mArgList << mCallK;
-                mArgList << mRem0;
-                mArgList << mReplnum;
-                mArgList << mRemQ0;
-                mArgList << mReplQ0;
-                mArgList << mFigureFlag;
-
-                mSeriesCommands.clear();
-                mSeriesCommands << mArgList.join(" ");
-
-                allResults.clear();
-
-                thread = new QThread();
-                worker = new FitWorker(commandParameter, mSeriesCommands);
-
-                worker->moveToThread(thread);
-
-                connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-                connect(thread, SIGNAL(started()), worker, SLOT(working()));
-                connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-                connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
-
-                thread->wait();
-                worker->startWork();
-            }
-            else
-            {
-                demandWindowDialog->WindowStateActive(true);
-            }
-        }
-        else if (isConditional)
-        {
-            steinCheckDialog = new SteinCheckDialog(this, status.at(1));
-
-            if (steinCheckDialog->flagRaised)
-            {
-                steinCheckDialog->setModal(true);
-                steinCheckDialog->exec();
-
-                if (steinCheckDialog->canProceed)
-                {
-                    QStringList mArgList;
-
-                    #ifdef _WIN32
-
-                    mArgList << "fitDemand.R";
-
-                    #elif TARGET_OS_MAC
-                    QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
-
-                    runDirectory.cdUp();
-                    runDirectory.cd("Resources");
-                    QString scriptDir = "\"" + runDirectory.path() + "/";
-
-                    mArgList << scriptDir + "fitDemand.R" + "\"";
-
-                    #endif
-
-                    mArgList << mModel;
-                    mArgList << idValues.join(",");
-                    mArgList << pricePoints.join(",");
-                    mArgList << consumptionPoints.join(",");
-                    mArgList << mCallK;
-                    mArgList << mRem0;
-                    mArgList << mReplnum;
-                    mArgList << mRemQ0;
-                    mArgList << mReplQ0;
-                    mArgList << mFigureFlag;
-
-                    mSeriesCommands.clear();
-                    mSeriesCommands << mArgList.join(" ");
-
-                    allResults.clear();
-
-                    thread = new QThread();
-                    worker = new FitWorker(commandParameter, mSeriesCommands);
-
-                    worker->moveToThread(thread);
-
-                    connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-                    connect(thread, SIGNAL(started()), worker, SLOT(working()));
-                    connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-                    connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
-
-                    thread->wait();
-                    worker->startWork();
-                }
-                else
-                {
-                    demandWindowDialog->WindowStateActive(true);
-                }
-            }
-            else
-            {
-                QStringList mArgList;
-
-                #ifdef _WIN32
-
-                mArgList << "fitDemand.R";
-
-                #elif TARGET_OS_MAC
-                QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
-
-                runDirectory.cdUp();
-                runDirectory.cd("Resources");
-                QString scriptDir = "\"" + runDirectory.path() + "/";
-
-                mArgList << scriptDir + "fitDemand.R" + "\"";
-
-                #endif
-
-                mArgList << mModel;
-                mArgList << idValues.join(",");
-                mArgList << pricePoints.join(",");
-                mArgList << consumptionPoints.join(",");
-                mArgList << mCallK;
-                mArgList << mRem0;
-                mArgList << mReplnum;
-                mArgList << mRemQ0;
-                mArgList << mReplQ0;
-                mArgList << mFigureFlag;
-
-                mSeriesCommands.clear();
-                mSeriesCommands << mArgList.join(" ");
-
-                allResults.clear();
-
-                thread = new QThread();
-                worker = new FitWorker(commandParameter, mSeriesCommands);
-
-                worker->moveToThread(thread);
-
-                connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-                connect(thread, SIGNAL(started()), worker, SLOT(working()));
-                connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-                connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
-
-                thread->wait();
-                worker->startWork();
-            }
-        }
-        else
-        {
-            QStringList mArgList;
-
-            #ifdef _WIN32
-
-            mArgList << "fitDemand.R";
-
-            #elif TARGET_OS_MAC
-            QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
-
-            runDirectory.cdUp();
-            runDirectory.cd("Resources");
-            QString scriptDir = "\"" + runDirectory.path() + "/";
-
-            mArgList << scriptDir + "fitDemand.R" + "\"";
-
-            #endif
-
-            mArgList << mModel;
-            mArgList << idValues.join(",");
-            mArgList << pricePoints.join(",");
-            mArgList << consumptionPoints.join(",");
-            mArgList << mCallK;
-            mArgList << mRem0;
-            mArgList << mReplnum;
-            mArgList << mRemQ0;
-            mArgList << mReplQ0;
-            mArgList << mFigureFlag;
-
-            mSeriesCommands.clear();
-            mSeriesCommands << mArgList.join(" ");
-
-            allResults.clear();
-
-            thread = new QThread();
-            worker = new FitWorker(commandParameter, mSeriesCommands);
-
-            worker->moveToThread(thread);
-
-            connect(worker, SIGNAL(workStarted()), thread, SLOT(start()));
-            connect(thread, SIGNAL(started()), worker, SLOT(working()));
-            connect(worker, SIGNAL(workFinished(QStringList)), thread, SLOT(quit()), Qt::DirectConnection);
-            connect(worker, SIGNAL(workFinished(QStringList)), this, SLOT(WorkFinished(QStringList)));
-
-            thread->wait();
-            worker->startWork();
-        }
-    }
-    else if (mSplitCommand.first().contains("fitDemand.R"))
-    {
-        resultsDialog = new ResultsDialog(this, status.at(1));
-        resultsDialog->show();
-
-        demandWindowDialog->WindowStateActive(true);
-    }
+    return true;
 }
 
 bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength)
@@ -1500,6 +1668,174 @@ bool SheetWidget::areDimensionsValid(bool isRowData, int dWidth, int vWidth, int
     }
 
     return true;
+}
+
+void SheetWidget::getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue)
+{
+    QString holder;
+    bool valueCheck = true;
+    double valHolder;
+
+    globalMin = maxrealnumber;
+    globalMax = minrealnumber;
+
+    if (isRowData)
+    {
+        for (int r = topValue; r <= bottomValue; r++)
+        {
+            for (int c = leftValue; c <= rightValue; c++)
+            {
+                if (table->item(r, c) != NULL)
+                {
+                    holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder = holder.toDouble(&valueCheck);
+
+                    if (valueCheck)
+                    {
+                        if (valHolder > 0 && valHolder > globalMax)
+                        {
+                            globalMax = valHolder;
+                        }
+
+                        if (valHolder > 0 && valHolder < globalMin)
+                        {
+                            globalMin = valHolder;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int c = leftValue; c <= rightValue; c++)
+        {
+            for (int r = topValue; r <= bottomValue; r++)
+            {
+                if (table->item(r, c) != NULL)
+                {
+                    holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder = holder.toDouble(&valueCheck);
+
+                    if (valueCheck)
+                    {
+                        if (valHolder > 0 && valHolder > globalMax)
+                        {
+                            globalMax = valHolder;
+                        }
+
+                        if (valHolder > 0 && valHolder < globalMin)
+                        {
+                            globalMin = valHolder;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void SheetWidget::getDataPointsGlobal(double, bool isRowData, DemandModel mModel,
+                                      int topPrice, int leftPrice, int, int,
+                                      int topValue, int leftValue, int bottomValue, int rightValue)
+{
+
+    QList<QPair<double, double>> mDataPoints;
+
+    QString holder1;
+    QString holder2;
+
+    bool valueCheck1 = true;
+    double valHolder1;
+
+    bool valueCheck2 = true;
+    double valHolder2;
+
+    if (isRowData)
+    {
+        for (int r = topValue; r <= bottomValue; r++)
+        {
+            for (int c = leftValue; c <= rightValue; c++)
+            {
+                if (table->item(r, c) != NULL && table->item(topPrice, c) != NULL)
+                {
+                    holder1 = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder1 = holder1.toDouble(&valueCheck1);
+
+                    holder2 = table->item(topPrice, c)->data(Qt::DisplayRole).toString();
+                    valHolder2 = holder2.toDouble(&valueCheck2);
+
+                    // TODO check here, should linear be in as well?
+                    if (mModel == DemandModel::Exponential)
+                    {
+                        // Drop consumption values of zero
+                        if (valHolder1 <= 0)
+                        {
+                            continue;
+                        }
+
+                        valHolder1 = log10(valHolder1);
+
+                        if (valueCheck1 && valueCheck2)
+                        {
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                    else
+                    {
+                        if (valueCheck1 && valueCheck2)
+                        {
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int c = leftValue; c <= rightValue; c++)
+        {
+            for (int r = topValue; r <= bottomValue; r++)
+            {
+                if (table->item(r, c) != NULL && table->item(leftPrice, c) != NULL)
+                {
+                    holder1 = table->item(r, c)->data(Qt::DisplayRole).toString();
+                    valHolder1 = holder1.toDouble(&valueCheck1);
+
+                    holder2 = table->item(c, leftPrice)->data(Qt::DisplayRole).toString();
+                    valHolder2 = holder2.toDouble(&valueCheck2);
+
+                    qDebug() << QString("X: %1 Y: %2").arg(holder1).arg(holder2);
+
+                    if (mModel == DemandModel::Exponential)
+                    {
+                        // Drop consumption values of zero
+                        if (valHolder1 <= 0)
+                        {
+                            continue;
+                        }
+
+                        valHolder1 = log10(valHolder1);
+
+                        if (valueCheck1 && valueCheck2)
+                        {                            
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                    else
+                    {
+                        if (valueCheck1 && valueCheck2)
+                        {
+                            mDataPoints.append(QPair<double, double>(valHolder2, valHolder1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    qDebug() << "cleared fx";
 }
 
 void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
