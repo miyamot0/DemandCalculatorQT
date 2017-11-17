@@ -1302,7 +1302,6 @@ void SheetWidget::Calculate()
     }
 
     // Results dialog?
-
     statusBar()->showMessage("Beginning calculations...", 3000);
     allResults.clear();
 
@@ -1310,7 +1309,7 @@ void SheetWidget::Calculate()
     double globalMin,
            globalMax;
 
-    if (calculationSettings->settingsK == BehaviorK::Range)
+    if (calculationSettings->settingsK == BehaviorK::Range || calculationSettings->settingsK == BehaviorK::Share)
     {
         getGlobalMinAndMax(globalMin,
                            globalMax,
@@ -1319,29 +1318,6 @@ void SheetWidget::Calculate()
                            calculationSettings->leftConsumption,
                            calculationSettings->bottomConsumption,
                            calculationSettings->rightConsumption);
-    }
-    else if (calculationSettings->settingsK == BehaviorK::Share)
-    {
-        getGlobalMinAndMax(globalMin,
-                           globalMax,
-                           isRowData,
-                           calculationSettings->topConsumption,
-                           calculationSettings->leftConsumption,
-                           calculationSettings->bottomConsumption,
-                           calculationSettings->rightConsumption);
-
-        getDataPointsGlobal(globalMax,
-                            isRowData,
-                            calculationSettings->settingsModel,
-                            calculationSettings->topPrice,
-                            calculationSettings->leftPrice,
-                            calculationSettings->bottomPrice,
-                            calculationSettings->rightPrice,
-                            calculationSettings->topConsumption,
-                            calculationSettings->leftConsumption,
-                            calculationSettings->bottomConsumption,
-                            calculationSettings->rightConsumption);
-
     }
 
     calculationSettings->globalMinConsumption = globalMin;
@@ -1824,6 +1800,8 @@ void SheetWidget::getDataPointsGlobal(double, bool isRowData, DemandModel mModel
                     holder2 = table->item(c, leftPrice)->data(Qt::DisplayRole).toString();
                     valHolder2 = holder2.toDouble(&valueCheck2);
 
+                    qDebug() << QString("X: %1 Y: %2").arg(holder1).arg(holder2);
+
                     if (mModel == DemandModel::Exponential)
                     {
                         // Drop consumption values of zero
@@ -1850,6 +1828,8 @@ void SheetWidget::getDataPointsGlobal(double, bool isRowData, DemandModel mModel
             }
         }
     }
+
+    qDebug() << "cleared fx";
 }
 
 void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)

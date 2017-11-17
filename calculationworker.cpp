@@ -245,8 +245,6 @@ double CalculationWorker::GetSharedK()
     for (int v = 0; v < tempMatrix.length(); v++)
     {
         arrayHolder.append(real_1d_array(QString("[%1]").arg(tempMatrix[v].toList().join(",")).toUtf8().constData()));
-
-        qDebug() << QString("[%1]").arg(tempMatrix[v].toList().join(",")).toUtf8().constData();
     }
 
     arrayHolder.append(real_1d_array(QString("[%1]").arg(xHolder.join(',')).toUtf8().constData()));
@@ -288,8 +286,6 @@ double CalculationWorker::GetSharedK()
             // through each series
             for (int series = 0; series < holder.length(); series++)
             {
-                qDebug() << "In series : " << series;
-
                 counter = 0;
                 mObj->SetModel(DemandModel::Exponential);
 
@@ -345,8 +341,6 @@ double CalculationWorker::GetSharedK()
         bl.clear();
         bu.clear();
 
-        qDebug() << "making strings...";
-
         for (int i = 0; i < bestParams.length(); i++)
         {
             bl << "-inf" << "-inf";
@@ -359,8 +353,6 @@ double CalculationWorker::GetSharedK()
         bl << "0.5";
         bu << "+inf";
 
-        qDebug() << "getting best k.. " << QString::number(holdingBestK);
-
         starts << QString::number(holdingBestK);
 
         mObj->SetX(QString("[" + xReference.join(",") + "]").toUtf8().constData());
@@ -369,11 +361,7 @@ double CalculationWorker::GetSharedK()
 
         emit statusUpdate(QString("Fitting K parameter globally..."));
 
-        qDebug() << "pre run";
-
         mObj->FitSharedExponentialK(QString("[" + starts.join(',') + "]").toUtf8().constData(), &arrayHolder);
-
-        qDebug() << "pst run";
 
         savedGlobalFits = mObj->GetParams();
     }
@@ -510,15 +498,6 @@ void CalculationWorker::working()
             values++;
         }
     }
-
-    tempMatrix.clear();
-    tempMatrix.reserve(mLocalStoredValues.length());
-
-    xReference.clear();
-    xHolder.clear();
-    yHolder.clear();
-
-    QVector<int> skipCount;
 
     if (calculationSettings.settingsK == BehaviorK::Share)
     {
@@ -694,14 +673,10 @@ void CalculationWorker::working()
                                         .toUtf8()
                                         .constData(), mParams);
 
-                    qDebug() << mObj->GetInfo();
-
                     failed = false;
                 }
                 catch (alglib::ap_error err)
                 {
-                    qDebug() << err.msg.c_str();
-
                     failed = true;
                 }
             }
@@ -710,8 +685,6 @@ void CalculationWorker::working()
             {
                 mTempHolder.clear();
                 mTempHolder << QString::number(i + 1);
-
-
             }
             else if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
