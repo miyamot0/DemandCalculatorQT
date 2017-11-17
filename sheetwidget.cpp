@@ -1379,11 +1379,10 @@ void SheetWidget::Calculate()
             // Pass on zero consumptions?
             if (calculationSettings->settingsZeroConsumption == Behavior::Drop && valuePoints[i].toDouble() <= 0)
             {
-                qDebug() << "Skipped Series: " << i;
-
                 continue;
             }
 
+            // TODO: Linear workaround
             //If Exponential or Linear
             //if ((calculationSettings->settingsModel == DemandModel::Exponential && valuePoints[i].toDouble() <= 0) ||
             //    (calculationSettings->settingsModel == DemandModel::Linear && valuePoints[i].toDouble() <= 0))
@@ -1392,16 +1391,14 @@ void SheetWidget::Calculate()
             //    return;
             //}
 
-            // Pass on Q0?
-            if ((calculationSettings->settingsQ0 == Behavior::Drop && pricePointsTemp[i].toDouble() <= 0) ||
-                (calculationSettings->settingsModel == DemandModel::Linear && valuePoints[i].toDouble() <= 0))
+            if (pricePointsTemp[i].toDouble() <= 0 && calculationSettings->settingsQ0 == Behavior::Drop)
             {
                 continue;
             }
 
             if (!xStart)
             {
-                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() >= 0)
+                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() <= 0)
                 {
                     mXString.append("[" + QString::number(calculationSettings->customQ0replacement) + "]");
 
@@ -1418,7 +1415,7 @@ void SheetWidget::Calculate()
             }
             else
             {
-                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() >= 0)
+                if (calculationSettings->settingsQ0 == Behavior::Modify && pricePointsTemp[i].toDouble() <= 0)
                 {
                     mXString.append(",[" + QString::number(calculationSettings->customQ0replacement) + "]");
 

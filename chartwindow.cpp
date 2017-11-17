@@ -183,7 +183,7 @@ void chartwindow::plotLinearSeries(int index)
     demandCurve->clear();
     dataPoints->clear();
 
-    if (mList[0].contains("dropped", Qt::CaseInsensitive))
+    if (mList[2].contains("---", Qt::CaseInsensitive))
     {
         chart->setTitle(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
 
@@ -399,9 +399,11 @@ void chartwindow::plotExponentialSeries(int index)
     demandCurve->clear();
     dataPoints->clear();
 
-    if (mList[0].contains("dropped", Qt::CaseInsensitive))
+    if (mList[2].contains("---", Qt::CaseInsensitive))
     {
         chart->setTitle(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
+        pmaxLine->clear();
+        pmaxLine->setName("pMax");
 
         return;
     }
@@ -614,9 +616,11 @@ void chartwindow::plotExponentiatedSeries(int index)
     demandCurve->clear();
     dataPoints->clear();
 
-    if (mList[0].contains("dropped", Qt::CaseInsensitive))
+    if (mList[2].contains("---", Qt::CaseInsensitive))
     {
         chart->setTitle(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
+        pmaxLine->clear();
+        pmaxLine->setName("pMax");
 
         return;
     }
