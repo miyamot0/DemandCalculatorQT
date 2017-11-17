@@ -26,6 +26,8 @@ public:
 
     double getPbar(QList<double> &yValues);
 
+    double GetSharedK();
+
     QString getCodeString(ae_int_t code);
     QString getKMessage(BehaviorK call);
     QString getPmaxEString(QList<double> &yValues, QList<double> &xValues);
