@@ -94,7 +94,7 @@ void DemandSettingsDialog::on_modelingExponential_toggled(bool checked)
 {
     if (checked)
     {
-        ui->q0DropValue->setChecked(true);
+        ui->q0KeepValue->setChecked(true);
         ui->breakpointDropValue->setChecked(true);
     }
 }
