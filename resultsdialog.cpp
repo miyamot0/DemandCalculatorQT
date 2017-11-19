@@ -50,6 +50,8 @@ ResultsDialog::ResultsDialog(QWidget *parent) :
     connect(copyAction, &QAction::triggered, this, &ResultsDialog::copy);
 
     addAction(copyAction);
+
+    setWindowFlags(Qt::WindowStaysOnTopHint);
 }
 
 void ResultsDialog::setResults(QList<QStringList> mData)
