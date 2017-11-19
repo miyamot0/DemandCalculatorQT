@@ -1,12 +1,13 @@
-#include <QDebug>
+//#include <QDebug>
 
 #include "calculationworker.h"
 #include "qstringlist.h"
 #include <QtWidgets>
 #include <QVector>
-#include <QDebug>
 
 using namespace std;
+
+CalculationWorker* CalculationWorker::ptrCalculationWorker = nullptr;
 
 struct BruteForce {
   double p1 = 0;
@@ -28,7 +29,37 @@ struct BruteForceValues {
 
 BruteForceValues provisionalValues;
 
-bool BruteSorter(BruteForce const& lhs, BruteForce const& rhs) {
+void CalculationWorker::ResetSharedCounter(int amt, int max)
+{
+    if (ptrCalculationWorker)
+    {
+        ptrCalculationWorker->currentIteration = amt;
+        ptrCalculationWorker->maximumIterations = max;
+    }
+}
+
+void CalculationWorker::ReportFx(const real_1d_array &c, double func, void * )
+{
+    if (ptrCalculationWorker)
+    {
+        emit ptrCalculationWorker->statusUpdate(QString("Iteration %1 of %2: Err for k(%3) = %4")
+                                           .arg(ptrCalculationWorker->currentIteration + 1)
+                                           .arg(ptrCalculationWorker->maximumIterations)
+                                           .arg(c[c.length() - 1])
+                                           .arg(func));
+
+        //qDebug() << QString("Iteration %1 of %2: Err for k(%3) = %4")
+        //            .arg(ptrCalculationWorker->currentIteration + 1)
+        //            .arg(ptrCalculationWorker->maximumIterations)
+        //            .arg(c[c.length() - 1])
+        //            .arg(func);
+
+        ptrCalculationWorker->currentIteration = ptrCalculationWorker->currentIteration + 1;
+    }
+}
+
+bool BruteSorter(BruteForce const& lhs, BruteForce const& rhs)
+{
     return lhs.err < rhs.err;
 }
 
@@ -38,6 +69,8 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     calculationSettings = *mCalculationSettings;
     modelType = calculationSettings.settingsModel;
     mObj = new demandmodeling();
+
+    ptrCalculationWorker = this;
 }
 
 double CalculationWorker::getPbar(QList<double> &yValues)
@@ -190,6 +223,16 @@ QString CalculationWorker::getBP1String(QList<double> &yValues, QList<double> &x
     return priceString;
 }
 
+double CalculationWorker::GetMagnitude(double num)
+{
+    if (num > 1 && num < 10)
+    {
+        return 1;
+    }
+
+    return (num < 0) ? log10(num * -1) : log10(num);
+}
+
 double CalculationWorker::GetSharedK()
 {
     int rows = 0, points = 0;
@@ -259,8 +302,8 @@ double CalculationWorker::GetSharedK()
 
     if (calculationSettings.settingsModel == DemandModel::Exponential)
     {
-        lowerK = 0.5;
-        upperK = log10(calculationSettings.globalMaxConsumption) * 2;
+        lowerK = log(0.5);
+        upperK = log((log(calculationSettings.globalMaxConsumption) + 0.5) * 2);
         kSpan = upperK - lowerK;
         tempK = -1;
 
@@ -301,7 +344,7 @@ double CalculationWorker::GetSharedK()
                     {
                         provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
                         provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                        provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
+                        provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
 
                         provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
                                                                                                               provisionalValues.largeParamStartingValueArray[counter].p2,
@@ -323,7 +366,7 @@ double CalculationWorker::GetSharedK()
 
             if (holdingTempSSR <= holdingBestSSR)
             {
-                holdingBestK = tempK;
+                holdingBestK = exp(tempK);
 
                 for (int p = 0; p < paramHolder.length(); p++)
                 {
@@ -340,35 +383,58 @@ double CalculationWorker::GetSharedK()
         starts.clear();
         bl.clear();
         bu.clear();
+        scale.clear();
+
+        q0Ave = 0;
+        alphaAve = 0;
+
+        for (int i = 0; i < bestParams.length() / 2; i++)
+        {
+            q0Ave = q0Ave + bestParams[0 + i].first;
+            alphaAve = alphaAve + bestParams[1 + i].second;
+        }
+
+        q0Ave /= (((double) bestParams.length()) / 2);
+        alphaAve /= (((double) bestParams.length()) / 2);
+
 
         for (int i = 0; i < bestParams.length(); i++)
         {
             bl << "-inf" << "-inf";
             bu << "+inf" << "+inf";
 
+            scale << QString::number(GetMagnitude(q0Ave))
+                  << QString::number(GetMagnitude(alphaAve));
+
             starts << QString::number(bestParams[i].first)
                    << QString::number(bestParams[i].second);
         }
 
         bl << "0.5";
-        bu << "+inf";
+        bu << QString::number((log(calculationSettings.globalMaxConsumption) + 0.5) * 2);
+
+        scale << QString::number(GetMagnitude(holdingBestK));
 
         starts << QString::number(holdingBestK);
 
         mObj->SetX(QString("[" + xReference.join(",") + "]").toUtf8().constData());
         mObj->SetY(QString("[" + yHolder.join(",") + "]").toUtf8().constData());
         mObj->SetBounds(QString("[" + bu.join(',') + "]").toUtf8().constData(), QString("[" + bl.join(',') + "]").toUtf8().constData());
+        mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
         emit statusUpdate(QString("Fitting K parameter globally..."));
 
-        mObj->FitSharedExponentialK(QString("[" + starts.join(',') + "]").toUtf8().constData(), &arrayHolder);
+        mObj->FitSharedExponentialK(QString("[" + starts.join(',') + "]").toUtf8().constData(),
+                                    &arrayHolder,
+                                    &ReportFx,
+                                    &ResetSharedCounter);
 
         savedGlobalFits = mObj->GetParams();
     }
     else if (calculationSettings.settingsModel == DemandModel::Exponentiated)
     {
-        lowerK = 0.5;
-        upperK = log10(calculationSettings.globalMaxConsumption) * 2;
+        lowerK = log(0.5);
+        upperK = log((log(calculationSettings.globalMaxConsumption) + 0.5) * 2);
         kSpan = upperK - lowerK;
         tempK = -1;
 
@@ -409,7 +475,7 @@ double CalculationWorker::GetSharedK()
                     {
                         provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
                         provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                        provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
+                        provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
 
                         provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
                                                                                                                 provisionalValues.largeParamStartingValueArray[counter].p2,
@@ -448,28 +514,51 @@ double CalculationWorker::GetSharedK()
         starts.clear();
         bl.clear();
         bu.clear();
+        scale.clear();
+
+        q0Ave = 0;
+        alphaAve = 0;
+
+        for (int i = 0; i < bestParams.length() / 2; i++)
+        {
+            q0Ave = q0Ave + bestParams[0 + i].first;
+            alphaAve = alphaAve + bestParams[1 + i].second;
+        }
+
+        q0Ave /= (((double) bestParams.length()) / 2);
+        alphaAve /= (((double) bestParams.length()) / 2);
 
         for (int i = 0; i < bestParams.length(); i++)
         {
             bl << "-inf" << "-inf";
             bu << "+inf" << "+inf";
 
+            scale << QString::number(GetMagnitude(q0Ave))
+                  << QString::number(GetMagnitude(alphaAve));
+
             starts << QString::number(bestParams[i].first)
                    << QString::number(bestParams[i].second);
         }
 
         bl << "0.5";
-        bu << "+inf";
+        bu << QString::number((log(calculationSettings.globalMaxConsumption) + 0.5) * 2);
+
+        scale << QString::number(GetMagnitude(holdingBestK));
 
         starts << QString::number(holdingBestK);
+
 
         mObj->SetX(QString("[" + xReference.join(",") + "]").toUtf8().constData());
         mObj->SetY(QString("[" + yHolder.join(",") + "]").toUtf8().constData());
         mObj->SetBounds(QString("[" + bu.join(',') + "]").toUtf8().constData(), QString("[" + bl.join(',') + "]").toUtf8().constData());
+        mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
         emit statusUpdate(QString("Fitting K parameter globally..."));
 
-        mObj->FitSharedExponentiatedK(QString("[" + starts.join(',') + "]").toUtf8().constData(), &arrayHolder);
+        mObj->FitSharedExponentiatedK(QString("[" + starts.join(',') + "]").toUtf8().constData(),
+                                      &arrayHolder,
+                                      &ReportFx,
+                                      &ResetSharedCounter);
 
         savedGlobalFits = mObj->GetParams();
     }
@@ -579,8 +668,8 @@ void CalculationWorker::working()
         {
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
-                lowerK = 0.5;
-                upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
+                lowerK = log(0.5);
+                upperK = log((log(mLocalStoredValues[i].LocalMax) + 0.5) * 2);
                 kSpan = upperK - lowerK;
                 tempK = -1;
 
@@ -608,7 +697,7 @@ void CalculationWorker::working()
                         {
                             provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
                             provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                            provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
+                            provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
 
                             provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p2,
@@ -622,15 +711,32 @@ void CalculationWorker::working()
                           provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
 
-                k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
+                k = (log(mLocalStoredValues[i].LocalMax) + 0.5) * 2;
 
-                mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(), "[0.0001, -inf, 0.5]");
+                mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
+                                "[0.0001, -inf, 0.5]");
 
-                mObj->FitExponentialWithK(QString("[%1, %2, %3]")
-                                          .arg(provisionalValues.largeParamStartingValueArray[0].p1)
-                                          .arg(provisionalValues.largeParamStartingValueArray[0].p2)
-                                          .arg(provisionalValues.largeParamStartingValueArray[0].p3)
-                                          .toUtf8().constData());
+                scale.clear();
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
+
+                try
+                {
+                    mObj->FitExponentialWithK(QString("[%1, %2, %3]")
+                                              .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                              .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                              .arg(provisionalValues.largeParamStartingValueArray[0].p3)
+                                              .toUtf8().constData());
+
+                    failed = false;
+                }
+                catch (alglib::ap_error err)
+                {
+                    failed = true;
+                }
             }
             else
             {
@@ -690,6 +796,13 @@ void CalculationWorker::working()
                           &BruteSorter);
 
                 mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
+
+                scale.clear();
+
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1))
+                      << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
                 try
                 {
@@ -783,8 +896,8 @@ void CalculationWorker::working()
         {
             if (calculationSettings.settingsK == BehaviorK::Fit)
             {
-                lowerK = 0.5;
-                upperK = log10(mLocalStoredValues[i].LocalMax) * 2;
+                lowerK = log(0.5);
+                upperK = log((log(mLocalStoredValues[i].LocalMax) + 0.5) * 2);
                 kSpan = upperK - lowerK;
                 tempK = -1;
 
@@ -812,7 +925,7 @@ void CalculationWorker::working()
                         {
                             provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
                             provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                            provisionalValues.largeParamStartingValueArray[counter].p3 = pow(10, tempK);
+                            provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
 
                             provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
                                                                                                                     provisionalValues.largeParamStartingValueArray[counter].p2,
@@ -826,19 +939,32 @@ void CalculationWorker::working()
                           provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
 
-                provisionalValues.largeParamStartingValueArray[0].p2 = (provisionalValues.largeParamStartingValueArray[0].p2 == 0) ? 0.000000001 :
-                                                                                                                                     provisionalValues.largeParamStartingValueArray[0].p2;
-
-                k = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
+                k = (log(mLocalStoredValues[i].LocalMax) + 0.5) * 2;
 
                 mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
                                 "[0.0001, -inf, 0.5]");
 
-                mObj->FitExponentiatedWithK(QString("[%1, %2, %3]")
-                                            .arg(provisionalValues.largeParamStartingValueArray[0].p1)
-                                            .arg(provisionalValues.largeParamStartingValueArray[0].p2)
-                                            .arg(provisionalValues.largeParamStartingValueArray[0].p3)
-                                            .toUtf8().constData());
+                scale.clear();
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
+
+                try
+                {
+                    mObj->FitExponentiatedWithK(QString("[%1, %2, %3]")
+                                                .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                                .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                                .arg(provisionalValues.largeParamStartingValueArray[0].p3)
+                                                .toUtf8().constData());
+
+                    failed = false;
+                }
+                catch (alglib::ap_error err)
+                {
+                    failed = true;
+                }
             }
             else
             {
@@ -855,7 +981,6 @@ void CalculationWorker::working()
                 else if (calculationSettings.settingsK == BehaviorK::Share)
                 {
                     mParams << savedGlobalFits[savedGlobalFits.length() - 1];
-                    //mParams << calculationSettings.globalFitK;
                 }
                 else if (calculationSettings.settingsK == BehaviorK::Custom)
                 {
@@ -898,15 +1023,29 @@ void CalculationWorker::working()
                           provisionalValues.largeParamStartingValueArray + 1000000,
                           &BruteSorter);
 
-                provisionalValues.largeParamStartingValueArray[0].p2 = (provisionalValues.largeParamStartingValueArray[0].p2 == 0) ? 0.000000001 :
-                                                                                                                                     provisionalValues.largeParamStartingValueArray[0].p2;
-
                 mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
-                mObj->FitExponentiated(QString("[%1, %2]")
-                                      .arg(provisionalValues.largeParamStartingValueArray[0].p1)
-                                      .arg(provisionalValues.largeParamStartingValueArray[0].p2)
-                                      .toUtf8()
-                                      .constData(), mParams);
+
+                scale.clear();
+
+                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1))
+                      << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
+
+                try
+                {
+                    mObj->FitExponentiated(QString("[%1, %2]")
+                                          .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                          .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                          .toUtf8()
+                                          .constData(), mParams);
+
+                    failed = false;
+                }
+                catch (alglib::ap_error err)
+                {
+                    failed = true;
+                }
             }
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)

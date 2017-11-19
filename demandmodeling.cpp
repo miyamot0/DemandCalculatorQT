@@ -81,6 +81,11 @@ void demandmodeling::SetStarts(const char *mString)
     c = mString;
 }
 
+void demandmodeling::SetScale(const char *mString)
+{
+    s = mString;
+}
+
 void demandmodeling::SetBounds(const char *mUpperString, const char *mLowerString)
 {
     bndu = mUpperString;
@@ -262,46 +267,31 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 {
     SetStarts(mStarts);
 
-    lsfitcreatef(x, y, c, diffstep, state);
-    lsfitsetbc(state, bndl, bndu);
+    lsfitcreatef(x,
+                 y,
+                 c,
+                 diffstep,
+                 state);
 
-    QString mScaleString = QString("[%1, %2]").arg(abs((int) (c[0] / c[1]))).arg(1);
+    lsfitsetcond(state,
+                 epsx,
+                 maxits);
 
-    real_1d_array s = mScaleString.toUtf8().constData();
+    lsfitsetbc(state,
+               bndl,
+               bndu);
+
     lsfitsetscale(state, s);
 
-    lsfitsetcond(state, epsx, maxits);
-
-    alglib::lsfitfit(state, exponential_demand, NULL, &mParams);
+    alglib::lsfitfit(state,
+                     exponential_demand,
+                     NULL,
+                     &mParams);
 
     lsfitresults(state, info, c, rep);
 }
 
 void demandmodeling::FitExponentialWithK(const char *mStarts)
-{
-    SetStarts(mStarts);
-
-    QList<double> mParams;
-
-    lsfitcreatef(x, y, c, diffstep, state);
-    lsfitsetbc(state, bndl, bndu);
-
-    QString mScaleString = QString("[%1, %2, %3]")
-            .arg(abs((int) (c[0] / c[1])))
-            .arg(1)
-            .arg(abs((int) (c[2] / c[1])));
-
-    real_1d_array s = mScaleString.toUtf8().constData();
-    lsfitsetscale(state, s);
-
-    lsfitsetcond(state, epsx, maxits);
-
-    alglib::lsfitfit(state, exponential_demand_with_k, NULL, &mParams);
-
-    lsfitresults(state, info, c, rep);
-}
-
-void demandmodeling::FitSharedExponentialK(const char *mStarts, QList<real_1d_array> *arrayHolder)
 {
     SetStarts(mStarts);
 
@@ -311,34 +301,53 @@ void demandmodeling::FitSharedExponentialK(const char *mStarts, QList<real_1d_ar
                  diffstep,
                  state);
 
-    lsfitsetbc(state, bndl, bndu);
-
-    //scale?
-
-    //double q0ave =   (c[0] + c[2] + c[4]) / 3;
-    //double alphave = (c[1] + c[3] + c[5]) / 3;
-
-    /*
-    QString mScaleString = QString("[%1, %2, %3, %4, %5, %6, %7]")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1");
-    */
-
-    //real_1d_array s = mScaleString.toUtf8().constData();
-    //lsfitsetscale(state, s);
-
     lsfitsetcond(state,
                  epsx,
-                 50);
+                 maxits);
+
+    lsfitsetbc(state,
+               bndl,
+               bndu);
+
+    lsfitsetscale(state, s);
+
+    alglib::lsfitfit(state, exponential_demand_with_k);
+
+    lsfitresults(state, info, c, rep);
+}
+
+void demandmodeling::FitSharedExponentialK(const char *mStarts,
+                                           QList<real_1d_array> *arrayHolder,
+                                           void (*caller)(const real_1d_array &c, double func, void *ptr),
+                                           void (*reset)(int amt, int max))
+{
+    SetStarts(mStarts);
+
+    // Note: 0.001 as hard constant for just shared methods
+    lsfitcreatef(x,
+                 y,
+                 c,
+                 0.001,
+                 state);
+
+    // Note: 0.001 as hard constant for just shared methods
+    lsfitsetcond(state,
+                 0.001,
+                 sharedIterationMax - 2);
+
+    lsfitsetbc(state,
+               bndl,
+               bndu);
+
+    lsfitsetscale(state, s);
+
+    reset(0, sharedIterationMax);
+
+    lsfitsetxrep(state, true);
 
     alglib::lsfitfit(state,
                      exponential_demand_with_k_shared,
-                     NULL,
+                     caller,
                      arrayHolder);
 
     lsfitresults(state, info, c, rep);
@@ -348,17 +357,21 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 {
     SetStarts(mStarts);
 
-    lsfitcreatef(x, y, c, diffstep, state);
-    lsfitsetbc(state, bndl, bndu);
+    lsfitcreatef(x,
+                 y,
+                 c,
+                 diffstep,
+                 state);
 
-    QString mScaleString = QString("[%1, %2]")
-            .arg(abs((c[0] / c[1])))
-            .arg(1);
+    lsfitsetcond(state,
+                 epsx,
+                 maxits);
 
-    real_1d_array s = mScaleString.toUtf8().constData();
+    lsfitsetbc(state,
+               bndl,
+               bndu);
+
     lsfitsetscale(state, s);
-
-    lsfitsetcond(state, epsx, maxits);
 
     alglib::lsfitfit(state, exponentiated_demand, NULL, &mParams);
 
@@ -369,59 +382,60 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 {
     SetStarts(mStarts);
 
-    lsfitcreatef(x, y, c, diffstep, state);
-    lsfitsetbc(state, bndl, bndu);
-
-    QString mScaleString = QString("[%1, %2, %3]")
-            .arg(abs((int) (c[0] / c[1])))
-            .arg(1)
-            .arg(abs((int) (c[2] / c[1])));
-
-    real_1d_array s = mScaleString.toUtf8().constData();
-    lsfitsetscale(state, s);
-
-    lsfitsetcond(state, epsx, maxits);
-
-    alglib::lsfitfit(state, exponentiated_demand_with_k);
-
-    lsfitresults(state, info, c, rep);
-}
-
-void demandmodeling::FitSharedExponentiatedK(const char *mStarts, QList<real_1d_array> *arrayHolder)
-{
-    SetStarts(mStarts);
-
     lsfitcreatef(x,
                  y,
                  c,
                  diffstep,
                  state);
 
-    lsfitsetbc(state, bndl, bndu);
-
-    //scale?
-    //double q0ave =   (c[0] + c[2] + c[4]) / 3;
-    //double alphave = (c[1] + c[3] + c[5]) / 3;
-
-    /*
-    QString mScaleString = QString("[%1, %2, %3, %4, %5, %6, %7]")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1")
-            .arg("1e-2")
-            .arg("1");
-    */
-
-    //real_1d_array s = mScaleString.toUtf8().constData();
-    //lsfitsetscale(state, s);
-
     lsfitsetcond(state,
                  epsx,
-                 50);
+                 maxits);
 
-    alglib::lsfitfit(state, exponentiated_demand_with_k_shared, NULL, arrayHolder);
+    lsfitsetbc(state,
+               bndl,
+               bndu);
+
+    lsfitsetscale(state, s);
+
+    alglib::lsfitfit(state, exponentiated_demand_with_k);
+
+    lsfitresults(state, info, c, rep);
+}
+
+void demandmodeling::FitSharedExponentiatedK(const char *mStarts,
+                                             QList<real_1d_array> *arrayHolder,
+                                             void (*caller)(const real_1d_array &c, double func, void *ptr),
+                                             void (*reset)(int amt, int max))
+{
+    SetStarts(mStarts);
+
+    // Note: 0.001 as hard constant for just shared methods
+    lsfitcreatef(x,
+                 y,
+                 c,
+                 0.001,
+                 state);
+
+    // Note: 0.001 as hard constant for just shared methods
+    lsfitsetcond(state,
+                 0.001,
+                 sharedIterationMax - 2);
+
+    lsfitsetbc(state,
+               bndl,
+               bndu);
+
+    lsfitsetscale(state, s);
+
+    reset(0, sharedIterationMax);
+
+    lsfitsetxrep(state, true);
+
+    alglib::lsfitfit(state,
+                     exponentiated_demand_with_k_shared,
+                     caller,
+                     arrayHolder);
 
     lsfitresults(state, info, c, rep);
 }
@@ -430,21 +444,6 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts, QList<real_1d_
 void demandmodeling::TestMixedModel()
 {
 
-}
-
-int demandmodeling::SignificantDigits()
-{
-    double x = abs(likelyQ0);
-    return (x < 10 ? 1 :
-        (x < 100 ? 2 :
-        (x < 1000 ? 3 :
-        (x < 10000 ? 4 :
-        (x < 100000 ? 5 :
-        (x < 1000000 ? 6 :
-        (x < 10000000 ? 7 :
-        (x < 100000000 ? 8 :
-        (x < 1000000000 ? 9 :
-        10)))))))));
 }
 
 struct QPairFirstComparer
@@ -485,6 +484,7 @@ QStringList demandmodeling::GetSteinTest(QStringList &x, QStringList &y)
     }
 
     // Sort into increasing prices
+    //TODO: update to std::sort
     qSort(mModPoints.begin(), mModPoints.end(), QPairFirstComparer());
 
     // Calculate DeltaQ

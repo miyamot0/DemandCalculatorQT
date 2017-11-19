@@ -10032,7 +10032,7 @@ bool lsfititeration(const lsfitstate &state)
 
 void lsfitfit(lsfitstate &state,
     void (*func)(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr),
-    void  (*rep)(const real_1d_array &c, double func, void *ptr), 
+    void  (*rep)(const real_1d_array &c, double func, void *ptr),
     void *ptr)
 {
     alglib_impl::ae_state _alglib_env_state;
@@ -10064,11 +10064,10 @@ void lsfitfit(lsfitstate &state,
     }
 }
 
-
 void lsfitfit(lsfitstate &state,
     void (*func)(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr),
     void (*grad)(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, void *ptr),
-    void  (*rep)(const real_1d_array &c, double func, void *ptr), 
+    void  (*rep)(const real_1d_array &c, double func, void *ptr),
     void *ptr)
 {
     alglib_impl::ae_state _alglib_env_state;

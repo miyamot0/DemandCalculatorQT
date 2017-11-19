@@ -72,7 +72,6 @@ SOURCES += main.cpp\
     sheetdelegate.cpp \
     calculationsettings.cpp \
     calculationworker.cpp \
-    fitresult.cpp \
     fittingdata.cpp
 
 HEADERS  += \
@@ -104,7 +103,6 @@ HEADERS  += \
     sheetdelegate.h \
     calculationsettings.h \
     calculationworker.h \
-    fitresult.h \
     fittingdata.h
 
 FORMS    += \

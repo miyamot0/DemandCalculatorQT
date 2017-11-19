@@ -1509,12 +1509,12 @@ void SheetWidget::Calculate()
 void SheetWidget::WorkUpdate(QStringList results)
 {
     allResults.append(results);
-    statusBar()->showMessage(QString("Series #%1 Computed").arg(allResults.count()), 3000);
+    statusBar()->showMessage(QString("Series #%1 Computed").arg(allResults.count()));
 }
 
 void SheetWidget::StatusUpdate(QString msg)
 {
-    statusBar()->showMessage(msg, 3000);
+    statusBar()->showMessage(msg);
 }
 
 void SheetWidget::WorkFinished()
@@ -1806,8 +1806,6 @@ void SheetWidget::getDataPointsGlobal(double, bool isRowData, DemandModel mModel
                     holder2 = table->item(c, leftPrice)->data(Qt::DisplayRole).toString();
                     valHolder2 = holder2.toDouble(&valueCheck2);
 
-                    qDebug() << QString("X: %1 Y: %2").arg(holder1).arg(holder2);
-
                     if (mModel == DemandModel::Exponential)
                     {
                         // Drop consumption values of zero
@@ -1834,8 +1832,6 @@ void SheetWidget::getDataPointsGlobal(double, bool isRowData, DemandModel mModel
             }
         }
     }
-
-    qDebug() << "cleared fx";
 }
 
 void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
