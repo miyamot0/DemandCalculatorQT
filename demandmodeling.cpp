@@ -42,6 +42,7 @@
   */
 
 #include "demandmodeling.h"
+#include <QDebug>
 
 void demandmodeling::SetModel(DemandModel model)
 {
@@ -181,7 +182,9 @@ void exponential_demand_with_k_shared(const real_1d_array &c, const real_1d_arra
     // This species parameters of interest (beginning at 0)
     int reference = params->at(0)[(int)x[0]];
 
-    func =  log10(c[reference * 2]) + c[c.length() - 1] * (exp(-c[(reference * 2) + 1] * c[reference * 2] * params->at(params->count() - 1)[(int)x[0]]) - 1);
+    //qDebug() << QString("Reference = %1; Q0 set as %2 and Alpha as %3").arg(reference).arg(reference * 2).arg((reference * 2) + 1);
+
+    func =  log10(c[reference * 2]) + c[c.length() - 1] * (exp(-c[(reference * 2) + 1] * c[reference * 2] * params->at(params->length() - 1)[(int)x[0]]) - 1);
 
     /*
 

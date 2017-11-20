@@ -1,9 +1,8 @@
-//#include <QDebug>
-
 #include "calculationworker.h"
 #include "qstringlist.h"
 #include <QtWidgets>
 #include <QVector>
+#include <QDebug>
 
 using namespace std;
 
@@ -48,11 +47,11 @@ void CalculationWorker::ReportFx(const real_1d_array &c, double func, void * )
                                            .arg(c[c.length() - 1])
                                            .arg(func));
 
-        //qDebug() << QString("Iteration %1 of %2: Err for k(%3) = %4")
-        //            .arg(ptrCalculationWorker->currentIteration + 1)
-        //            .arg(ptrCalculationWorker->maximumIterations)
-        //            .arg(c[c.length() - 1])
-        //            .arg(func);
+        qDebug() << QString("Iteration %1 of %2: Err for k(%3) = %4")
+                    .arg(ptrCalculationWorker->currentIteration + 1)
+                    .arg(ptrCalculationWorker->maximumIterations)
+                    .arg(c[c.length() - 1])
+                    .arg(func);
 
         ptrCalculationWorker->currentIteration = ptrCalculationWorker->currentIteration + 1;
     }
