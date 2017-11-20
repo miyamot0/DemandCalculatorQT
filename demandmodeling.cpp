@@ -149,9 +149,29 @@ void exponential_demand(const real_1d_array &c, const real_1d_array &x, double &
     func = log10(c[0]) + k * (exp(-c[1] * c[0] * x[0]) - 1);
 }
 
+void exponential_demand_grad(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, void *ptr)
+{
+    QList<double> *param = (QList<double> *) ptr;
+    double k = param->at(0);
+
+    func = log10(c[0]) + k * (exp(-c[1] * c[0] * x[0]) - 1);
+
+    grad[0] = 1/(c[0] * log(10)) - k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]));
+    grad[1] = -(k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])));
+}
+
 void exponential_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
     func = log10(c[0]) + c[2] * (exp(-c[1] * c[0] * x[0]) - 1);
+}
+
+void exponential_demand_with_k_grad(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, void *)
+{
+    func = log10(c[0]) + c[2] * (exp(-c[1] * c[0] * x[0]) - 1);
+
+    grad[0] = 1/(c[0] * log(10)) - c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]));
+    grad[1] = -(c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])));
+    grad[2] = (exp(-c[1] * c[0] * x[0]) - 1);
 }
 
 void exponential_demand_with_k_shared(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
@@ -203,9 +223,38 @@ void exponentiated_demand(const real_1d_array &c, const real_1d_array &x, double
     func = c[0] * pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1)));
 }
 
+void exponentiated_demand_grad(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, void *ptr)
+{
+    QList<double> *param = (QList<double> *) ptr;
+    double k = param->at(0);
+
+    func = c[0] * pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1)));
+
+    grad[0] = pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) -
+            c[0] * (pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+                  (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))));
+
+    grad[1] = -(c[0] * (pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]))))));
+
+}
+
 void exponentiated_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
     func = c[0] * pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1)));
+}
+
+void exponentiated_demand_with_k_grad(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, void *)
+{
+    func = c[0] * pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1)));
+
+    grad[0] = pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) -
+            c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+                  (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))));
+
+    grad[1] = -(c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]))))));
+
+    grad[2] = c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)));
+
 }
 
 void exponentiated_demand_with_k_shared(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
@@ -267,11 +316,19 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 {
     SetStarts(mStarts);
 
+    /*
     lsfitcreatef(x,
                  y,
                  c,
                  diffstep,
                  state);
+    */
+
+    lsfitcreatefg(x,
+                  y,
+                  c,
+                  true,
+                  state);
 
     lsfitsetcond(state,
                  epsx,
@@ -285,6 +342,7 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 
     alglib::lsfitfit(state,
                      exponential_demand,
+                     exponential_demand_grad,
                      NULL,
                      &mParams);
 
@@ -295,11 +353,19 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 {
     SetStarts(mStarts);
 
+    /*
     lsfitcreatef(x,
                  y,
                  c,
                  diffstep,
                  state);
+    */
+
+    lsfitcreatefg(x,
+                  y,
+                  c,
+                  true,
+                  state);
 
     lsfitsetcond(state,
                  epsx,
@@ -311,7 +377,7 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 
     lsfitsetscale(state, s);
 
-    alglib::lsfitfit(state, exponential_demand_with_k);
+    alglib::lsfitfit(state, exponential_demand_with_k, exponential_demand_with_k_grad);
 
     lsfitresults(state, info, c, rep);
 }
@@ -357,11 +423,19 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 {
     SetStarts(mStarts);
 
+    /*
     lsfitcreatef(x,
                  y,
                  c,
                  diffstep,
                  state);
+    */
+
+    lsfitcreatefg(x,
+                  y,
+                  c,
+                  true,
+                  state);
 
     lsfitsetcond(state,
                  epsx,
@@ -373,7 +447,11 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 
     lsfitsetscale(state, s);
 
-    alglib::lsfitfit(state, exponentiated_demand, NULL, &mParams);
+    alglib::lsfitfit(state,
+                     exponentiated_demand,
+                     exponentiated_demand_grad,
+                     NULL,
+                     &mParams);
 
     lsfitresults(state, info, c, rep);
 }
@@ -382,11 +460,19 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 {
     SetStarts(mStarts);
 
+    /*
     lsfitcreatef(x,
                  y,
                  c,
                  diffstep,
                  state);
+    */
+
+    lsfitcreatefg(x,
+                  y,
+                  c,
+                  true,
+                  state);
 
     lsfitsetcond(state,
                  epsx,
@@ -398,7 +484,7 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 
     lsfitsetscale(state, s);
 
-    alglib::lsfitfit(state, exponentiated_demand_with_k);
+    alglib::lsfitfit(state, exponentiated_demand_with_k, exponentiated_demand_with_k_grad);
 
     lsfitresults(state, info, c, rep);
 }
