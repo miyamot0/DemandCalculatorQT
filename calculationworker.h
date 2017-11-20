@@ -43,8 +43,6 @@ public:
 
     real_1d_array savedGlobalFits;
 
-    QVector<QVector<QString>> tempMatrix;
-
     QList<real_1d_array> arrayHolder;
 
     // Params
@@ -99,6 +97,11 @@ public:
 
     double q0Ave;
     double alphaAve;
+
+    int location;
+
+    // location of points
+    QStringList referenceData;
 
 private:
     static CalculationWorker* ptrCalculationWorker;

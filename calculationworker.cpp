@@ -256,40 +256,34 @@ double CalculationWorker::GetSharedK()
         }
     }
 
-    tempMatrix.clear();
-    tempMatrix.reserve(holder.length());
-
     xReference.clear();
     xHolder.clear();
     yHolder.clear();
 
+    referenceData.clear();
+    location = 0;
+
     for (int i=0; i<holder.length(); i++)
     {
-        QVector<QString> temp;
-        temp.resize(points);
-        temp.fill("0");
-
-        tempMatrix.append(temp);
-
         for (int p=0; p<holder[i].PriceValues.length(); p++)
         {
-            tempMatrix[i][cntr] = "1";
-
             xReference << "[" + QString::number(cntr) + "]";
+
+            referenceData << QString::number(location);
 
             xHolder << QString::number(holder[i].PriceValues[p]);
             yHolder << QString::number(holder[i].ConsumptionValues[p]);
 
             cntr++;
         }
+
+        location++;
     }
 
     arrayHolder.clear();
-    for (int v = 0; v < tempMatrix.length(); v++)
-    {
-        arrayHolder.append(real_1d_array(QString("[%1]").arg(tempMatrix[v].toList().join(",")).toUtf8().constData()));
-    }
 
+    //Top is reference location, bottom is value
+    arrayHolder.append(real_1d_array(QString("[%1]").arg(referenceData.join(',')).toUtf8().constData()));
     arrayHolder.append(real_1d_array(QString("[%1]").arg(xHolder.join(',')).toUtf8().constData()));
 
     bestParams.clear();

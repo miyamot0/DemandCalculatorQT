@@ -178,6 +178,13 @@ void exponential_demand_with_k_shared(const real_1d_array &c, const real_1d_arra
 {
     QList<real_1d_array> *params = (QList<real_1d_array> *) ptr;
 
+    // This species parameters of interest (beginning at 0)
+    int reference = params->at(0)[(int)x[0]];
+
+    func =  log10(c[reference * 2]) + c[c.length() - 1] * (exp(-c[(reference * 2) + 1] * c[reference * 2] * params->at(params->count() - 1)[(int)x[0]]) - 1);
+
+    /*
+
     int vectorCount = params->count();
     int pairsOfParams = (int) c.length() / 2;
 
@@ -197,6 +204,8 @@ void exponential_demand_with_k_shared(const real_1d_array &c, const real_1d_arra
     // Hacked up alpha
     // Hacked up Q0
     func =  mQ0Pre + c[c.length() - 1] * (exp(-mAlpha * mQ0 * params->at(vectorCount - 1)[(int)x[0]]) - 1);
+    */
+
 }
 
 double demandmodeling::getExponentialSSR(double Q0, double alpha, double k)
@@ -261,6 +270,13 @@ void exponentiated_demand_with_k_shared(const real_1d_array &c, const real_1d_ar
 {
     QList<real_1d_array> *params = (QList<real_1d_array> *) ptr;
 
+    // This species parameters of interest (beginning at 0)
+    int reference = params->at(0)[(int)x[0]];
+
+    func =  c[reference * 2] * pow(10, (c[c.length() - 1] * (exp(-c[(reference * 2) + 1] * c[reference * 2] * params->at(params->count() - 1)[(int)x[0]]) - 1)));
+
+    /*
+
     int vectorCount = params->count();
     int pairsOfParams = (int) c.length() / 2;
 
@@ -275,6 +291,8 @@ void exponentiated_demand_with_k_shared(const real_1d_array &c, const real_1d_ar
     }
 
     func =  mQ0 * pow(10, (c[c.length() - 1] * (exp(-mAlpha * mQ0 * params->at(vectorCount - 1)[(int)x[0]]) - 1)));
+
+    */
 }
 
 double demandmodeling::getExponentiatedSSR(double Q0, double alpha, double k)
@@ -571,7 +589,7 @@ QStringList demandmodeling::GetSteinTest(QStringList &x, QStringList &y)
 
     // Sort into increasing prices
     //TODO: update to std::sort
-    qSort(mModPoints.begin(), mModPoints.end(), QPairFirstComparer());
+    std::sort(mModPoints.begin(), mModPoints.end(), QPairFirstComparer());
 
     // Calculate DeltaQ
     deltaQ = (log10(mModPoints.first().second + 0.01) - log10(mModPoints.last().second + 0.01)) /
