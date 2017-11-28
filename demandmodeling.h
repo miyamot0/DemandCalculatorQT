@@ -98,11 +98,7 @@ public:
 
     bool raisedFlag = false;
 
-    double likelyQ0 = -1;
-
-    int scaleAssessment = 3;
-
-    int sharedIterationMax = 1000;
+    int sharedIterationMax = 100;
 
 private:
     real_2d_array x;

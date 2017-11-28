@@ -59,8 +59,6 @@ void demandmodeling::SetY(const char *mString)
     y = mString;
     yStored = mString;
 
-    likelyQ0 = getMaximumConsumption();
-
     if (modelMode == DemandModel::Exponential)
     {
         for (int i=0; i<y.length(); i++)
