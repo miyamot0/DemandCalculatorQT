@@ -6,7 +6,6 @@
 
 #include "demandmodeling.h"
 #include "calculationsettings.h"
-#include "fitresult.h"
 #include "fittingdata.h"
 
 class CalculationWorker : public QObject
@@ -25,7 +24,6 @@ public:
     DemandModel modelType;
 
     double getPbar(QList<double> &yValues);
-
     double GetSharedK();
 
     QString getCodeString(ae_int_t code);
@@ -36,11 +34,14 @@ public:
     QString getBP0String(QList<double> &yValues, QList<double> &xValues);
     QString getBP1String(QList<double> &yValues, QList<double> &xValues);
 
+    double GetMagnitude(double num);
+
     QList<real_1d_array> sharedHolder;
 
-    real_1d_array savedGlobalFits;
+    static void ResetSharedCounter(int amt, int max);
+    static void ReportFx(const real_1d_array &c, double func, void *);
 
-    QVector<QVector<QString>> tempMatrix;
+    real_1d_array savedGlobalFits;
 
     QList<real_1d_array> arrayHolder;
 
@@ -55,7 +56,8 @@ public:
                 starts,
                 xHolder,
                 yHolder,
-                xReference;
+                xReference,
+                scale;
 
     int cntr;
     int values;
@@ -89,6 +91,20 @@ public:
     double pmaxd;
     double omaxd;
     double EV;
+
+    int currentIteration;
+    int maximumIterations;
+
+    double q0Ave;
+    double alphaAve;
+
+    int location;
+
+    // location of points
+    QStringList referenceData;
+
+private:
+    static CalculationWorker* ptrCalculationWorker;
 
 signals:
     void workStarted();

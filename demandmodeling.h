@@ -67,14 +67,13 @@ public:
     void SetX(const char *mString);
     void SetY(const char *mString);
     void SetStarts(const char *mString);
+    void SetScale(const char *mString);
     void SetBounds(const char *mUpperString, const char *mLowerString);
 
     double getExponentialSSR(double Q0, double alpha, double k);
     double getExponentiatedSSR(double Q0, double alpha, double k);
 
     void TestMixedModel();
-
-    int SignificantDigits();
 
     real_1d_array GetParams();
     lsfitstate GetState();
@@ -85,11 +84,12 @@ public:
     double getMaximumConsumption();
 
     void FitLinear(const char *mStarts);
+
     void FitExponential(const char *mStarts, QList<double> mParams);
     void FitExponentialWithK(const char *mStarts);
 
-    void FitSharedExponentialK(const char *mStarts, QList<real_1d_array> *arrayHolder);
-    void FitSharedExponentiatedK(const char *mStarts, QList<real_1d_array> *arrayHolder);
+    void FitSharedExponentialK(const char *mStarts, QList<real_1d_array> *arrayHolder, void (*caller)(const real_1d_array &, double, void *), void (*reset)(int, int));
+    void FitSharedExponentiatedK(const char *mStarts, QList<real_1d_array> *arrayHolder, void (*caller)(const real_1d_array &, double, void *), void (*reset)(int, int));
 
     void FitExponentiated(const char *mStarts, QList<double> mParams);
     void FitExponentiatedWithK(const char *mStarts);
@@ -98,9 +98,7 @@ public:
 
     bool raisedFlag = false;
 
-    double likelyQ0 = -1;
-
-    int scaleAssessment = 3;
+    int sharedIterationMax = 100;
 
 private:
     real_2d_array x;
@@ -108,6 +106,8 @@ private:
 
     real_1d_array yStored;
     real_1d_array c;
+
+    real_1d_array s;
 
     real_1d_array bndl;
     real_1d_array bndu;
@@ -119,8 +119,8 @@ private:
     lsfitstate state;
     lsfitreport rep;
 
-    double epsx = 0.00000001;
-    double diffstep = 0.00000001;
+    double epsx = 0.0000001;
+    double diffstep = 0.0000001;
 
     // Stein criteria
 

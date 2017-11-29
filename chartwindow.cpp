@@ -183,9 +183,12 @@ void chartwindow::plotLinearSeries(int index)
     demandCurve->clear();
     dataPoints->clear();
 
-    if (mList[2].contains("---", Qt::CaseInsensitive))
+    if (mList[6].contains("---", Qt::CaseInsensitive))
     {
         chart->setTitle(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
+        pmaxLine->clear();
+        pmaxLine->setName("pMax");
+
 
         return;
     }

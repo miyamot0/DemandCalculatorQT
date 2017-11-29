@@ -23,31 +23,16 @@
 
 #include <QApplication>
 #include "sheetwidget.h"
-#include "fitresult.h"
-#include <QDebug>
 
 #include "demandmodeling.h"
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    qRegisterMetaType<FitResult>("FitResult");
 
     SheetWidget mNewSheet;
     mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
     mNewSheet.show();
-
-    /*
-    try
-    {
-        demandmodeling mModel;
-        mModel.TestMixedModel();
-    }
-    catch(alglib::ap_error err)
-    {
-        qDebug() << err.msg.c_str();
-    }
-    */
 
     return app.exec();
 }
