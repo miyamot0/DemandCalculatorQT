@@ -2,7 +2,6 @@
 #include "qstringlist.h"
 #include <QtWidgets>
 #include <QVector>
-#include <QDebug>
 
 using namespace std;
 
@@ -224,14 +223,34 @@ QString CalculationWorker::getBP1String(QList<double> &yValues, QList<double> &x
     return priceString;
 }
 
-double CalculationWorker::GetMagnitude(double num)
+QString GetMagnitudeString(double num)
 {
-    if (num > 1 && num < 10)
+    int tempNum = (int) num;
+
+    if (tempNum < 0)
     {
-        return 1;
+        return QString("1.0e%1").arg(tempNum);
+    }
+    else if (tempNum == 0)
+    {
+        return QString("1");
+    }
+    else if (tempNum > 0)
+    {
+        return QString("1.0e+%1").arg(tempNum);
     }
 
-    return (num < 0) ? log10(num * -1) : log10(num);
+    return QString("1");
+}
+
+double CalculationWorker::GetMagnitude(double num)
+{
+    if (num <= 0)
+    {
+        return 0;
+    }
+
+    return log(num);
 }
 
 double CalculationWorker::GetSharedK()
@@ -398,8 +417,10 @@ double CalculationWorker::GetSharedK()
             bl << "-inf" << "-inf";
             bu << "+inf" << "+inf";
 
-            scale << QString::number(GetMagnitude(q0Ave))
-                  << QString::number(GetMagnitude(alphaAve));
+            //scale << QString::number(GetMagnitude(q0Ave))
+            //      << QString::number(GetMagnitude(alphaAve));
+            scale << GetMagnitudeString(GetMagnitude(q0Ave))
+                  << GetMagnitudeString(GetMagnitude(alphaAve));
 
             starts << QString::number(bestParams[i].first)
                    << QString::number(bestParams[i].second);
@@ -408,7 +429,8 @@ double CalculationWorker::GetSharedK()
         bl << "0.5";
         bu << QString::number((log(calculationSettings.globalMaxConsumption) + 0.5) * 2);
 
-        scale << QString::number(GetMagnitude(holdingBestK));
+        //scale << QString::number(GetMagnitude(holdingBestK));
+        scale << GetMagnitudeString(GetMagnitude(holdingBestK));
 
         starts << QString::number(holdingBestK);
 
@@ -528,8 +550,10 @@ double CalculationWorker::GetSharedK()
             bl << "-inf" << "-inf";
             bu << "+inf" << "+inf";
 
-            scale << QString::number(GetMagnitude(q0Ave))
-                  << QString::number(GetMagnitude(alphaAve));
+            //scale << QString::number(GetMagnitude(q0Ave))
+            //      << QString::number(GetMagnitude(alphaAve));
+            scale << GetMagnitudeString(GetMagnitude(q0Ave))
+                  << GetMagnitudeString(GetMagnitude(alphaAve));
 
             starts << QString::number(bestParams[i].first)
                    << QString::number(bestParams[i].second);
@@ -538,7 +562,8 @@ double CalculationWorker::GetSharedK()
         bl << "0.5";
         bu << QString::number((log(calculationSettings.globalMaxConsumption) + 0.5) * 2);
 
-        scale << QString::number(GetMagnitude(holdingBestK));
+        //scale << QString::number(GetMagnitude(holdingBestK));
+        scale << GetMagnitudeString(GetMagnitude(holdingBestK));
 
         starts << QString::number(holdingBestK);
 
@@ -711,9 +736,12 @@ void CalculationWorker::working()
                                 "[0.0001, -inf, 0.5]");
 
                 scale.clear();
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
 
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
@@ -793,8 +821,10 @@ void CalculationWorker::working()
 
                 scale.clear();
 
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1))
-                      << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
 
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
@@ -939,9 +969,12 @@ void CalculationWorker::working()
                                 "[0.0001, -inf, 0.5]");
 
                 scale.clear();
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
 
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
@@ -1021,8 +1054,10 @@ void CalculationWorker::working()
 
                 scale.clear();
 
-                scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1))
-                      << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
 
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
