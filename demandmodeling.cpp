@@ -335,14 +335,6 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 {
     SetStarts(mStarts);
 
-    /*
-    lsfitcreatef(x,
-                 y,
-                 c,
-                 diffstep,
-                 state);
-    */
-
     lsfitcreatefg(x,
                   y,
                   c,
@@ -371,14 +363,6 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 void demandmodeling::FitExponentialWithK(const char *mStarts)
 {
     SetStarts(mStarts);
-
-    /*
-    lsfitcreatef(x,
-                 y,
-                 c,
-                 diffstep,
-                 state);
-    */
 
     lsfitcreatefg(x,
                   y,
@@ -442,14 +426,6 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 {
     SetStarts(mStarts);
 
-    /*
-    lsfitcreatef(x,
-                 y,
-                 c,
-                 diffstep,
-                 state);
-    */
-
     lsfitcreatefg(x,
                   y,
                   c,
@@ -478,14 +454,6 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 {
     SetStarts(mStarts);
-
-    /*
-    lsfitcreatef(x,
-                 y,
-                 c,
-                 diffstep,
-                 state);
-    */
 
     lsfitcreatefg(x,
                   y,
@@ -524,7 +492,7 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts,
 
     // Note: 0.001 as hard constant for just shared methods
     lsfitsetcond(state,
-                 0.001,
+                 (0.001 * arrayHolder->at(0)[arrayHolder->at(0).length() - 0]),
                  sharedIterationMax - 2);
 
     lsfitsetbc(state,
