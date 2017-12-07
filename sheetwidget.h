@@ -79,6 +79,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QDomDocument>
+#include <QRegExp>
 
 #include "sheetselectdialog.h"
 #include "demandsettingsdialog.h"
@@ -110,6 +111,7 @@ public:
 
     CalculationSettings *calculationSettings;
 
+    QRegExp regExParser;
 
 public slots:
     void downloadedFile(QNetworkReply *reply);
@@ -244,6 +246,27 @@ private:
 
     QThread *workerThread;
     CalculationWorker *worker;
+
+    //Copy and Paste
+    QList<QTableWidgetSelectionRange> allRanges;
+
+    QTableWidgetSelectionRange range;
+    QString pasteString;
+
+    QStringList pasteRows;
+    int nRows, nCols;
+
+    QString mOldTest, mNewTest;
+
+    QStringList mOlderHolder;
+    QStringList mTemp;
+
+    QStringList columns;
+
+    int row, column;
+
+    QString str;
+    QString clearStr;
 
 };
 
