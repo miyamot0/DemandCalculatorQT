@@ -71,6 +71,8 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     mObj = new demandmodeling();
 
     ptrCalculationWorker = this;
+
+    killSwitch = false;
 }
 
 double CalculationWorker::getPbar(QList<double> &yValues)
@@ -337,6 +339,11 @@ double CalculationWorker::GetSharedK()
 
         for (int k = 0; k < 100; k++)
         {
+            if (killSwitch)
+            {
+                return -1;
+            }
+
             tempK = lowerK + (kSpan * (((double) k ) / 100.0));
             holdingTempSSR = 0;
 
@@ -471,6 +478,11 @@ double CalculationWorker::GetSharedK()
 
         for (int k = 0; k < 100; k++)
         {
+            if (killSwitch)
+            {
+                return -1;
+            }
+
             tempK = lowerK + (kSpan * (((double) k ) / 100.0));
             holdingTempSSR = 0;
 
@@ -586,6 +598,11 @@ double CalculationWorker::GetSharedK()
     return savedGlobalFits[savedGlobalFits.length() - 1];
 }
 
+void CalculationWorker::TerminateOperations()
+{
+    killSwitch = true;
+}
+
 void CalculationWorker::startWork()
 {
     emit workStarted();
@@ -610,12 +627,25 @@ void CalculationWorker::working()
 
     if (calculationSettings.settingsK == BehaviorK::Share)
     {
-        GetSharedK();
-    }
+        // If there's a skip or cancellation, kill it
+        if (GetSharedK() == -1)
+        {
+            emit workFinished(-1);
+
+            return;
+        }
+    }    
 
     // All series
     for (int i=0; i<mLocalStoredValues.length(); i++)
     {
+        if (killSwitch)
+        {
+            emit workFinished(-1);
+
+            return;
+        }
+
         if (calculationSettings.settingsModel != DemandModel::Linear && mLocalStoredValues[i].PriceValues.length() < 3)
         {
             mTempHolder.clear();
@@ -1212,5 +1242,5 @@ void CalculationWorker::working()
         }
     }
 
-    emit workFinished();
+    emit workFinished(1);
 }

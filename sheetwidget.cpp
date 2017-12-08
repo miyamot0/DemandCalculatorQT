@@ -1188,17 +1188,27 @@ bool SheetWidget::isToolWindowShown()
  * @brief
  */
 
+void SheetWidget::KillThread()
+{
+    qDebug() << "Fired the kill";
+
+    worker->TerminateOperations();
+}
+
 void SheetWidget::Calculate()
 {
     if (demandWindowDialog->isVisible())
     {
         demandWindowDialog->ToggleButton(false);
+
+        //TODO color and text change while running
     }
 
     // Display figures?
 
     bool isRowData = (calculationSettings->rightPrice - calculationSettings->leftPrice == 0) ? false :
                                                                                                true;
+
     int nSeries = (isRowData) ? calculationSettings->bottomConsumption - calculationSettings->topConsumption + 1 :
                                 nSeries = calculationSettings->rightConsumption - calculationSettings->leftConsumption + 1;
 
@@ -1481,10 +1491,11 @@ void SheetWidget::Calculate()
 
     connect(worker, SIGNAL(workStarted()), workerThread, SLOT(start()));
     connect(workerThread, SIGNAL(started()), worker, SLOT(working()));
+    connect(workerThread, &QThread::finished, workerThread, &QObject::deleteLater);
     connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
     connect(worker, SIGNAL(statusUpdate(QString)), this, SLOT(StatusUpdate(QString)));
-    connect(worker, SIGNAL(workFinished()), workerThread, SLOT(quit()), Qt::DirectConnection);
-    connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
+    connect(worker, SIGNAL(workFinished(int)), workerThread, SLOT(quit()), Qt::DirectConnection);
+    connect(worker, SIGNAL(workFinished(int)), this, SLOT(WorkFinished(int)));
 
     resultsDialog = new ResultsDialog(this);
     allResults.clear();
@@ -1504,33 +1515,44 @@ void SheetWidget::StatusUpdate(QString msg)
     statusBar()->showMessage(msg);
 }
 
-void SheetWidget::WorkFinished()
+void SheetWidget::WorkFinished(int status)
 {
-    statusBar()->showMessage("Calculations Complete.", 3000);
-
-    if (calculationSettings->settingsChart != ChartingOptions::None)
+    if (status == 1)
     {
-        statusBar()->showMessage("Drawing figures...", 3000);
+        statusBar()->showMessage("Calculations Complete.", 3000);
+
+        if (calculationSettings->settingsChart != ChartingOptions::None)
+        {
+            statusBar()->showMessage("Drawing figures...", 3000);
+
+            if (demandWindowDialog->isVisible())
+            {
+                chartWindow = new chartwindow(allResults,
+                                              calculationSettings->settingsChart == ChartingOptions::Standardized,
+                                              calculationSettings->settingsModel,
+                                              this);
+            }
+
+            chartWindow->show();
+        }
 
         if (demandWindowDialog->isVisible())
         {
-            chartWindow = new chartwindow(allResults,
-                                          calculationSettings->settingsChart == ChartingOptions::Standardized,
-                                          calculationSettings->settingsModel,
-                                          this);
+            demandWindowDialog->ToggleButton(true);
+
+            resultsDialog->setResultsType(calculationSettings->settingsModel);
+            resultsDialog->setResults(allResults);
+            resultsDialog->show();
+        }
+    }
+    else if (status == -1)
+    {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
         }
 
-        chartWindow->show();
-    }
-
-    if (demandWindowDialog->isVisible())
-    {
-        demandWindowDialog->ToggleButton(true);
-        demandWindowDialog->setEnabled(true);
-
-        resultsDialog->setResultsType(calculationSettings->settingsModel);
-        resultsDialog->setResults(allResults);
-        resultsDialog->show();
+        statusBar()->showMessage("Calculations Cancelled.", 3000);
     }
 }
 

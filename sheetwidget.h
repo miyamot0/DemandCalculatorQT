@@ -142,6 +142,8 @@ public slots:
 
     void showDemandWindow();
 
+    void KillThread();
+
     void showCreditsWindow();
     void showFAQWindow();
 
@@ -173,7 +175,7 @@ public slots:
 
     void WorkUpdate(QStringList results);
     void StatusUpdate(QString msg);
-    void WorkFinished();
+    void WorkFinished(int status);
 
 private:
     QAction *newSheetAction;
