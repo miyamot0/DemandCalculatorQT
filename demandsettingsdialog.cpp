@@ -46,14 +46,12 @@ void DemandSettingsDialog::ToggleButton(bool status)
 {
     if (status)
     {
-        ui->pushButton->setStyleSheet("color: white");
         ui->pushButton->setText("Calculate Demand");
 
         isRunningAnalyses = false;
     }
     else
     {
-        ui->pushButton->setStyleSheet("color: red");
         ui->pushButton->setText("Cancel Analyses");
 
         isRunningAnalyses = true;
