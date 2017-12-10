@@ -70,6 +70,7 @@ public:
     void SetScale(const char *mString);
     void SetBounds(const char *mUpperString,
                    const char *mLowerString);
+    void SetScalingEnabled(bool value);
 
     double getExponentialSSR(double Q0, double alpha, double k);
     double getExponentiatedSSR(double Q0, double alpha, double k);
@@ -120,6 +121,8 @@ private:
     real_1d_array bndu;
 
     real_1d_array trueX;
+
+    bool scalingParameters = false;
 
     ae_int_t maxits = 5000;
     ae_int_t info;

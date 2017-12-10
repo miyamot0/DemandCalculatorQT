@@ -42,7 +42,7 @@
   */
 
 #include "demandmodeling.h"
-#include <QDebug>
+//#include <QDebug>
 
 void demandmodeling::SetModel(DemandModel model)
 {
@@ -89,6 +89,11 @@ void demandmodeling::SetBounds(const char *mUpperString, const char *mLowerStrin
 {
     bndu = mUpperString;
     bndl = mLowerString;
+}
+
+void demandmodeling::SetScalingEnabled(bool value)
+{
+    scalingParameters = value;
 }
 
 real_1d_array demandmodeling::GetParams()
@@ -180,33 +185,7 @@ void exponential_demand_with_k_shared(const real_1d_array &c, const real_1d_arra
     // This species parameters of interest (beginning at 0)
     int reference = params->at(0)[(int)x[0]];
 
-    //qDebug() << QString("Reference = %1; Q0 set as %2 and Alpha as %3").arg(reference).arg(reference * 2).arg((reference * 2) + 1);
-
     func =  log10(c[reference * 2]) + c[c.length() - 1] * (exp(-c[(reference * 2) + 1] * c[reference * 2] * params->at(params->length() - 1)[(int)x[0]]) - 1);
-
-    /*
-
-    int vectorCount = params->count();
-    int pairsOfParams = (int) c.length() / 2;
-
-    double mQ0Pre = 0.0;
-    double mQ0 = 0.0;
-    double mAlpha = 0.0;
-
-    for (int i = 0; i<pairsOfParams; i++)
-    {
-        mQ0Pre = mQ0Pre + log10(c[i * 2])*params->at(i)[(int)x[0]];
-        mQ0 = mQ0 + c[i * 2]*params->at(i)[(int)x[0]];
-
-        mAlpha = mAlpha + c[(i * 2) + 1]*params->at(i)[(int)x[0]];
-    }
-
-    // Transformed and hacked up Q0
-    // Hacked up alpha
-    // Hacked up Q0
-    func =  mQ0Pre + c[c.length() - 1] * (exp(-mAlpha * mQ0 * params->at(vectorCount - 1)[(int)x[0]]) - 1);
-    */
-
 }
 
 double demandmodeling::getExponentialSSR(double Q0, double alpha, double k)
@@ -275,25 +254,6 @@ void exponentiated_demand_with_k_shared(const real_1d_array &c, const real_1d_ar
     int reference = params->at(0)[(int)x[0]];
 
     func =  c[reference * 2] * pow(10, (c[c.length() - 1] * (exp(-c[(reference * 2) + 1] * c[reference * 2] * params->at(params->count() - 1)[(int)x[0]]) - 1)));
-
-    /*
-
-    int vectorCount = params->count();
-    int pairsOfParams = (int) c.length() / 2;
-
-    double mQ0 = 0.0;
-    double mAlpha = 0.0;
-
-    for (int i = 0; i<pairsOfParams; i++)
-    {
-        mQ0 = mQ0 + c[i * 2]*params->at(i)[(int)x[0]];
-
-        mAlpha = mAlpha + c[(i * 2) + 1]*params->at(i)[(int)x[0]];
-    }
-
-    func =  mQ0 * pow(10, (c[c.length() - 1] * (exp(-mAlpha * mQ0 * params->at(vectorCount - 1)[(int)x[0]]) - 1)));
-
-    */
 }
 
 double demandmodeling::getExponentiatedSSR(double Q0, double alpha, double k)
@@ -349,7 +309,10 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
                bndl,
                bndu);
 
-    lsfitsetscale(state, s);
+    if (scalingParameters)
+    {
+        lsfitsetscale(state, s);
+    }
 
     alglib::lsfitfit(state,
                      exponential_demand,
@@ -378,7 +341,10 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
                bndl,
                bndu);
 
-    lsfitsetscale(state, s);
+    if (scalingParameters)
+    {
+        lsfitsetscale(state, s);
+    }
 
     alglib::lsfitfit(state, exponential_demand_with_k, exponential_demand_with_k_grad);
 
@@ -408,7 +374,10 @@ void demandmodeling::FitSharedExponentialK(const char *mStarts,
                bndl,
                bndu);
 
-    lsfitsetscale(state, s);
+    if (scalingParameters)
+    {
+        lsfitsetscale(state, s);
+    }
 
     reset(0, sharedIterationMax);
 
@@ -440,7 +409,10 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
                bndl,
                bndu);
 
-    lsfitsetscale(state, s);
+    if (scalingParameters)
+    {
+        lsfitsetscale(state, s);
+    }
 
     alglib::lsfitfit(state,
                      exponentiated_demand,
@@ -469,7 +441,10 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
                bndl,
                bndu);
 
-    lsfitsetscale(state, s);
+    if (scalingParameters)
+    {
+        lsfitsetscale(state, s);
+    }
 
     alglib::lsfitfit(state, exponentiated_demand_with_k, exponentiated_demand_with_k_grad);
 
@@ -499,7 +474,10 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts,
                bndl,
                bndu);
 
-    lsfitsetscale(state, s);
+    if (scalingParameters)
+    {
+        lsfitsetscale(state, s);
+    }
 
     reset(0, sharedIterationMax);
 

@@ -236,18 +236,10 @@ void DemandSettingsDialog::on_pushButton_clicked()
     // Charting Behavior
     temp->calculationSettings->settingsChart = getCharting();
 
-    temp->Calculate();
+    // Scaling Mode
+    temp->calculationSettings->ParameterScaling = getScalingMode();
 
-    /*
-    temp->Calculate("checkSystematic.R", getModelString(), mKValue,
-                    topPrice, leftPrice, bottomPrice, rightPrice,
-                    topConsumption, leftConsumption, bottomConsumption, rightConsumption,
-                    ui->checkAlways->isChecked(),
-                    ui->checkFlag->isChecked(),
-                    rem0, replnum, remQ0, replQ0,
-                    ui->figuresEnable->isChecked(),
-                    ui->figuresEnableStandard->isChecked());
-    */
+    temp->Calculate();
 }
 
 DemandModel DemandSettingsDialog::getModel()
@@ -263,6 +255,18 @@ DemandModel DemandSettingsDialog::getModel()
     else
     {
         return DemandModel::Exponentiated;
+    }
+}
+
+ScalingMode DemandSettingsDialog::getScalingMode()
+{
+    if (ui->checkBoxScaling->isChecked())
+    {
+        return ScalingMode::Enabled;
+    }
+    else
+    {
+        return ScalingMode::Disabled;
     }
 }
 

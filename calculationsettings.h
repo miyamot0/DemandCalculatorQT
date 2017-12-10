@@ -33,6 +33,12 @@ enum class Behavior
     Modify
 };
 
+enum class ScalingMode
+{
+    Enabled,
+    Disabled
+};
+
 enum class SystematicCheck
 {
     Always,
@@ -70,6 +76,8 @@ public:
 
     Behavior settingsQ0;
     double customQ0replacement = -1;
+
+    ScalingMode ParameterScaling;
 
     SystematicCheck settingsCheck;
 
