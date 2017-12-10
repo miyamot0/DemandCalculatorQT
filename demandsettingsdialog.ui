@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>673</width>
+    <width>749</width>
     <height>560</height>
    </rect>
   </property>
@@ -368,7 +368,6 @@
             </item>
            </layout>
            <zorder>verticalSpacer</zorder>
-           <zorder>groupBoxModels</zorder>
            <zorder>checkBoxScaling</zorder>
           </widget>
          </item>
