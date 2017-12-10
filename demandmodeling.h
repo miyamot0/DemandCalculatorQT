@@ -68,7 +68,9 @@ public:
     void SetY(const char *mString);
     void SetStarts(const char *mString);
     void SetScale(const char *mString);
-    void SetBounds(const char *mUpperString, const char *mLowerString);
+    void SetBounds(const char *mUpperString,
+                   const char *mLowerString);
+    void SetScalingEnabled(bool value);
 
     double getExponentialSSR(double Q0, double alpha, double k);
     double getExponentiatedSSR(double Q0, double alpha, double k);
@@ -88,8 +90,14 @@ public:
     void FitExponential(const char *mStarts, QList<double> mParams);
     void FitExponentialWithK(const char *mStarts);
 
-    void FitSharedExponentialK(const char *mStarts, QList<real_1d_array> *arrayHolder, void (*caller)(const real_1d_array &, double, void *), void (*reset)(int, int));
-    void FitSharedExponentiatedK(const char *mStarts, QList<real_1d_array> *arrayHolder, void (*caller)(const real_1d_array &, double, void *), void (*reset)(int, int));
+    void FitSharedExponentialK(const char *mStarts,
+                               QList<real_1d_array> *arrayHolder,
+                               void (*caller)(const real_1d_array &, double, void *),
+                               void (*reset)(int, int));
+    void FitSharedExponentiatedK(const char *mStarts,
+                                 QList<real_1d_array> *arrayHolder,
+                                 void (*caller)(const real_1d_array &, double, void *),
+                                 void (*reset)(int, int));
 
     void FitExponentiated(const char *mStarts, QList<double> mParams);
     void FitExponentiatedWithK(const char *mStarts);
@@ -98,7 +106,7 @@ public:
 
     bool raisedFlag = false;
 
-    int sharedIterationMax = 100;
+    int sharedIterationMax = 1000;
 
 private:
     real_2d_array x;
@@ -113,6 +121,8 @@ private:
     real_1d_array bndu;
 
     real_1d_array trueX;
+
+    bool scalingParameters = false;
 
     ae_int_t maxits = 5000;
     ae_int_t info;

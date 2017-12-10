@@ -45,9 +45,9 @@ public:
 
     Behavior getBehaviorQ0();
     Behavior getBehaviorZeroConsumption();
+    ScalingMode getScalingMode();
 
     SystematicCheck getSystematicCheck();
-
     ChartingOptions getCharting();
 
 public slots:
@@ -82,6 +82,8 @@ private:
     int leftConsumption;
     int bottomConsumption;
     int rightConsumption;
+
+    bool isRunningAnalyses;
 };
 
 #endif // DEMANDSETTINGSDIALOG_H

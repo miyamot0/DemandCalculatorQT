@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>749</width>
-    <height>507</height>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -334,6 +334,25 @@
               </property>
              </widget>
             </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBoxSettings">
+           <property name="title">
+            <string>Optimizer Settings</string>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_10">
+            <item>
+             <widget class="QCheckBox" name="checkBoxScaling">
+              <property name="toolTip">
+               <string>Scaling parameters may assist with fitting when parameters are wildly different (i.e., Q0 is 100,000 while alpha is 0.001). Default is off.</string>
+              </property>
+              <property name="text">
+               <string>Scale Parameters</string>
+              </property>
+             </widget>
+            </item>
             <item>
              <spacer name="verticalSpacer">
               <property name="orientation">
@@ -342,12 +361,14 @@
               <property name="sizeHint" stdset="0">
                <size>
                 <width>20</width>
-                <height>40</height>
+                <height>10</height>
                </size>
               </property>
              </spacer>
             </item>
            </layout>
+           <zorder>verticalSpacer</zorder>
+           <zorder>checkBoxScaling</zorder>
           </widget>
          </item>
         </layout>

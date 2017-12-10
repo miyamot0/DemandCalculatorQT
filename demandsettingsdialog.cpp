@@ -33,6 +33,8 @@ DemandSettingsDialog::DemandSettingsDialog(QWidget *parent) :
     ui->setupUi(this);
 
     this->setWindowFlags(Qt::Tool);
+
+    isRunningAnalyses = false;
 }
 
 DemandSettingsDialog::~DemandSettingsDialog()
@@ -42,7 +44,18 @@ DemandSettingsDialog::~DemandSettingsDialog()
 
 void DemandSettingsDialog::ToggleButton(bool status)
 {
-    ui->pushButton->setEnabled(status);
+    if (status)
+    {
+        ui->pushButton->setText("Calculate Demand");
+
+        isRunningAnalyses = false;
+    }
+    else
+    {
+        ui->pushButton->setText("Cancel Analyses");
+
+        isRunningAnalyses = true;
+    }
 }
 
 void DemandSettingsDialog::WindowStateActive(bool status)
@@ -111,6 +124,13 @@ void DemandSettingsDialog::on_modelingExponentiated_toggled(bool checked)
 void DemandSettingsDialog::on_pushButton_clicked()
 {
     SheetWidget *temp = qobject_cast <SheetWidget *>(parent());
+
+    if (isRunningAnalyses)
+    {
+        temp->KillThread();
+
+        return;
+    }
 
     temp->calculationSettings = new CalculationSettings();
 
@@ -216,18 +236,10 @@ void DemandSettingsDialog::on_pushButton_clicked()
     // Charting Behavior
     temp->calculationSettings->settingsChart = getCharting();
 
-    temp->Calculate();
+    // Scaling Mode
+    temp->calculationSettings->ParameterScaling = getScalingMode();
 
-    /*
-    temp->Calculate("checkSystematic.R", getModelString(), mKValue,
-                    topPrice, leftPrice, bottomPrice, rightPrice,
-                    topConsumption, leftConsumption, bottomConsumption, rightConsumption,
-                    ui->checkAlways->isChecked(),
-                    ui->checkFlag->isChecked(),
-                    rem0, replnum, remQ0, replQ0,
-                    ui->figuresEnable->isChecked(),
-                    ui->figuresEnableStandard->isChecked());
-    */
+    temp->Calculate();
 }
 
 DemandModel DemandSettingsDialog::getModel()
@@ -243,6 +255,18 @@ DemandModel DemandSettingsDialog::getModel()
     else
     {
         return DemandModel::Exponentiated;
+    }
+}
+
+ScalingMode DemandSettingsDialog::getScalingMode()
+{
+    if (ui->checkBoxScaling->isChecked())
+    {
+        return ScalingMode::Enabled;
+    }
+    else
+    {
+        return ScalingMode::Disabled;
     }
 }
 

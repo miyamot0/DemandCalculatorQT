@@ -71,6 +71,8 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     mObj = new demandmodeling();
 
     ptrCalculationWorker = this;
+
+    killSwitch = false;
 }
 
 double CalculationWorker::getPbar(QList<double> &yValues)
@@ -337,6 +339,11 @@ double CalculationWorker::GetSharedK()
 
         for (int k = 0; k < 100; k++)
         {
+            if (killSwitch)
+            {
+                return -1;
+            }
+
             tempK = lowerK + (kSpan * (((double) k ) / 100.0));
             holdingTempSSR = 0;
 
@@ -344,7 +351,9 @@ double CalculationWorker::GetSharedK()
             for (int series = 0; series < holder.length(); series++)
             {
                 counter = 0;
+
                 mObj->SetModel(DemandModel::Exponential);
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
 
                 mObj->SetX(holder[series].Prices.toUtf8().constData());
                 mObj->SetY(holder[series].Consumption.toUtf8().constData());
@@ -434,6 +443,7 @@ double CalculationWorker::GetSharedK()
 
         starts << QString::number(holdingBestK);
 
+        mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
         mObj->SetX(QString("[" + xReference.join(",") + "]").toUtf8().constData());
         mObj->SetY(QString("[" + yHolder.join(",") + "]").toUtf8().constData());
         mObj->SetBounds(QString("[" + bu.join(',') + "]").toUtf8().constData(), QString("[" + bl.join(',') + "]").toUtf8().constData());
@@ -471,6 +481,11 @@ double CalculationWorker::GetSharedK()
 
         for (int k = 0; k < 100; k++)
         {
+            if (killSwitch)
+            {
+                return -1;
+            }
+
             tempK = lowerK + (kSpan * (((double) k ) / 100.0));
             holdingTempSSR = 0;
 
@@ -480,6 +495,8 @@ double CalculationWorker::GetSharedK()
                 counter = 0;
 
                 mObj->SetModel(DemandModel::Exponentiated);
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
+
                 mObj->SetX(holder[series].Prices.toUtf8().constData());
                 mObj->SetY(holder[series].Consumption.toUtf8().constData());
 
@@ -567,7 +584,7 @@ double CalculationWorker::GetSharedK()
 
         starts << QString::number(holdingBestK);
 
-
+        mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
         mObj->SetX(QString("[" + xReference.join(",") + "]").toUtf8().constData());
         mObj->SetY(QString("[" + yHolder.join(",") + "]").toUtf8().constData());
         mObj->SetBounds(QString("[" + bu.join(',') + "]").toUtf8().constData(), QString("[" + bl.join(',') + "]").toUtf8().constData());
@@ -584,6 +601,11 @@ double CalculationWorker::GetSharedK()
     }
 
     return savedGlobalFits[savedGlobalFits.length() - 1];
+}
+
+void CalculationWorker::TerminateOperations()
+{
+    killSwitch = true;
 }
 
 void CalculationWorker::startWork()
@@ -610,12 +632,25 @@ void CalculationWorker::working()
 
     if (calculationSettings.settingsK == BehaviorK::Share)
     {
-        GetSharedK();
-    }
+        // If there's a skip or cancellation, kill it
+        if (GetSharedK() == -1)
+        {
+            emit workFinished(-1);
+
+            return;
+        }
+    }    
 
     // All series
     for (int i=0; i<mLocalStoredValues.length(); i++)
     {
+        if (killSwitch)
+        {
+            emit workFinished(-1);
+
+            return;
+        }
+
         if (calculationSettings.settingsModel != DemandModel::Linear && mLocalStoredValues[i].PriceValues.length() < 3)
         {
             mTempHolder.clear();
@@ -678,6 +713,7 @@ void CalculationWorker::working()
         }
 
         mObj->SetModel(calculationSettings.settingsModel);
+
         mObj->SetX(mLocalStoredValues[i].Prices.toUtf8().constData());
         mObj->SetY(mLocalStoredValues[i].Consumption.toUtf8().constData());
 
@@ -736,13 +772,12 @@ void CalculationWorker::working()
                                 "[0.0001, -inf, 0.5]");
 
                 scale.clear();
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
 
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
                 try
@@ -821,11 +856,10 @@ void CalculationWorker::working()
 
                 scale.clear();
 
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
 
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
                 try
@@ -969,13 +1003,12 @@ void CalculationWorker::working()
                                 "[0.0001, -inf, 0.5]");
 
                 scale.clear();
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
 
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
                 try
@@ -1054,11 +1087,10 @@ void CalculationWorker::working()
 
                 scale.clear();
 
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                //scale << QString::number(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
                 scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
 
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
                 mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
 
                 try
@@ -1212,5 +1244,5 @@ void CalculationWorker::working()
         }
     }
 
-    emit workFinished();
+    emit workFinished(1);
 }

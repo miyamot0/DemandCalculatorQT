@@ -100,15 +100,6 @@
 
 QTXLSX_USE_NAMESPACE
 
-struct QPairFirstComparer
-{
-    template<typename T1, typename T2>
-    bool operator()(const QPair<T1,T2> &one, const QPair<T1,T2> &two) const
-    {
-        return one.first < two.first;
-    }
-};
-
 SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
 {
     table = new QTableWidget(10000, 10000, this);
@@ -887,30 +878,30 @@ void SheetWidget::cut()
 
 void SheetWidget::copy()
 {
-    QList<QTableWidgetSelectionRange> range = table->selectedRanges();
-    QTableWidgetSelectionRange mRange = range.first();
+    allRanges = table->selectedRanges();
+    range = allRanges.first();
 
-    QString str;
+    str = QString("");
 
-    for (int i = 0; i < mRange.rowCount(); ++i) {
+    for (int i = 0; i < range.rowCount(); ++i) {
         if (i > 0)
         {
             str += "\n";
         }
 
-        for (int j = 0; j < mRange.columnCount(); ++j) {
+        for (int j = 0; j < range.columnCount(); ++j) {
             if (j > 0)
             {
                 str += "\t";
             }
 
-            if (table->item(mRange.topRow() + i, mRange.leftColumn() + j) == NULL)
+            if (table->item(range.topRow() + i, range.leftColumn() + j) == NULL)
             {
                 str += "";
             }
             else
             {
-                str += table->item(mRange.topRow() + i, mRange.leftColumn() + j)->data(Qt::DisplayRole).toString();
+                str += table->item(range.topRow() + i, range.leftColumn() + j)->data(Qt::DisplayRole).toString();
             }
         }
     }
@@ -920,13 +911,14 @@ void SheetWidget::copy()
 
 void SheetWidget::paste()
 {
-    QTableWidgetSelectionRange range = table->selectedRanges().first();
-    QString pasteString = QApplication::clipboard()->text();
+    range = table->selectedRanges().first();
+    pasteString = QApplication::clipboard()->text();
+    pasteRows = pasteString.split(QRegExp("(\\r|\\n)"));
+    nRows = pasteRows.count();
 
-    QStringList pasteRows = pasteString.split('\n');
+    regExParser = QRegExp("(\\ |\\,|\\.|\\:|\\t)");
 
-    int nRows = pasteRows.count();
-    int nCols = pasteRows.first().count('\t') + 1;
+    nCols = pasteRows.first().count(regExParser) + 1;
 
     if (nRows < 1 || nCols < 1)
     {
@@ -935,25 +927,23 @@ void SheetWidget::paste()
     else if (nRows == 1 && nCols == 1)
     {
         const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
-        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
-        QString mNewTest(pasteRows[0].split('\t')[0]);
+
+        mOldTest = QString(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
+        mNewTest = QString(pasteRows[0].split(regExParser)[0]);
 
         undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
     }
     else
     {
-        QStringList mOlderHolder;
-        QStringList mTemp;
-
         for (int i = 0; i < nRows; ++i)
         {
-            QStringList columns = pasteRows[i].split('\t');
+            columns = pasteRows[i].split(regExParser);
 
             mTemp.clear();
 
             for (int j = 0; j < nCols; ++j) {
-                int row = range.topRow() + i;
-                int column = range.leftColumn() + j;
+                row = range.topRow() + i;
+                column = range.leftColumn() + j;
 
                 if (row < 10000 && column < 10000)
                 {
@@ -987,12 +977,12 @@ void SheetWidget::paste()
 
 void SheetWidget::pasteInverted()
 {
-    QTableWidgetSelectionRange range = table->selectedRanges().first();
-    QString pasteString = QApplication::clipboard()->text();
-    QStringList pasteRows = pasteString.split('\n');
+    range = table->selectedRanges().first();
+    pasteString = QApplication::clipboard()->text();
+    pasteRows = pasteString.split(QRegExp("(\\r|\\n)"));
 
-    int nRows = pasteRows.count();
-    int nCols = pasteRows.first().count('\t') + 1;
+    nRows = pasteRows.count();
+    nCols = pasteRows.first().count('\t') + 1;
 
     if (nRows < 1 || nCols < 1)
     {
@@ -1001,26 +991,23 @@ void SheetWidget::pasteInverted()
     else if (nRows == 1 && nCols == 1)
     {
         const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
-        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
-        QString mNewTest(pasteRows[0].split('\t')[0]);
+        mOldTest = QString(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
+        mNewTest = QString(pasteRows[0].split('\t')[0]);
 
         undoStack->push(new UpdateCommand(&index, mOldTest, mNewTest));
     }
     else
     {
-        QStringList mOlderHolder;
-        QStringList mTemp;
-
         for (int i = 0; i < nRows; ++i)
         {
-            QStringList columns = pasteRows[i].split('\t');
+            columns = pasteRows[i].split('\t');
 
             mTemp.clear();
 
             for (int j = 0; j < nCols; ++j)
             {
-                int row = range.topRow() + j;
-                int column = range.leftColumn() + i;
+                row = range.topRow() + j;
+                column = range.leftColumn() + i;
 
                 if (row < 10000 && column < 10000)
                 {
@@ -1054,10 +1041,10 @@ void SheetWidget::pasteInverted()
 
 void SheetWidget::clear()
 {
-    QTableWidgetSelectionRange range = table->selectedRanges().first();
+    range = table->selectedRanges().first();
 
-    int nRows = range.rowCount();
-    int nCols = range.columnCount();
+    nRows = range.rowCount();
+    nCols = range.columnCount();
 
     if (nRows < 1 || nCols < 1)
     {
@@ -1066,10 +1053,10 @@ void SheetWidget::clear()
     else if (nRows == 1 && nCols == 1)
     {
         const QModelIndex index = table->model()->index(range.topRow(), range.leftColumn(), QModelIndex());
-        QString mOldTest(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
-        QString clear("");
+        mOldTest = QString(table->model()->index(range.topRow(), range.leftColumn()).data(Qt::EditRole).toString());
+        clearStr = QString("");
 
-        undoStack->push(new UpdateCommand(&index, mOldTest, clear));
+        undoStack->push(new UpdateCommand(&index, mOldTest, clearStr));
     }
     else
     {
@@ -1086,8 +1073,8 @@ void SheetWidget::clear()
 
             for (int j = 0; j < nCols; ++j)
             {
-                int row = range.topRow() + i;
-                int column = range.leftColumn() + j;
+                row = range.topRow() + i;
+                column = range.leftColumn() + j;
 
                 if (row < 10000 && column < 10000)
                 {
@@ -1201,17 +1188,27 @@ bool SheetWidget::isToolWindowShown()
  * @brief
  */
 
+void SheetWidget::KillThread()
+{
+    qDebug() << "Fired the kill";
+
+    worker->TerminateOperations();
+}
+
 void SheetWidget::Calculate()
 {
     if (demandWindowDialog->isVisible())
     {
         demandWindowDialog->ToggleButton(false);
+
+        //TODO color and text change while running
     }
 
     // Display figures?
 
     bool isRowData = (calculationSettings->rightPrice - calculationSettings->leftPrice == 0) ? false :
                                                                                                true;
+
     int nSeries = (isRowData) ? calculationSettings->bottomConsumption - calculationSettings->topConsumption + 1 :
                                 nSeries = calculationSettings->rightConsumption - calculationSettings->leftConsumption + 1;
 
@@ -1306,8 +1303,8 @@ void SheetWidget::Calculate()
     allResults.clear();
 
     // Test for k settings (as needed)
-    double globalMin,
-           globalMax;
+    double globalMin = 0.0,
+           globalMax = 0.0;
 
     if (calculationSettings->settingsK == BehaviorK::Range || calculationSettings->settingsK == BehaviorK::Share)
     {
@@ -1494,10 +1491,11 @@ void SheetWidget::Calculate()
 
     connect(worker, SIGNAL(workStarted()), workerThread, SLOT(start()));
     connect(workerThread, SIGNAL(started()), worker, SLOT(working()));
+    connect(workerThread, &QThread::finished, workerThread, &QObject::deleteLater);
     connect(worker, SIGNAL(workingResult(QStringList)), this, SLOT(WorkUpdate(QStringList)));
     connect(worker, SIGNAL(statusUpdate(QString)), this, SLOT(StatusUpdate(QString)));
-    connect(worker, SIGNAL(workFinished()), workerThread, SLOT(quit()), Qt::DirectConnection);
-    connect(worker, SIGNAL(workFinished()), this, SLOT(WorkFinished()));
+    connect(worker, SIGNAL(workFinished(int)), workerThread, SLOT(quit()), Qt::DirectConnection);
+    connect(worker, SIGNAL(workFinished(int)), this, SLOT(WorkFinished(int)));
 
     resultsDialog = new ResultsDialog(this);
     allResults.clear();
@@ -1517,33 +1515,44 @@ void SheetWidget::StatusUpdate(QString msg)
     statusBar()->showMessage(msg);
 }
 
-void SheetWidget::WorkFinished()
+void SheetWidget::WorkFinished(int status)
 {
-    statusBar()->showMessage("Calculations Complete.", 3000);
-
-    if (calculationSettings->settingsChart != ChartingOptions::None)
+    if (status == 1)
     {
-        statusBar()->showMessage("Drawing figures...", 3000);
+        statusBar()->showMessage("Calculations Complete.", 3000);
+
+        if (calculationSettings->settingsChart != ChartingOptions::None)
+        {
+            statusBar()->showMessage("Drawing figures...", 3000);
+
+            if (demandWindowDialog->isVisible())
+            {
+                chartWindow = new chartwindow(allResults,
+                                              calculationSettings->settingsChart == ChartingOptions::Standardized,
+                                              calculationSettings->settingsModel,
+                                              this);
+            }
+
+            chartWindow->show();
+        }
 
         if (demandWindowDialog->isVisible())
         {
-            chartWindow = new chartwindow(allResults,
-                                          calculationSettings->settingsChart == ChartingOptions::Standardized,
-                                          calculationSettings->settingsModel,
-                                          this);
+            demandWindowDialog->ToggleButton(true);
+
+            resultsDialog->setResultsType(calculationSettings->settingsModel);
+            resultsDialog->setResults(allResults);
+            resultsDialog->show();
+        }
+    }
+    else if (status == -1)
+    {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
         }
 
-        chartWindow->show();
-    }
-
-    if (demandWindowDialog->isVisible())
-    {
-        demandWindowDialog->ToggleButton(true);
-        demandWindowDialog->setEnabled(true);
-
-        resultsDialog->setResultsType(calculationSettings->settingsModel);
-        resultsDialog->setResults(allResults);
-        resultsDialog->show();
+        statusBar()->showMessage("Calculations Cancelled.", 3000);
     }
 }
 

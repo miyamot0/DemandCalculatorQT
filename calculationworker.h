@@ -103,14 +103,18 @@ public:
     // location of points
     QStringList referenceData;
 
+    void TerminateOperations();
+
 private:
     static CalculationWorker* ptrCalculationWorker;
+
+    bool killSwitch = false;
 
 signals:
     void workStarted();
     void statusUpdate(const QString &value);
     void workingResult(const QStringList &value);
-    void workFinished();
+    void workFinished(int code);
 
 public slots:
     void startWork();
