@@ -46,6 +46,13 @@ enum class SystematicCheck
     Never
 };
 
+enum class FittingAlgorithm
+{
+    Function,
+    FunctionGradient,
+    FunctionGradientHessian
+};
+
 class CalculationSettings
 {
 public:
@@ -82,6 +89,8 @@ public:
     SystematicCheck settingsCheck;
 
     ChartingOptions settingsChart;
+
+    FittingAlgorithm settingsFitting;
 
 };
 

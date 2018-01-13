@@ -69,6 +69,7 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     calculationSettings = *mCalculationSettings;
     modelType = calculationSettings.settingsModel;
     mObj = new demandmodeling();
+    mObj->SetFittingAlgorithm(mCalculationSettings->settingsFitting);
 
     ptrCalculationWorker = this;
 

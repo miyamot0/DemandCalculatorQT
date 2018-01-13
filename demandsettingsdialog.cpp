@@ -101,6 +101,8 @@ void DemandSettingsDialog::on_modelingLinear_toggled(bool checked)
     }
 
     ui->groupBoxK->setEnabled(!checked);
+
+    ui->comboBoxFitting->setEnabled(!checked);
 }
 
 void DemandSettingsDialog::on_modelingExponential_toggled(bool checked)
@@ -239,6 +241,9 @@ void DemandSettingsDialog::on_pushButton_clicked()
     // Scaling Mode
     temp->calculationSettings->ParameterScaling = getScalingMode();
 
+    // Fitting Mode
+    temp->calculationSettings->settingsFitting = getFittingAlgorithm();
+
     temp->Calculate();
 }
 
@@ -355,6 +360,26 @@ ChartingOptions DemandSettingsDialog::getCharting()
     else
     {
         return ChartingOptions::None;
+    }
+}
+
+FittingAlgorithm DemandSettingsDialog::getFittingAlgorithm()
+{
+    if (ui->comboBoxFitting->currentIndex() == 0)
+    {
+        return FittingAlgorithm::Function;
+    }
+    else if (ui->comboBoxFitting->currentIndex() == 1)
+    {
+        return FittingAlgorithm::FunctionGradient;
+    }
+    else if (ui->comboBoxFitting->currentIndex() == 2)
+    {
+        return FittingAlgorithm::FunctionGradientHessian;
+    }
+    else
+    {
+        return FittingAlgorithm::FunctionGradientHessian;
     }
 }
 
