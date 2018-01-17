@@ -71,6 +71,7 @@ public:
     void SetBounds(const char *mUpperString,
                    const char *mLowerString);
     void SetScalingEnabled(bool value);
+    void SetFittingAlgorithm(FittingAlgorithm value);
 
     double getExponentialSSR(double Q0, double alpha, double k);
     double getExponentiatedSSR(double Q0, double alpha, double k);
@@ -153,6 +154,8 @@ private:
     QString reversalpass;
 
     DemandModel modelMode;
+
+    FittingAlgorithm fittingAlgorithm;
 
     int passingMeasures = 0;
 

@@ -108,6 +108,24 @@ public:
 private:
     static CalculationWorker* ptrCalculationWorker;
 
+    QString getFittingAlgorithm(FittingAlgorithm value)
+    {
+        if (value == FittingAlgorithm::Function)
+        {
+            return " (f)";
+        }
+        else if (value == FittingAlgorithm::FunctionGradient)
+        {
+            return " (fg)";
+        }
+        else if (value == FittingAlgorithm::FunctionGradientHessian)
+        {
+            return " (fgh)";
+        }
+
+        return " (---)";
+    }
+
     bool killSwitch = false;
 
 signals:

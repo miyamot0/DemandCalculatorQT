@@ -46,6 +46,7 @@ public:
     Behavior getBehaviorQ0();
     Behavior getBehaviorZeroConsumption();
     ScalingMode getScalingMode();
+    FittingAlgorithm getFittingAlgorithm();
 
     SystematicCheck getSystematicCheck();
     ChartingOptions getCharting();

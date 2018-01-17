@@ -69,6 +69,7 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     calculationSettings = *mCalculationSettings;
     modelType = calculationSettings.settingsModel;
     mObj = new demandmodeling();
+    mObj->SetFittingAlgorithm(mCalculationSettings->settingsFitting);
 
     ptrCalculationWorker = this;
 
@@ -649,13 +650,14 @@ void CalculationWorker::working()
             emit workFinished(-1);
 
             return;
-        }
+        }       
 
         if (calculationSettings.settingsModel != DemandModel::Linear && mLocalStoredValues[i].PriceValues.length() < 3)
         {
             mTempHolder.clear();
             mTempHolder << QString::number(i + 1)
-                << ((calculationSettings.settingsModel == DemandModel::Exponential) ? "Exponential" :"Exponentiated")
+                << ((calculationSettings.settingsModel == DemandModel::Exponential) ? "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting) :
+                                                                                      "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting))
                 << "---"
                 << "---"
                 << "---"
@@ -901,7 +903,7 @@ void CalculationWorker::working()
 
                 mTempHolder.clear();
                 mTempHolder << QString::number(i + 1)
-                            << "Exponential"
+                            << "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting)
                             << QString::number(alpha)
                             << QString::number(alphase)
                             << QString::number(q0)
@@ -927,7 +929,7 @@ void CalculationWorker::working()
             else
             {
                 mTempHolder << QString::number(i + 1)
-                            << "Exponential"
+                            << "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting)
                             << ""
                             << ""
                             << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
@@ -1125,7 +1127,7 @@ void CalculationWorker::working()
 
                 mTempHolder.clear();
                 mTempHolder << QString::number(i + 1)
-                            << "Exponentiated"
+                            << "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting)
                             << QString::number(alpha)
                             << QString::number(alphase)
                             << QString::number(q0)
@@ -1153,7 +1155,7 @@ void CalculationWorker::working()
             {
                 mTempHolder.clear();
                 mTempHolder << QString::number(i + 1)
-                            << "Exponentiated"
+                            << "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting)
                             << ""
                             << ""
                             << ""

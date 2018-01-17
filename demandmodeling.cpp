@@ -42,7 +42,7 @@
   */
 
 #include "demandmodeling.h"
-//#include <QDebug>
+#include <QDebug>
 
 void demandmodeling::SetModel(DemandModel model)
 {
@@ -94,6 +94,11 @@ void demandmodeling::SetBounds(const char *mUpperString, const char *mLowerStrin
 void demandmodeling::SetScalingEnabled(bool value)
 {
     scalingParameters = value;
+}
+
+void demandmodeling::SetFittingAlgorithm(FittingAlgorithm value)
+{
+    fittingAlgorithm = value;
 }
 
 real_1d_array demandmodeling::GetParams()
@@ -164,6 +169,23 @@ void exponential_demand_grad(const real_1d_array &c, const real_1d_array &x, dou
     grad[1] = -(k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])));
 }
 
+void exponential_demand_hessian(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, real_2d_array &hess, void *ptr)
+{
+    QList<double> *param = (QList<double> *) ptr;
+    double k = param->at(0);
+
+    func = log10(c[0]) + k * (exp(-c[1] * c[0] * x[0]) - 1);
+
+    grad[0] = 1/(c[0] * log(10)) - k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]));
+    grad[1] = -(k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])));
+
+    hess[0][0] = -(1/pow(c[0],(2/log(10))) - k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]) * (c[1] * x[0])));
+    hess[0][1] = -(k * (exp(-c[1] * c[0] * x[0]) * x[0] - exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]) * (c[1] * x[0])));
+
+    hess[1][0] = -(k * (exp(-c[1] * c[0] * x[0]) * x[0] - exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]) * (c[0] * x[0])));
+    hess[1][1] = k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]) * (c[0] * x[0]));
+}
+
 void exponential_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
 {
     func = log10(c[0]) + c[2] * (exp(-c[1] * c[0] * x[0]) - 1);
@@ -176,6 +198,27 @@ void exponential_demand_with_k_grad(const real_1d_array &c, const real_1d_array 
     grad[0] = 1/(c[0] * log(10)) - c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]));
     grad[1] = -(c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])));
     grad[2] = (exp(-c[1] * c[0] * x[0]) - 1);
+}
+
+void exponential_demand_with_k_hessian(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, real_2d_array &hess, void *)
+{
+    func = log10(c[0]) + c[2] * (exp(-c[1] * c[0] * x[0]) - 1);
+
+    grad[0] = 1/(c[0] * log(10)) - c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]));
+    grad[1] = -(c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])));
+    grad[2] = (exp(-c[1] * c[0] * x[0]) - 1);
+
+    hess[0][0] = -(1/pow(c[0],(2/log(10))) - c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]) * (c[1] * x[0])));
+    hess[0][1] = -(c[2] * (exp(-c[1] * c[0] * x[0]) * x[0] - exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]) * (c[1] * x[0])));
+    hess[0][2] = -(exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]));
+
+    hess[1][0] = -(c[2] * (exp(-c[1] * c[0] * x[0]) * x[0] - exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]) * (c[0] * x[0])));
+    hess[1][1] = c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]) * (c[0] * x[0]));
+    hess[1][2] = -(exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]));
+
+    hess[2][0] = -(exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]));
+    hess[2][1] = -(exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]));
+    hess[2][2] = 0;
 }
 
 void exponential_demand_with_k_shared(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
@@ -209,6 +252,7 @@ void exponentiated_demand(const real_1d_array &c, const real_1d_array &x, double
 {
     QList<double> *param = (QList<double> *) ptr;
     double k = param->at(0);
+
     func = c[0] * pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1)));
 }
 
@@ -225,6 +269,55 @@ void exponentiated_demand_grad(const real_1d_array &c, const real_1d_array &x, d
 
     grad[1] = -(c[0] * (pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]))))));
 
+}
+
+void exponentiated_demand_hessian(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, real_2d_array &hess, void *ptr)
+{
+    QList<double> *param = (QList<double> *) ptr;
+    double k = param->at(0);
+
+    func = c[0] * pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1)));
+
+    grad[0] = pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) -
+            c[0] * (pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+                  (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))));
+
+    grad[1] = -(c[0] * (pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]))))));
+
+    hess[0][0] = -(pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))) +
+            ((pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]))))) -
+            c[0] * (pow(10,(k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) *
+            (c[1] * x[0]) * (c[1] * x[0])))) +
+            pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))))));
+
+    hess[0][1] = -(pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) *
+            (c[0] *x[0])))) + c[0] * (pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) *x[0] - exp(-c[1] * c[0] * x[0]) *
+            (c[0] *x[0]) * (c[1] *x[0])))) -
+            pow(10, (k * (exp(-c[1] * c[0] *x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) * (c[0] * x[0])))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) * (c[1] * x[0]))))));
+
+    hess[1][0] = -((pow(10, (k * (exp(-c[1] * c[0] *x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) * (c[0] * x[0]))))) +
+            c[0] * (pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) *x[0] - exp(-c[1] * c[0] * x[0]) *
+            (c[1] *x[0]) * (c[0] *x[0])))) -
+            pow(10, (k * (exp(-c[1] * c[0] *x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) * (c[1] * x[0])))) *
+            (log(10) * (k * (exp(-c[1] * c[0] *x[0]) * (c[0] *x[0]))))));
+
+    hess[1][1] = c[0] * (pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]) * (c[0] * x[0])))) +
+            pow(10, (k * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])))) *
+            (log(10) * (k * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])))));
 }
 
 void exponentiated_demand_with_k(const real_1d_array &c, const real_1d_array &x, double &func, void *)
@@ -244,6 +337,86 @@ void exponentiated_demand_with_k_grad(const real_1d_array &c, const real_1d_arra
 
     grad[2] = c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)));
 
+}
+
+void exponentiated_demand_with_k_hessian(const real_1d_array &c, const real_1d_array &x, double &func, real_1d_array &grad, real_2d_array &hess, void *)
+{
+    func = c[0] * pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1)));
+
+    grad[0] = pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) -
+            c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+                  (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))));
+
+    grad[1] = -(c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]))))));
+
+    grad[2] = c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) * (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)));
+
+    hess[0][0] = -(pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))) +
+            ((pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]))))) -
+            c[0] * (pow(10,(c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) *
+            (c[1] * x[0]) * (c[1] * x[0])))) +
+            pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))))));
+
+    hess[0][1] = -(pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) *
+            (c[0] *x[0])))) + c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) *x[0] - exp(-c[1] * c[0] * x[0]) *
+            (c[0] *x[0]) * (c[1] *x[0])))) -
+            pow(10, (c[2] * (exp(-c[1] * c[0] *x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) * (c[0] * x[0])))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) * (c[1] * x[0]))))));
+
+    hess[0][2] = pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)) -
+            c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))) +
+            pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]))));
+
+    hess[1][0] = -((pow(10, (c[2] * (exp(-c[1] * c[0] *x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) * (c[0] * x[0]))))) +
+            c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) *x[0] - exp(-c[1] * c[0] * x[0]) *
+            (c[1] *x[0]) * (c[0] *x[0])))) -
+            pow(10, (c[2] * (exp(-c[1] * c[0] *x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) * (c[1] * x[0])))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] *x[0]) * (c[0] *x[0]))))));
+
+    hess[1][1] = c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]) * (c[0] * x[0])))) +
+            pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])))));
+
+    hess[1][2] = -(c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])))) +
+            pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])))));
+
+    hess[2][0] = (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1))) -
+            c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0]))) +
+            pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[1] * x[0])))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)));
+
+    hess[2][1] = -(c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0]))) +
+            pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (c[2] * (exp(-c[1] * c[0] * x[0]) * (c[0] * x[0])))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1))));
+
+    hess[2][2] = c[0] * (pow(10, (c[2] * (exp(-c[1] * c[0] * x[0]) - 1))) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)) *
+            (log(10) * (exp(-c[1] * c[0] * x[0]) - 1)));
 }
 
 void exponentiated_demand_with_k_shared(const real_1d_array &c, const real_1d_array &x, double &func, void *ptr)
@@ -295,30 +468,87 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 {
     SetStarts(mStarts);
 
-    lsfitcreatefg(x,
-                  y,
-                  c,
-                  true,
-                  state);
-
-    lsfitsetcond(state,
-                 epsx,
-                 maxits);
-
-    lsfitsetbc(state,
-               bndl,
-               bndu);
-
-    if (scalingParameters)
+    if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitsetscale(state, s);
-    }
+        lsfitcreatef(x,
+                     y,
+                     c,
+                     diffstep,
+                     state);
 
-    alglib::lsfitfit(state,
-                     exponential_demand,
-                     exponential_demand_grad,
-                     NULL,
-                     &mParams);
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponential_demand,
+                         NULL,
+                         &mParams);
+
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
+    {
+        lsfitcreatefg(x,
+                      y,
+                      c,
+                      true,
+                      state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponential_demand,
+                         exponential_demand_grad,
+                         NULL,
+                         &mParams);
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
+    {
+        lsfitcreatefgh(x,
+                       y,
+                       c,
+                       state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponential_demand,
+                         exponential_demand_grad,
+                         exponential_demand_hessian,
+                         NULL,
+                         &mParams);
+    }
 
     lsfitresults(state, info, c, rep);
 }
@@ -327,26 +557,80 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 {
     SetStarts(mStarts);
 
-    lsfitcreatefg(x,
-                  y,
-                  c,
-                  true,
-                  state);
-
-    lsfitsetcond(state,
-                 epsx,
-                 maxits);
-
-    lsfitsetbc(state,
-               bndl,
-               bndu);
-
-    if (scalingParameters)
+    if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitsetscale(state, s);
-    }
+        lsfitcreatef(x,
+                     y,
+                     c,
+                     diffstep,
+                     state);
 
-    alglib::lsfitfit(state, exponential_demand_with_k, exponential_demand_with_k_grad);
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponential_demand_with_k);
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
+    {
+        lsfitcreatefg(x,
+                      y,
+                      c,
+                      true,
+                      state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponential_demand_with_k,
+                         exponential_demand_with_k_grad);
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
+    {
+        lsfitcreatefgh(x,
+                       y,
+                       c,
+                       state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponential_demand_with_k,
+                         exponential_demand_with_k_grad,
+                         exponential_demand_with_k_hessian);
+    }
 
     lsfitresults(state, info, c, rep);
 }
@@ -395,30 +679,86 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 {
     SetStarts(mStarts);
 
-    lsfitcreatefg(x,
-                  y,
-                  c,
-                  true,
-                  state);
-
-    lsfitsetcond(state,
-                 epsx,
-                 maxits);
-
-    lsfitsetbc(state,
-               bndl,
-               bndu);
-
-    if (scalingParameters)
+    if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitsetscale(state, s);
-    }
+        lsfitcreatef(x,
+                     y,
+                     c,
+                     diffstep,
+                     state);
 
-    alglib::lsfitfit(state,
-                     exponentiated_demand,
-                     exponentiated_demand_grad,
-                     NULL,
-                     &mParams);
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponentiated_demand,
+                         NULL,
+                         &mParams);
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
+    {
+        lsfitcreatefg(x,
+                      y,
+                      c,
+                      true,
+                      state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponentiated_demand,
+                         exponentiated_demand_grad,
+                         NULL,
+                         &mParams);
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
+    {
+        lsfitcreatefgh(x,
+                       y,
+                       c,
+                       state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponentiated_demand,
+                         exponentiated_demand_grad,
+                         exponentiated_demand_hessian,
+                         NULL,
+                         &mParams);
+    }
 
     lsfitresults(state, info, c, rep);
 }
@@ -427,26 +767,80 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 {
     SetStarts(mStarts);
 
-    lsfitcreatefg(x,
-                  y,
-                  c,
-                  true,
-                  state);
-
-    lsfitsetcond(state,
-                 epsx,
-                 maxits);
-
-    lsfitsetbc(state,
-               bndl,
-               bndu);
-
-    if (scalingParameters)
+    if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitsetscale(state, s);
-    }
+        lsfitcreatef(x,
+                     y,
+                     c,
+                     diffstep,
+                     state);
 
-    alglib::lsfitfit(state, exponentiated_demand_with_k, exponentiated_demand_with_k_grad);
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponentiated_demand_with_k);
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
+    {
+        lsfitcreatefg(x,
+                      y,
+                      c,
+                      true,
+                      state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponentiated_demand_with_k,
+                         exponentiated_demand_with_k_grad);
+    }
+    else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
+    {
+        lsfitcreatefgh(x,
+                       y,
+                       c,
+                       state);
+
+        lsfitsetcond(state,
+                     epsx,
+                     maxits);
+
+        lsfitsetbc(state,
+                   bndl,
+                   bndu);
+
+        if (scalingParameters)
+        {
+            lsfitsetscale(state, s);
+        }
+
+        alglib::lsfitfit(state,
+                         exponentiated_demand_with_k,
+                         exponentiated_demand_with_k_grad,
+                         exponentiated_demand_with_k_hessian);
+    }
 
     lsfitresults(state, info, c, rep);
 }

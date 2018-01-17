@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>749</width>
-    <height>560</height>
+    <width>818</width>
+    <height>583</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -344,6 +344,28 @@
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10">
             <item>
+             <widget class="QComboBox" name="comboBoxFitting">
+              <property name="currentIndex">
+               <number>2</number>
+              </property>
+              <item>
+               <property name="text">
+                <string>Function</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Function + Gradient</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Function + Gradient + Hessian</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
              <widget class="QCheckBox" name="checkBoxScaling">
               <property name="toolTip">
                <string>Scaling parameters may assist with fitting when parameters are wildly different (i.e., Q0 is 100,000 while alpha is 0.001). Default is off.</string>
@@ -369,6 +391,7 @@
            </layout>
            <zorder>verticalSpacer</zorder>
            <zorder>checkBoxScaling</zorder>
+           <zorder>comboBoxFitting</zorder>
           </widget>
          </item>
         </layout>
