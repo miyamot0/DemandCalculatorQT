@@ -52,6 +52,11 @@ ResultsDialog::ResultsDialog(QWidget *parent) :
     addAction(copyAction);
 }
 
+void ResultsDialog::setOptions(bool showPmax)
+{
+    showAlternativePmax = showPmax;
+}
+
 void ResultsDialog::setResults(QList<QStringList> mData)
 {
     for(int i=0; i<mData.count(); i++)
@@ -126,6 +131,12 @@ QStringList ResultsDialog::getExponentialKeys()
                 << "Prices"
                 << "Consumption";
 
+    if (showAlternativePmax)
+    {
+        mReturnKeys << "Alt-Pmax"
+                    << "Alt-Pmax Slope";
+    }
+
     return mReturnKeys;
 }
 
@@ -156,6 +167,12 @@ QStringList ResultsDialog::getExponentiatedKeys()
                 << "K Method"
                 << "Prices"
                 << "Consumption";
+
+    if (showAlternativePmax)
+    {
+        mReturnKeys << "Alt-Pmax"
+                    << "Alt-Pmax Slope";
+    }
 
     return mReturnKeys;
 }

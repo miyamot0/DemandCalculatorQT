@@ -244,6 +244,9 @@ void DemandSettingsDialog::on_pushButton_clicked()
     // Fitting Mode
     temp->calculationSettings->settingsFitting = getFittingAlgorithm();
 
+    // Add extra Pmax
+    temp->calculationSettings->settingsAlternativePmax = ui->checkBoxAlternativePmax->isChecked();
+
     temp->Calculate();
 }
 

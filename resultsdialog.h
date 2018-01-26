@@ -45,6 +45,7 @@ public:
 
     void setResults(QList<QStringList> mData);
     void setResultsType(DemandModel mModel);
+    void setOptions(bool showPmax);
     ~ResultsDialog();
 
 public slots:
@@ -59,6 +60,8 @@ private slots:
 
 private:
     Ui::ResultsDialog *ui;
+
+    bool showAlternativePmax = false;
 
     QAction *copyAction;
     QList<QStringList> mResults;

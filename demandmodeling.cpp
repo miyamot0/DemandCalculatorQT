@@ -96,6 +96,11 @@ void demandmodeling::SetScalingEnabled(bool value)
     scalingParameters = value;
 }
 
+void demandmodeling::SetAlternativePmaxEnabled(bool value)
+{
+    alternativePmax = value;
+}
+
 void demandmodeling::SetFittingAlgorithm(FittingAlgorithm value)
 {
     fittingAlgorithm = value;
@@ -551,6 +556,11 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
     }
 
     lsfitresults(state, info, c, rep);
+
+    if (alternativePmax)
+    {
+        BootstrapPmaxExponential(c[0], c[1], mParams[0]);
+    }
 }
 
 void demandmodeling::FitExponentialWithK(const char *mStarts)
@@ -633,6 +643,11 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     }
 
     lsfitresults(state, info, c, rep);
+
+    if (alternativePmax)
+    {
+        BootstrapPmaxExponential(c[0], c[1], c[2]);
+    }
 }
 
 void demandmodeling::FitSharedExponentialK(const char *mStarts,
@@ -761,6 +776,11 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     }
 
     lsfitresults(state, info, c, rep);
+
+    if (alternativePmax)
+    {
+        BootstrapPmaxExponentiated(c[0], c[1], mParams[0]);
+    }
 }
 
 void demandmodeling::FitExponentiatedWithK(const char *mStarts)
@@ -843,6 +863,11 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
     }
 
     lsfitresults(state, info, c, rep);
+
+    if (alternativePmax)
+    {
+        BootstrapPmaxExponentiated(c[0], c[1], c[2]);
+    }
 }
 
 void demandmodeling::FitSharedExponentiatedK(const char *mStarts,
@@ -884,6 +909,8 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts,
 
     lsfitresults(state, info, c, rep);
 }
+
+
 
 // Deprecated test method
 void demandmodeling::TestMixedModel()
@@ -929,7 +956,6 @@ QStringList demandmodeling::GetSteinTest(QStringList &x, QStringList &y)
     }
 
     // Sort into increasing prices
-    //TODO: update to std::sort
     std::sort(mModPoints.begin(), mModPoints.end(), QPairFirstComparer());
 
     // Calculate DeltaQ
@@ -999,6 +1025,111 @@ QStringList demandmodeling::GetSteinTest(QStringList &x, QStringList &y)
                  << QString::number(numPosValues);
 
     return mSteinReturn;
+}
+
+void exponential_work_curve(const real_1d_array &x, double &func, void *ptr)
+{
+    QList<double> *param = (QList<double> *) ptr;
+    double Q = param->at(0);
+    double A = param->at(1);
+    double K = param->at(2);
+
+    func = -(((log(Q)/log(10)) + K * (exp(-A * Q * x[0]) - 1)) * x[0]);
+}
+
+void demandmodeling::BootstrapPmaxExponential(double Q0, double A, double K)
+{
+    workOutputX = "[0]";
+
+    double epsg = 0.0000000001;
+    double epsf = 0;
+    double epsx = 0;
+    double diffstep = 1.0e-6;
+
+    QList<double> mParams;
+    mParams << Q0;
+    mParams << A;
+    mParams << K;
+
+    minlbfgscreatef(1, workOutputX, diffstep, workOutputState);
+    minlbfgssetcond(workOutputState, epsg, epsf, epsx, 50);
+    alglib::minlbfgsoptimize(workOutputState, exponential_work_curve, NULL, &mParams);
+    minlbfgsresults(workOutputState, workOutputX, workOutputRep);
+}
+
+void exponentiated_work_curve(const real_1d_array &x, double &func, real_1d_array &grad, void *ptr)
+{
+    QList<double> *param = (QList<double> *) ptr;
+    double Q = param->at(0);
+    double A = param->at(1);
+    double K = param->at(2);
+
+    func = -((Q * pow(10.0,(K * (exp(-A * Q * x[0]) - 1)))) * x[0]);
+
+    grad[0] = -(Q * (pow(10,(K * (exp(-A * Q * x[0]) - 1))) * (log(10) * (K * (exp(-A * Q * x[0]) * (-A * Q))))) *
+                x[0] + (Q * pow(10, (K * (exp(-A * Q * x[0]) - 1)))));
+}
+
+void demandmodeling::BootstrapPmaxExponentiated(double Q0, double A, double K)
+{
+    QString mString = QString::number((1/(Q0 * A * pow(K, 1.5)) * (0.083 * K + 0.65)));
+    mString.prepend('[');
+    mString.append(']');
+
+    //workOutputX = "[0]";
+
+    workOutputX = mString.toUtf8().constData();
+
+    double epsg = 0.0000000001;
+    double epsf = 0;
+    double epsx = 0;
+    //double diffstep = 1.0e-6;
+    //ae_int_t maxits = 0;
+
+    QList<double> mParams;
+    mParams << Q0;
+    mParams << A;
+    mParams << K;
+
+    //minlbfgscreatef(1, workOutputX, diffstep, workOutputState);
+    minlbfgscreate(1, workOutputX, workOutputState);
+
+    minlbfgssetcond(workOutputState, epsg, epsf, epsx, 50);
+    alglib::minlbfgsoptimize(workOutputState, exponentiated_work_curve, NULL, &mParams);
+    minlbfgsresults(workOutputState, workOutputX, workOutputRep);
+}
+
+double demandmodeling::GetBootStrapPmax()
+{
+    return (double) workOutputX[0];
+}
+
+double demandmodeling::GetBootStrapPmaxExponentialSlope(double Q, double A, double K, double pMax)
+{
+    double P1 = pMax - 0.5;
+    double P2 = pMax + 0.5;
+
+    double Q1 = (log(Q)/log(10)) + K * (exp(-A * Q * P1) - 1);
+    double Q2 = (log(Q)/log(10)) + K * (exp(-A * Q * P2) - 1);
+
+    double QD = ((Q2-Q1)/((Q2+Q1)/2.0));
+    double PD = ((P2-P1)/((P2+P1)/2.0));
+
+    return (QD / PD);
+}
+
+double demandmodeling::GetBootStrapPmaxExponentiatedSlope(double Q, double A, double K, double pMax)
+{
+    double P1 = pMax - 0.5;
+    double P2 = pMax + 0.5;
+
+    double Q1 = Q * pow(10,(K * (exp(-A * Q * P1) - 1)));
+    double Q2 = Q * pow(10,(K * (exp(-A * Q * P2) - 1)));
+
+    double QD = ((Q2-Q1)/((Q2+Q1)/2.0));
+    double PD = ((P2-P1)/((P2+P1)/2.0));
+
+    return (QD / PD);
 }
 
 demandmodeling::demandmodeling()

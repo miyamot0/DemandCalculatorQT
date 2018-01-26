@@ -1507,6 +1507,7 @@ void SheetWidget::Calculate()
 void SheetWidget::WorkUpdate(QStringList results)
 {
     allResults.append(results);
+
     statusBar()->showMessage(QString("Series #%1 Computed").arg(allResults.count()));
 }
 
@@ -1540,6 +1541,7 @@ void SheetWidget::WorkFinished(int status)
         {
             demandWindowDialog->ToggleButton(true);
 
+            resultsDialog->setOptions(calculationSettings->settingsAlternativePmax);
             resultsDialog->setResultsType(calculationSettings->settingsModel);
             resultsDialog->setResults(allResults);
             resultsDialog->show();

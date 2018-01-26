@@ -92,6 +92,7 @@ public:
 
     FittingAlgorithm settingsFitting;
 
+    bool settingsAlternativePmax;
 };
 
 #endif // CALCULATIONSETTINGS_H

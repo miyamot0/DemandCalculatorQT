@@ -70,6 +70,7 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     modelType = calculationSettings.settingsModel;
     mObj = new demandmodeling();
     mObj->SetFittingAlgorithm(mCalculationSettings->settingsFitting);
+    mObj->SetAlternativePmaxEnabled(mCalculationSettings->settingsAlternativePmax);
 
     ptrCalculationWorker = this;
 
@@ -680,6 +681,12 @@ void CalculationWorker::working()
                 << mLocalStoredValues[i].Prices
                 << mLocalStoredValues[i].Consumption;
 
+            if (calculationSettings.settingsAlternativePmax)
+            {
+                mTempHolder << "---";
+                mTempHolder << "---";
+            }
+
             emit workingResult(mTempHolder);
 
             continue;
@@ -925,6 +932,12 @@ void CalculationWorker::working()
                             << getKMessage(calculationSettings.settingsK)
                             << mLocalStoredValues[i].Prices
                             << mLocalStoredValues[i].Consumption;
+
+                if (calculationSettings.settingsAlternativePmax)
+                {
+                    mTempHolder << QString::number(mObj->GetBootStrapPmax());
+                    mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
+                }
             }
             else
             {
@@ -948,6 +961,12 @@ void CalculationWorker::working()
                             << getKMessage(calculationSettings.settingsK)
                             << mLocalStoredValues[i].Prices
                             << mLocalStoredValues[i].Consumption;
+
+                if (calculationSettings.settingsAlternativePmax)
+                {
+                    mTempHolder << "---";
+                    mTempHolder << "---";
+                }
             }
 
             emit workingResult(mTempHolder);
@@ -1150,6 +1169,12 @@ void CalculationWorker::working()
                             << getKMessage(calculationSettings.settingsK)
                             << mLocalStoredValues[i].Prices
                             << mLocalStoredValues[i].Consumption;
+
+                if (calculationSettings.settingsAlternativePmax)
+                {
+                    mTempHolder << QString::number(mObj->GetBootStrapPmax());
+                    mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentiatedSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
+                }
             }
             else
             {
@@ -1178,6 +1203,12 @@ void CalculationWorker::working()
                             << getKMessage(calculationSettings.settingsK)
                             << mLocalStoredValues[i].Prices
                             << mLocalStoredValues[i].Consumption;
+
+                if (calculationSettings.settingsAlternativePmax)
+                {
+                    mTempHolder << "---";
+                    mTempHolder << "---";
+                }
             }
 
             emit workingResult(mTempHolder);

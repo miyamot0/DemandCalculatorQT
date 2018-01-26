@@ -71,6 +71,7 @@ public:
     void SetBounds(const char *mUpperString,
                    const char *mLowerString);
     void SetScalingEnabled(bool value);
+    void SetAlternativePmaxEnabled(bool value);
     void SetFittingAlgorithm(FittingAlgorithm value);
 
     double getExponentialSSR(double Q0, double alpha, double k);
@@ -103,6 +104,13 @@ public:
     void FitExponentiated(const char *mStarts, QList<double> mParams);
     void FitExponentiatedWithK(const char *mStarts);
 
+    void BootstrapPmaxExponential(double Q0, double A, double K);
+    void BootstrapPmaxExponentiated(double Q0, double A, double K);
+
+    double GetBootStrapPmax();
+    double GetBootStrapPmaxExponentialSlope(double Q, double A, double K, double pMax);
+    double GetBootStrapPmaxExponentiatedSlope(double Q0, double A, double K, double pMax);
+
     QStringList GetSteinTest(QStringList &x, QStringList &y);
 
     bool raisedFlag = false;
@@ -125,6 +133,8 @@ private:
 
     bool scalingParameters = false;
 
+    bool alternativePmax = false;
+
     ae_int_t maxits = 5000;
     ae_int_t info;
     lsfitstate state;
@@ -132,6 +142,13 @@ private:
 
     double epsx = 0.0000001;
     double diffstep = 0.0000001;
+
+    // Work stuff
+
+    minlbfgsstate workOutputState;
+    minlbfgsreport workOutputRep;
+
+    real_1d_array workOutputX;
 
     // Stein criteria
 
