@@ -1034,12 +1034,16 @@ void exponential_work_curve(const real_1d_array &x, double &func, void *ptr)
     double A = param->at(1);
     double K = param->at(2);
 
-    func = -(((log(Q)/log(10)) + K * (exp(-A * Q * x[0]) - 1)) * x[0]);
+    func = -(pow(10, ((log(Q)/log(10)) + K * (exp(-A * Q * x[0]) - 1))) * x[0]);
 }
 
 void demandmodeling::BootstrapPmaxExponential(double Q0, double A, double K)
 {
-    workOutputX = "[0]";
+    QString mString = QString::number((1/(Q0 * A * pow(K, 1.5)) * (0.083 * K + 0.65)));
+    mString.prepend('[');
+    mString.append(']');
+
+    workOutputX = mString.toUtf8().constData();
 
     double epsg = 0.0000000001;
     double epsf = 0;
@@ -1076,8 +1080,6 @@ void demandmodeling::BootstrapPmaxExponentiated(double Q0, double A, double K)
     mString.prepend('[');
     mString.append(']');
 
-    //workOutputX = "[0]";
-
     workOutputX = mString.toUtf8().constData();
 
     double epsg = 0.0000000001;
@@ -1111,6 +1113,9 @@ double demandmodeling::GetBootStrapPmaxExponentialSlope(double Q, double A, doub
 
     double Q1 = (log(Q)/log(10)) + K * (exp(-A * Q * P1) - 1);
     double Q2 = (log(Q)/log(10)) + K * (exp(-A * Q * P2) - 1);
+
+    Q1 = pow(10, Q1);
+    Q2 = pow(10, Q2);
 
     double QD = ((Q2-Q1)/((Q2+Q1)/2.0));
     double PD = ((P2-P1)/((P2+P1)/2.0));
