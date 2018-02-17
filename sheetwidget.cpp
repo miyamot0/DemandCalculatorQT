@@ -1190,8 +1190,6 @@ bool SheetWidget::isToolWindowShown()
 
 void SheetWidget::KillThread()
 {
-    qDebug() << "Fired the kill";
-
     worker->TerminateOperations();
 }
 
@@ -1518,7 +1516,7 @@ void SheetWidget::StatusUpdate(QString msg)
 
 void SheetWidget::WorkFinished(int status)
 {
-    if (status == 1)
+    if (status == worker->SuccessCode)
     {
         statusBar()->showMessage("Calculations Complete.", 3000);
 
@@ -1547,7 +1545,7 @@ void SheetWidget::WorkFinished(int status)
             resultsDialog->show();
         }
     }
-    else if (status == -1)
+    else if (status == worker->CancelCode)
     {
         if (demandWindowDialog->isVisible())
         {
@@ -1555,6 +1553,20 @@ void SheetWidget::WorkFinished(int status)
         }
 
         statusBar()->showMessage("Calculations Cancelled.", 3000);
+    }
+    else if (status == worker->ErrorCode)
+    {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
+
+        statusBar()->showMessage("Model evaluation error encountered.", 3000);
+
+        QMessageBox::information(
+            this,
+            tr("Demand Curve Analyser"),
+            tr("There was an error in fitting. Please evaluate your fit settings. Scaling model parameters often helps in these cases."));
     }
 }
 

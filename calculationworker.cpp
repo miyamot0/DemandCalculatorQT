@@ -1,3 +1,26 @@
+/**
+   Copyright 2017 Shawn Gilroy
+
+   This file is part of Demand Curve Analyzer, Qt port.
+
+   Demand Curve Analyzer is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, version 3.
+
+   Demand Curve Analyzer is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Demand Curve Analyzer.  If not, see http://www.gnu.org/licenses/.
+
+   The Demand Curve Analyzer is a tool to assist researchers in behavior economics.
+
+   Email: shawn(dot)gilroy(at)temple.edu
+
+  */
+
 #include "calculationworker.h"
 #include "qstringlist.h"
 #include <QtWidgets>
@@ -5,8 +28,18 @@
 
 using namespace std;
 
+/**
+ * @brief CalculationWorker::ptrCalculationWorker
+ *
+ * Reference for callback method
+ */
 CalculationWorker* CalculationWorker::ptrCalculationWorker = nullptr;
 
+/**
+ * @brief The BruteForce struct
+ *
+ * Struct for searching for model starts
+ */
 struct BruteForce {
   double p1 = 0;
   double p2 = 0;
@@ -19,14 +52,42 @@ struct BruteForce {
   }
 };
 
+/**
+ * @brief The BruteForceValues struct
+ *
+ * Brute force struct
+ */
 struct BruteForceValues {
-    //BruteForce smallParamStartingValueArray[1000];
-    //BruteForce mediumParamStartingValueArray[10000];
     BruteForce largeParamStartingValueArray[1000000];
 };
 
+/**
+ * @brief BruteSorter
+ * @param lhs
+ * @param rhs
+ * @return
+ *
+ * Sort brute forces, get lowest error to top
+ */
+bool BruteSorter(BruteForce const& lhs, BruteForce const& rhs)
+{
+    return lhs.err < rhs.err;
+}
+
+/**
+ * @brief provisionalValues
+ *
+ * Struct instance
+ */
 BruteForceValues provisionalValues;
 
+/**
+ * @brief CalculationWorker::ResetSharedCounter
+ * @param amt
+ * @param max
+ *
+ * Resets a shared, reusable counter for callback
+ */
 void CalculationWorker::ResetSharedCounter(int amt, int max)
 {
     if (ptrCalculationWorker)
@@ -36,16 +97,17 @@ void CalculationWorker::ResetSharedCounter(int amt, int max)
     }
 }
 
+/**
+ * @brief CalculationWorker::ReportFx
+ * @param c
+ * @param func
+ *
+ * Callback reporting method
+ */
 void CalculationWorker::ReportFx(const real_1d_array &c, double func, void * )
 {
     if (ptrCalculationWorker)
     {
-        emit ptrCalculationWorker->statusUpdate(QString("Iteration %1 of %2: Err for k(%3) = %4")
-                                           .arg(ptrCalculationWorker->currentIteration + 1)
-                                           .arg(ptrCalculationWorker->maximumIterations)
-                                           .arg(c[c.length() - 1])
-                                           .arg(func));
-
         /*
         qDebug() << QString("Iteration %1 of %2: Err for k(%3) = %4")
                     .arg(ptrCalculationWorker->currentIteration + 1)
@@ -54,15 +116,23 @@ void CalculationWorker::ReportFx(const real_1d_array &c, double func, void * )
                     .arg(func);
         */
 
+        emit ptrCalculationWorker->statusUpdate(QString("Iteration %1 of %2: Err for k(%3) = %4")
+                                           .arg(ptrCalculationWorker->currentIteration + 1)
+                                           .arg(ptrCalculationWorker->maximumIterations)
+                                           .arg(c[c.length() - 1])
+                                           .arg(func));
+
         ptrCalculationWorker->currentIteration = ptrCalculationWorker->currentIteration + 1;
     }
 }
 
-bool BruteSorter(BruteForce const& lhs, BruteForce const& rhs)
-{
-    return lhs.err < rhs.err;
-}
-
+/**
+ * @brief CalculationWorker::CalculationWorker
+ * @param mStoredValues
+ * @param mCalculationSettings
+ *
+ * Constructor for worker
+ */
 CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, CalculationSettings* mCalculationSettings)
 {
     mLocalStoredValues = mStoredValues;
@@ -77,6 +147,13 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     killSwitch = false;
 }
 
+/**
+ * @brief CalculationWorker::getPbar
+ * @param yValues
+ * @return
+ *
+ * Gets pBar for yvalues
+ */
 double CalculationWorker::getPbar(QList<double> &yValues)
 {
     double sum = 0;
@@ -89,6 +166,13 @@ double CalculationWorker::getPbar(QList<double> &yValues)
     return sum / (double) yValues.count();
 }
 
+/**
+ * @brief CalculationWorker::getKMessage
+ * @param call
+ * @return
+ *
+ * Translate K methods into human-readable text
+ */
 QString CalculationWorker::getKMessage(BehaviorK call)
 {
     if (call == BehaviorK::Individual)
@@ -113,9 +197,20 @@ QString CalculationWorker::getKMessage(BehaviorK call)
     }
 }
 
+/**
+ * @brief CalculationWorker::getCodeString
+ * @param code
+ * @return
+ *
+ * Translate error codes for ALGLIB into human readable text
+ */
 QString CalculationWorker::getCodeString(ae_int_t code)
 {
     switch ((int) code) {
+        case -8:
+            return QString("Error: Model error");
+            break;
+
         case -7:
             return QString("Error: gradient verification failed");
             break;
@@ -138,6 +233,14 @@ QString CalculationWorker::getCodeString(ae_int_t code)
     }
 }
 
+/**
+ * @brief CalculationWorker::getPmaxEString
+ * @param yValues
+ * @param xValues
+ * @return
+ *
+ * Gets empirical (data) pmax
+ */
 QString CalculationWorker::getPmaxEString(QList<double> &yValues, QList<double> &xValues)
 {
     double maxExpendNumber = minrealnumber;
@@ -156,6 +259,14 @@ QString CalculationWorker::getPmaxEString(QList<double> &yValues, QList<double> 
     return QString::number(maxPrice);
 }
 
+/**
+ * @brief CalculationWorker::getOmaxEString
+ * @param yValues
+ * @param xValues
+ * @return
+ *
+ * Get empirical (data) omax
+ */
 QString CalculationWorker::getOmaxEString(QList<double> &yValues, QList<double> &xValues)
 {
     double maxExpendNumber = minrealnumber;
@@ -171,6 +282,14 @@ QString CalculationWorker::getOmaxEString(QList<double> &yValues, QList<double> 
     return QString::number(maxExpendNumber);
 }
 
+/**
+ * @brief CalculationWorker::getIntensityString
+ * @param yValues
+ * @param xValues
+ * @return
+ *
+ * Get empirical (data) Q0
+ */
 QString CalculationWorker::getIntensityString(QList<double> &yValues, QList<double> &xValues)
 {
     double minNonZeroPrice = maxrealnumber;
@@ -189,6 +308,14 @@ QString CalculationWorker::getIntensityString(QList<double> &yValues, QList<doub
     return consString;
 }
 
+/**
+ * @brief CalculationWorker::getBP0String
+ * @param yValues
+ * @param xValues
+ * @return
+ *
+ * Gets breakpoint (0)
+ */
 QString CalculationWorker::getBP0String(QList<double> &yValues, QList<double> &xValues)
 {
     double maxNonZeroPrice = minrealnumber;
@@ -208,6 +335,14 @@ QString CalculationWorker::getBP0String(QList<double> &yValues, QList<double> &x
     return priceString;
 }
 
+/**
+ * @brief CalculationWorker::getBP1String
+ * @param yValues
+ * @param xValues
+ * @return
+ *
+ * Gets breakpoint (1)
+ */
 QString CalculationWorker::getBP1String(QList<double> &yValues, QList<double> &xValues)
 {
     double maxNonZeroPrice = minrealnumber;
@@ -227,6 +362,13 @@ QString CalculationWorker::getBP1String(QList<double> &yValues, QList<double> &x
     return priceString;
 }
 
+/**
+ * @brief GetMagnitudeString
+ * @param num
+ * @return
+ *
+ * Gets string description of variable
+ */
 QString GetMagnitudeString(double num)
 {
     int tempNum = (int) num;
@@ -247,6 +389,13 @@ QString GetMagnitudeString(double num)
     return QString("1");
 }
 
+/**
+ * @brief CalculationWorker::GetMagnitude
+ * @param num
+ * @return
+ *
+ * Get order of magnitude for number
+ */
 double CalculationWorker::GetMagnitude(double num)
 {
     if (num <= 0)
@@ -257,6 +406,12 @@ double CalculationWorker::GetMagnitude(double num)
     return log(num);
 }
 
+/**
+ * @brief CalculationWorker::GetSharedK
+ * @return
+ *
+ * Global fitting of K parameter
+ */
 double CalculationWorker::GetSharedK()
 {
     int rows = 0, points = 0;
@@ -453,10 +608,17 @@ double CalculationWorker::GetSharedK()
 
         emit statusUpdate(QString("Fitting K parameter globally..."));
 
-        mObj->FitSharedExponentialK(QString("[" + starts.join(',') + "]").toUtf8().constData(),
-                                    &arrayHolder,
-                                    &ReportFx,
-                                    &ResetSharedCounter);
+        try
+        {
+            mObj->FitSharedExponentialK(QString("[" + starts.join(',') + "]").toUtf8().constData(),
+                                        &arrayHolder,
+                                        &ReportFx,
+                                        &ResetSharedCounter);
+        }
+        catch (alglib::ap_error e)
+        {
+            return -1;
+        }
 
         savedGlobalFits = mObj->GetParams();
     }
@@ -533,7 +695,7 @@ double CalculationWorker::GetSharedK()
 
             if (holdingTempSSR <= holdingBestSSR)
             {
-                holdingBestK = tempK;
+                holdingBestK = exp(tempK);
 
                 for (int p = 0; p < paramHolder.length(); p++)
                 {
@@ -594,10 +756,17 @@ double CalculationWorker::GetSharedK()
 
         emit statusUpdate(QString("Fitting K parameter globally..."));
 
-        mObj->FitSharedExponentiatedK(QString("[" + starts.join(',') + "]").toUtf8().constData(),
-                                      &arrayHolder,
-                                      &ReportFx,
-                                      &ResetSharedCounter);
+        try
+        {
+            mObj->FitSharedExponentiatedK(QString("[" + starts.join(',') + "]").toUtf8().constData(),
+                                          &arrayHolder,
+                                          &ReportFx,
+                                          &ResetSharedCounter);
+        }
+        catch (alglib::ap_error e)
+        {
+            return -1;
+        }
 
         savedGlobalFits = mObj->GetParams();
     }
@@ -605,16 +774,31 @@ double CalculationWorker::GetSharedK()
     return savedGlobalFits[savedGlobalFits.length() - 1];
 }
 
+/**
+ * @brief CalculationWorker::TerminateOperations
+ *
+ * Kill switch
+ */
 void CalculationWorker::TerminateOperations()
 {
     killSwitch = true;
 }
 
+/**
+ * @brief CalculationWorker::startWork
+ *
+ * SLOT: start working, emit work signal
+ */
 void CalculationWorker::startWork()
 {
     emit workStarted();
 }
 
+/**
+ * @brief CalculationWorker::working
+ *
+ * SLOT: working, emit status signals
+ */
 void CalculationWorker::working()
 {
     bool failed = false;
@@ -634,10 +818,9 @@ void CalculationWorker::working()
 
     if (calculationSettings.settingsK == BehaviorK::Share)
     {
-        // If there's a skip or cancellation, kill it
         if (GetSharedK() == -1)
         {
-            emit workFinished(-1);
+            emit workFinished(ErrorCode);
 
             return;
         }
@@ -648,7 +831,7 @@ void CalculationWorker::working()
     {
         if (killSwitch)
         {
-            emit workFinished(-1);
+            emit workFinished(CancelCode);
 
             return;
         }       
@@ -1277,5 +1460,5 @@ void CalculationWorker::working()
         }
     }
 
-    emit workFinished(1);
+    emit workFinished(SuccessCode);
 }

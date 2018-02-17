@@ -377,8 +377,11 @@
             </item>
             <item>
              <widget class="QCheckBox" name="checkBoxAlternativePmax">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="text">
-               <string>Bootstrap Alternative Pmax</string>
+               <string>Alternative Pmax</string>
               </property>
              </widget>
             </item>
