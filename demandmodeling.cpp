@@ -43,6 +43,8 @@
 
 #include "demandmodeling.h"
 
+#include <QDebug>
+
 void demandmodeling::SetModel(DemandModel model)
 {
     modelMode = model;
@@ -484,11 +486,23 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 
     if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitcreatef(x,
-                     y,
-                     c,
-                     diffstep,
-                     state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewf(x,
+                          y,
+                          w,
+                          c,
+                          diffstep,
+                          state);
+        }
+        else
+        {
+            lsfitcreatef(x,
+                         y,
+                         c,
+                         diffstep,
+                         state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -511,11 +525,23 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
     {
-        lsfitcreatefg(x,
-                      y,
-                      c,
-                      true,
-                      state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfg(x,
+                           y,
+                           w,
+                           c,
+                           true,
+                           state);
+        }
+        else
+        {
+            lsfitcreatefg(x,
+                          y,
+                          c,
+                          true,
+                          state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -538,10 +564,22 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
     {
-        lsfitcreatefgh(x,
-                       y,
-                       c,
-                       state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfgh(x,
+                            y,
+                            w,
+                            c,
+                            state);
+
+        }
+        else
+        {
+            lsfitcreatefgh(x,
+                           y,
+                           c,
+                           state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -569,7 +607,6 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
     if (alternativePmax)
     {
         exactSolutionPmax = ExactSolutionPmax(c[0], c[1], mParams[0]);
-        //BootstrapPmaxExponential(c[0], c[1], mParams[0]);
     }
 }
 
@@ -579,11 +616,23 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 
     if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitcreatef(x,
-                     y,
-                     c,
-                     diffstep,
-                     state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewf(x,
+                          y,
+                          w,
+                          c,
+                          diffstep,
+                          state);
+        }
+        else
+        {
+            lsfitcreatef(x,
+                         y,
+                         c,
+                         diffstep,
+                         state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -603,11 +652,23 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
     {
-        lsfitcreatefg(x,
-                      y,
-                      c,
-                      true,
-                      state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfg(x,
+                           y,
+                           w,
+                           c,
+                           true,
+                           state);
+        }
+        else
+        {
+            lsfitcreatefg(x,
+                          y,
+                          c,
+                          true,
+                          state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -628,10 +689,21 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
     {
-        lsfitcreatefgh(x,
-                       y,
-                       c,
-                       state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfgh(x,
+                            y,
+                            w,
+                            c,
+                            state);
+        }
+        else
+        {
+            lsfitcreatefgh(x,
+                           y,
+                           c,
+                           state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -657,7 +729,6 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
     if (alternativePmax)
     {
         exactSolutionPmax = ExactSolutionPmax(c[0], c[1], c[2]);
-        //BootstrapPmaxExponential(c[0], c[1], c[2]);
     }
 }
 
@@ -707,11 +778,23 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 
     if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitcreatef(x,
-                     y,
-                     c,
-                     diffstep,
-                     state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewf(x,
+                          y,
+                          w,
+                          c,
+                          diffstep,
+                          state);
+        }
+        else
+        {
+            lsfitcreatef(x,
+                         y,
+                         c,
+                         diffstep,
+                         state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -733,11 +816,23 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
     {
-        lsfitcreatefg(x,
-                      y,
-                      c,
-                      true,
-                      state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfg(x,
+                           y,
+                           w,
+                           c,
+                           true,
+                           state);
+        }
+        else
+        {
+            lsfitcreatefg(x,
+                          y,
+                          c,
+                          true,
+                          state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -760,10 +855,21 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
     {
-        lsfitcreatefgh(x,
-                       y,
-                       c,
-                       state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfgh(x,
+                            y,
+                            w,
+                            c,
+                            state);
+        }
+        else
+        {
+            lsfitcreatefgh(x,
+                           y,
+                           c,
+                           state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -791,7 +897,6 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
     if (alternativePmax)
     {
         exactSolutionPmax = ExactSolutionPmax(c[0], c[1], mParams[0]);
-        //BootstrapPmaxExponentiated(c[0], c[1], mParams[0]);
     }
 }
 
@@ -801,11 +906,23 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 
     if (fittingAlgorithm == FittingAlgorithm::Function)
     {
-        lsfitcreatef(x,
-                     y,
-                     c,
-                     diffstep,
-                     state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewf(x,
+                          y,
+                          w,
+                          c,
+                          diffstep,
+                          state);
+        }
+        else
+        {
+            lsfitcreatef(x,
+                         y,
+                         c,
+                         diffstep,
+                         state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -825,11 +942,23 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradient)
     {
-        lsfitcreatefg(x,
-                      y,
-                      c,
-                      true,
-                      state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfg(x,
+                           y,
+                           w,
+                           c,
+                           true,
+                           state);
+        }
+        else
+        {
+            lsfitcreatefg(x,
+                          y,
+                          c,
+                          true,
+                          state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -850,10 +979,21 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
     }
     else if (fittingAlgorithm == FittingAlgorithm::FunctionGradientHessian)
     {
-        lsfitcreatefgh(x,
-                       y,
-                       c,
-                       state);
+        if (weightingMode == WeightingMode::Weighted)
+        {
+            lsfitcreatewfgh(x,
+                            y,
+                            w,
+                            c,
+                            state);
+        }
+        else
+        {
+            lsfitcreatefgh(x,
+                           y,
+                           c,
+                           state);
+        }
 
         lsfitsetcond(state,
                      epsx,
@@ -879,7 +1019,6 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
     if (alternativePmax)
     {
         exactSolutionPmax = ExactSolutionPmax(c[0], c[1], c[2]);
-        //BootstrapPmaxExponentiated(c[0], c[1], c[2]);
     }
 }
 
