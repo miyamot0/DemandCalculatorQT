@@ -110,6 +110,11 @@ void demandmodeling::SetFittingAlgorithm(FittingAlgorithm value)
     fittingAlgorithm = value;
 }
 
+void demandmodeling::SetWeightingModel(WeightingMode value)
+{
+    weightingMode = value;
+}
+
 real_1d_array demandmodeling::GetParams()
 {
     return c;

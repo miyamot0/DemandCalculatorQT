@@ -78,6 +78,7 @@ public:
     void SetScalingEnabled(bool value);
     void SetAlternativePmaxEnabled(bool value);
     void SetFittingAlgorithm(FittingAlgorithm value);
+    void SetWeightingModel(WeightingMode value);
 
     double getExponentialSSR(double Q0, double alpha, double k);
     double getExponentiatedSSR(double Q0, double alpha, double k);
@@ -185,6 +186,8 @@ private:
     DemandModel modelMode;
 
     FittingAlgorithm fittingAlgorithm;
+
+    WeightingMode weightingMode;
 
     int passingMeasures = 0;
 

@@ -140,6 +140,7 @@ CalculationWorker::CalculationWorker(QList<FittingData> mStoredValues, Calculati
     modelType = calculationSettings.settingsModel;
     mObj = new demandmodeling();
     mObj->SetFittingAlgorithm(mCalculationSettings->settingsFitting);
+    mObj->SetWeightingModel(mCalculationSettings->WeightSetting);
     mObj->SetAlternativePmaxEnabled(mCalculationSettings->settingsAlternativePmax);
 
     ptrCalculationWorker = this;
