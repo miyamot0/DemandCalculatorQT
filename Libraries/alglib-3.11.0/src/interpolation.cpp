@@ -30465,6 +30465,11 @@ NOTE:       covariance matrix is estimated using  correction  for  degrees
 
   -- ALGLIB --
      Copyright 17.08.2009 by Bochkanov Sergey
+
+-------------------------------------------------------------------------
+
+Changes made by Shawn Gilroy, flag for -8 AKA atypical fitting conditions
+
 *************************************************************************/
 void lsfitresults(lsfitstate* state,
      ae_int_t* info,
@@ -30473,15 +30478,25 @@ void lsfitresults(lsfitstate* state,
      ae_state *_state)
 {
     ae_int_t i;
-    ae_int_t j;
+    ae_int_t j;    
 
     *info = 0;
-    ae_vector_clear(c);
+
     _lsfitreport_clear(rep);
 
     lsfit_clearreport(rep, _state);
+
     *info = state->repterminationtype;
+
     rep->varidx = state->repvaridx;
+
+    if (*info == -8)
+    {
+        throw alglib::ap_error("Unexpected Bx");
+    }
+
+    ae_vector_clear(c);
+
     if( *info>0 )
     {
         ae_vector_set_length(c, state->k, _state);

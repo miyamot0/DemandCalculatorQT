@@ -42,7 +42,6 @@
   */
 
 #include "demandmodeling.h"
-#include <QDebug>
 
 void demandmodeling::SetModel(DemandModel model)
 {
@@ -890,7 +889,7 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts,
 
     // Note: 0.001 as hard constant for just shared methods
     lsfitsetcond(state,
-                 (0.001 * arrayHolder->at(0)[arrayHolder->at(0).length() - 0]),
+                 0.001,
                  sharedIterationMax - 2);
 
     lsfitsetbc(state,
@@ -906,15 +905,22 @@ void demandmodeling::FitSharedExponentiatedK(const char *mStarts,
 
     lsfitsetxrep(state, true);
 
-    alglib::lsfitfit(state,
-                     exponentiated_demand_with_k_shared,
-                     caller,
-                     arrayHolder);
+    try
+    {
+        alglib::lsfitfit(state,
+                         exponentiated_demand_with_k_shared,
+                         caller,
+                         arrayHolder);
 
-    lsfitresults(state, info, c, rep);
+        lsfitresults(state, info, c, rep);
+    }
+    catch (alglib::ap_error err)
+    {
+        info = -8;
+
+        throw alglib::ap_error("Error in getting shared k");
+    }
 }
-
-
 
 // Deprecated test method
 void demandmodeling::TestMixedModel()

@@ -377,8 +377,8 @@
             </item>
             <item>
              <widget class="QCheckBox" name="checkBoxAlternativePmax">
-              <property name="toolTip">
-               <string>Provides a supplemental calculation of Pmax using alternative Exact Solution methods</string>
+              <property name="enabled">
+               <bool>false</bool>
               </property>
               <property name="text">
                <string>Exact Solution Pmax</string>
