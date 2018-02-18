@@ -133,8 +133,8 @@ QStringList ResultsDialog::getExponentialKeys()
 
     if (showAlternativePmax)
     {
-        mReturnKeys << "Alt-Pmax"
-                    << "Alt-Pmax Slope";
+        mReturnKeys << "Exact Pmax"
+                    << "Exact Pmax Slope";
     }
 
     return mReturnKeys;
@@ -170,8 +170,8 @@ QStringList ResultsDialog::getExponentiatedKeys()
 
     if (showAlternativePmax)
     {
-        mReturnKeys << "Alt-Pmax"
-                    << "Alt-Pmax Slope";
+        mReturnKeys << "Exact Pmax"
+                    << "Exact Pmax Slope";
     }
 
     return mReturnKeys;

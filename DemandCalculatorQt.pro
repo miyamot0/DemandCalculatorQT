@@ -72,7 +72,8 @@ SOURCES += main.cpp\
     sheetdelegate.cpp \
     calculationsettings.cpp \
     calculationworker.cpp \
-    fittingdata.cpp
+    fittingdata.cpp \
+    lambertresult.cpp
 
 HEADERS  += \
     aboutdialog.h \
@@ -103,7 +104,8 @@ HEADERS  += \
     sheetdelegate.h \
     calculationsettings.h \
     calculationworker.h \
-    fittingdata.h
+    fittingdata.h \
+    lambertresult.h
 
 FORMS    += \
     aboutdialog.ui \

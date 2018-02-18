@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>818</width>
-    <height>583</height>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -340,7 +340,7 @@
          <item>
           <widget class="QGroupBox" name="groupBoxSettings">
            <property name="title">
-            <string>Optimizer Settings</string>
+            <string>Optimizer and Misc. Settings</string>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10">
             <item>
@@ -371,14 +371,17 @@
                <string>Scaling parameters may assist with fitting when parameters are wildly different (i.e., Q0 is 100,000 while alpha is 0.001). Default is off.</string>
               </property>
               <property name="text">
-               <string>Scale Parameters</string>
+               <string>Scale Model Parameters</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="checkBoxAlternativePmax">
+              <property name="toolTip">
+               <string>Provides a supplemental calculation of Pmax using alternative Exact Solution methods</string>
+              </property>
               <property name="text">
-               <string>Bootstrap Alternative Pmax</string>
+               <string>Exact Solution Pmax</string>
               </property>
              </widget>
             </item>

@@ -55,8 +55,12 @@
 #include "optimization.h"
 
 #include "calculationsettings.h"
+#include "lambertresult.h"
 
 using namespace alglib;
+
+#define M_E 2.71828182845904523536
+#define GSL_DBL_EPSILON 2.2204460492503131e-16
 
 class demandmodeling
 {
@@ -76,6 +80,10 @@ public:
 
     double getExponentialSSR(double Q0, double alpha, double k);
     double getExponentiatedSSR(double Q0, double alpha, double k);
+
+    double series_eval(double r);
+    LambertResult halley_iteration(double x, double w_initial, int max_iters);
+    LambertResult gsl_sf_lambert_W0(double x);
 
     void TestMixedModel();
 
@@ -104,8 +112,10 @@ public:
     void FitExponentiated(const char *mStarts, QList<double> mParams);
     void FitExponentiatedWithK(const char *mStarts);
 
-    void BootstrapPmaxExponential(double Q0, double A, double K);
-    void BootstrapPmaxExponentiated(double Q0, double A, double K);
+    //void BootstrapPmaxExponential(double Q0, double A, double K);
+    //void BootstrapPmaxExponentiated(double Q0, double A, double K);
+
+    double ExactSolutionPmax(double Q0, double A, double K);
 
     double GetBootStrapPmax();
     double GetBootStrapPmaxExponentialSlope(double Q, double A, double K, double pMax);
@@ -180,6 +190,8 @@ private:
     double bounce = 0.10;
     double reversals = 0;
     double ncons0 = 2;
+
+    double exactSolutionPmax;
 };
 
 #endif // DEMANDMODELING_H

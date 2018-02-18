@@ -559,7 +559,8 @@ void demandmodeling::FitExponential(const char *mStarts, QList<double> mParams)
 
     if (alternativePmax)
     {
-        BootstrapPmaxExponential(c[0], c[1], mParams[0]);
+        exactSolutionPmax = ExactSolutionPmax(c[0], c[1], mParams[0]);
+        //BootstrapPmaxExponential(c[0], c[1], mParams[0]);
     }
 }
 
@@ -646,7 +647,8 @@ void demandmodeling::FitExponentialWithK(const char *mStarts)
 
     if (alternativePmax)
     {
-        BootstrapPmaxExponential(c[0], c[1], c[2]);
+        exactSolutionPmax = ExactSolutionPmax(c[0], c[1], c[2]);
+        //BootstrapPmaxExponential(c[0], c[1], c[2]);
     }
 }
 
@@ -779,7 +781,8 @@ void demandmodeling::FitExponentiated(const char *mStarts, QList<double> mParams
 
     if (alternativePmax)
     {
-        BootstrapPmaxExponentiated(c[0], c[1], mParams[0]);
+        exactSolutionPmax = ExactSolutionPmax(c[0], c[1], mParams[0]);
+        //BootstrapPmaxExponentiated(c[0], c[1], mParams[0]);
     }
 }
 
@@ -866,7 +869,8 @@ void demandmodeling::FitExponentiatedWithK(const char *mStarts)
 
     if (alternativePmax)
     {
-        BootstrapPmaxExponentiated(c[0], c[1], c[2]);
+        exactSolutionPmax = ExactSolutionPmax(c[0], c[1], c[2]);
+        //BootstrapPmaxExponentiated(c[0], c[1], c[2]);
     }
 }
 
@@ -1037,6 +1041,22 @@ void exponential_work_curve(const real_1d_array &x, double &func, void *ptr)
     func = -(pow(10, ((log(Q)/log(10)) + K * (exp(-A * Q * x[0]) - 1))) * x[0]);
 }
 
+double demandmodeling::ExactSolutionPmax(double Q0, double A, double K)
+{
+    LambertResult result = gsl_sf_lambert_W0(-1/log(pow(10,K)));
+
+    if (!result.Success)
+    {
+        return NULL;
+    }
+    else
+    {
+        return -result.Val/(A*Q0);
+    }
+}
+
+/*
+
 void demandmodeling::BootstrapPmaxExponential(double Q0, double A, double K)
 {
     QString mString = QString::number((1/(Q0 * A * pow(K, 1.5)) * (0.083 * K + 0.65)));
@@ -1101,15 +1121,17 @@ void demandmodeling::BootstrapPmaxExponentiated(double Q0, double A, double K)
     minlbfgsresults(workOutputState, workOutputX, workOutputRep);
 }
 
+*/
+
 double demandmodeling::GetBootStrapPmax()
 {
-    return (double) workOutputX[0];
+    return exactSolutionPmax;
 }
 
 double demandmodeling::GetBootStrapPmaxExponentialSlope(double Q, double A, double K, double pMax)
 {
-    double P1 = pMax - 0.5;
-    double P2 = pMax + 0.5;
+    double P1 = pMax - 0.05;
+    double P2 = pMax + 0.05;
 
     double Q1 = (log(Q)/log(10)) + K * (exp(-A * Q * P1) - 1);
     double Q2 = (log(Q)/log(10)) + K * (exp(-A * Q * P2) - 1);
@@ -1125,8 +1147,8 @@ double demandmodeling::GetBootStrapPmaxExponentialSlope(double Q, double A, doub
 
 double demandmodeling::GetBootStrapPmaxExponentiatedSlope(double Q, double A, double K, double pMax)
 {
-    double P1 = pMax - 0.5;
-    double P2 = pMax + 0.5;
+    double P1 = pMax - 0.05;
+    double P2 = pMax + 0.05;
 
     double Q1 = Q * pow(10,(K * (exp(-A * Q * P1) - 1)));
     double Q2 = Q * pow(10,(K * (exp(-A * Q * P2) - 1)));
@@ -1135,6 +1157,156 @@ double demandmodeling::GetBootStrapPmaxExponentiatedSlope(double Q, double A, do
     double PD = ((P2-P1)/((P2+P1)/2.0));
 
     return (QD / PD);
+}
+
+/**
+ * @brief demandmodeling::series_eval
+ * @param r
+ * @return
+ */
+double demandmodeling::series_eval(double r) {
+  double c[12]
+  {
+    -1.0,
+    2.331643981597124203363536062168,
+    -1.812187885639363490240191647568,
+    1.936631114492359755363277457668,
+    -2.353551201881614516821543561516,
+    3.066858901050631912893148922704,
+    -4.175335600258177138854984177460,
+    5.858023729874774148815053846119,
+    -8.401032217523977370984161688514,
+    12.250753501314460424,
+    -18.100697012472442755,
+    27.029044799010561650
+  };
+
+  double t_8 = c[8] + r * (c[9] + r * (c[10] + r * c[11]));
+  double t_5 = c[5] + r * (c[6] + r * (c[7] + r * t_8));
+  double t_1 = c[1] + r * (c[2] + r * (c[3] + r * (c[4] + r * t_5)));
+
+  return c[0] + r * t_1;
+}
+
+LambertResult demandmodeling::halley_iteration(double x, double w_initial, int max_iters) {
+  double w = w_initial;
+  int i;
+
+  LambertResult result;
+
+  for (i = 0; i < max_iters; i++) {
+    double tol;
+    double e = exp(w);
+    double p = w + 1.0;
+    double t = w * e - x;
+
+    if (w > 0) {
+      t = (t / p) / e;
+      /* Newton iteration */
+    } else {
+      t /= e * p - 0.5 * (p + 1.0) * t / p;
+      /* Halley iteration */
+    }
+
+    w -= t;
+
+    double optTolOne = abs(w);
+    double optTolTwo = 1.0 / (abs(p) * e);
+
+    if (optTolOne > optTolTwo)
+    {
+        tol = GSL_DBL_EPSILON * optTolOne;
+    }
+    else
+    {
+        tol = GSL_DBL_EPSILON * optTolTwo;
+    }
+
+    result.Val = w;
+    result.Err = 2 * tol;
+    result.Iterations = i;
+    result.Success = true;
+
+    if (abs(t) < tol) {
+      return result;
+    }
+  }
+  /* should never get here */
+
+  result.Val = w;
+  result.Err = abs(w);
+  result.Iterations = i;
+  result.Success = false;
+
+  return result;
+
+}
+
+/**
+ * @brief demandmodeling::gsl_sf_lambert_W0 Based on GNU Scientific Library
+ * @param x
+ * @return
+ */
+LambertResult demandmodeling::gsl_sf_lambert_W0(double x)
+{
+    const double one_over_E = 1.0 / M_E;
+    const double q = x + one_over_E;
+
+    LambertResult result;
+
+    if (x == 0.0) {
+      result.Val = 0.0;
+      result.Err = 0.0;
+      result.Success = true;
+      return result;
+    }
+    else if (q < 0.0) {
+      /* Strictly speaking this is an error. But because of the
+       * arithmetic operation connecting x and q, I am a little
+       * lenient in case of some epsilon overshoot. The following
+       * answer is quite accurate in that case. Anyway, we have
+       * to return GSL_EDOM.
+       */
+      result.Val = -1.0;
+      result.Err = sqrt(-q);
+      result.Success = false; // GSL_EDOM
+      return result;
+    }
+    else if (q == 0.0) {
+      result.Val = -1.0;
+      result.Err = GSL_DBL_EPSILON;
+      /* cannot error is zero, maybe q == 0 by "accident" */
+      result.Success = true;
+      return result;
+    }
+    else if (q < 1.0e-03) {
+      /* series near -1/E in sqrt(q) */
+      const double r = sqrt(q);
+      result.Val = series_eval(r);
+      result.Err = 2.0 * GSL_DBL_EPSILON * abs(result.Val);
+      result.Success = true;
+      return result;
+    }
+    else {
+      int MAX_ITERS = 100;
+      double w;
+
+      if (x < 1.0) {
+        /* obtain initial approximation from series near x=0;
+         * no need for extra care, since the Halley iteration
+         * converges nicely on this branch
+         */
+        double p = sqrt(2.0 * M_E * q);
+        w = -1.0 + p * (1.0 + p * (-1.0 / 3.0 + p * 11.0 / 72.0));
+      }
+      else {
+        /* obtain initial approximation from rough asymptotic */
+        w = log(x);
+        if (x > 3.0) w -= log(w);
+      }
+
+      return halley_iteration(x, w, MAX_ITERS);
+    }
 }
 
 demandmodeling::demandmodeling()
