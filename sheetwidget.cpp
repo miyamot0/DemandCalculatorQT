@@ -1296,6 +1296,16 @@ void SheetWidget::Calculate()
         return;
     }
 
+    QSet<QString> stringSet = QSet<QString>::fromList(pricePoints);
+
+    if (stringSet.count() < 3)
+    {
+        QMessageBox::critical(this, "Error",
+                              "You have fewer than 3 different price pionts. Please re-check these values or selections.");
+
+        return;
+    }
+
     if (calculationSettings->WeightSetting == WeightingMode::Weighted && pricePoints.length() != weightPoints.length())
     {
         QMessageBox::critical(this, "Error",
@@ -1401,8 +1411,6 @@ void SheetWidget::Calculate()
 
     double localMax = -std::numeric_limits<double>::max(),
            localMin = std::numeric_limits<double>::max();
-
-    qDebug() << "Prior to loop";
 
     for (int i = 0; i < nSeries; i++)
     {

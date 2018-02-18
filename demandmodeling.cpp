@@ -43,8 +43,6 @@
 
 #include "demandmodeling.h"
 
-#include <QDebug>
-
 void demandmodeling::SetModel(DemandModel model)
 {
     modelMode = model;
