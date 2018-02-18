@@ -158,8 +158,9 @@ public slots:
 
     bool areDimensionsValid(bool isRowData, int dWidth, int vWidth, int dLength, int vLength);
 
+    bool areWeightsValid(QStringList &weightValues, bool isRowData, int topWeight, int leftWeight, int bottomWeight, int rightWeight);
     bool arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay);
-    void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints,
+    void areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, QStringList &weightPointsTemp, QStringList weightPoints,
                              bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue,
                              int i);
     void getGlobalMinAndMax(double &globalMin, double &globalMax, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue);
@@ -240,6 +241,7 @@ private:
 
     QString mXString;
     QString mYString;
+    QString mWString;
     //QString mYLogString;
 
     QList<QStringList> mSteinResults;

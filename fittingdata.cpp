@@ -28,10 +28,11 @@ FittingData::FittingData()
 
 }
 
-FittingData::FittingData(QString _Prices, QString _Consumption, QList<double> _PriceValues, QList<double> _ConsumptionValues, double _localMin, double _localMax)
+FittingData::FittingData(QString _Prices, QString _Consumption, QString _Weights, QList<double> _PriceValues, QList<double> _ConsumptionValues, double _localMin, double _localMax)
 {
     Prices = _Prices;
     Consumption = _Consumption;
+    Weights = _Weights;
 
     PriceValues = _PriceValues;
     ConsumptionValues = _ConsumptionValues;

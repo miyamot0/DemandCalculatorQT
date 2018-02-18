@@ -248,6 +248,12 @@ void DemandSettingsDialog::on_pushButton_clicked()
     temp->calculationSettings->bottomConsumption = bottomConsumption;
     temp->calculationSettings->rightConsumption = rightConsumption;
 
+    // Weight Values
+    temp->calculationSettings->topWeight = topWeight;
+    temp->calculationSettings->leftWeight = leftWeight;
+    temp->calculationSettings->bottomWeight = bottomWeight;
+    temp->calculationSettings->rightWeight = rightWeight;
+
     // Checking Behavior
     temp->calculationSettings->settingsCheck = getSystematicCheck();
 

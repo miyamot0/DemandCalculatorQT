@@ -1267,6 +1267,18 @@ void SheetWidget::Calculate()
         return;
     }
 
+    QStringList weightPoints;
+
+    if (calculationSettings->WeightSetting == WeightingMode::Weighted && !areWeightsValid(weightPoints,
+                                                                                         isRowData,
+                                                                                         calculationSettings->topWeight,
+                                                                                         calculationSettings->leftWeight,
+                                                                                         calculationSettings->bottomWeight,
+                                                                                         calculationSettings->rightWeight))
+    {
+        return;
+    }
+
     QStringList pricePoints;
 
     if(!arePricePointsValid(pricePoints,
@@ -1284,8 +1296,17 @@ void SheetWidget::Calculate()
         return;
     }
 
+    if (calculationSettings->WeightSetting == WeightingMode::Weighted && pricePoints.length() != weightPoints.length())
+    {
+        QMessageBox::critical(this, "Error",
+                              "Your number of weights should correspond with the number of price points. Please re-check these values or selections.");
+
+        return;
+    }
+
     QStringList valuePoints;
     QStringList pricePointsTemp;
+    QStringList weightPointsTemp;
 
     mSteinResults.clear();
     QStringList mTempSteinResults;
@@ -1302,6 +1323,8 @@ void SheetWidget::Calculate()
             areValuePointsValid(valuePoints,
                                 pricePointsTemp,
                                 pricePoints,
+                                weightPointsTemp,
+                                weightPoints,
                                 isRowData,
                                 calculationSettings->topConsumption,
                                 calculationSettings->leftConsumption,
@@ -1369,6 +1392,7 @@ void SheetWidget::Calculate()
 
     QList<double> tempDataPrices;
     QList<double> tempDataConsumption;
+    QList<double> tempDataWeight;
 
     QList<FittingData> mStoredNewValues;
 
@@ -1377,6 +1401,8 @@ void SheetWidget::Calculate()
 
     double localMax = -std::numeric_limits<double>::max(),
            localMin = std::numeric_limits<double>::max();
+
+    qDebug() << "Prior to loop";
 
     for (int i = 0; i < nSeries; i++)
     {
@@ -1389,9 +1415,18 @@ void SheetWidget::Calculate()
         valuePoints.clear();
         pricePointsTemp.clear();
 
+        if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+        {
+            weightPointsTemp.clear();
+        }
+
+        // TODO weights here
+
         areValuePointsValid(valuePoints,
                             pricePointsTemp,
                             pricePoints,
+                            weightPointsTemp,
+                            weightPoints,
                             isRowData,
                             calculationSettings->topConsumption,
                             calculationSettings->leftConsumption,
@@ -1401,11 +1436,26 @@ void SheetWidget::Calculate()
         tempDataPrices.clear();
         tempDataConsumption.clear();
 
+        if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+        {
+            tempDataWeight.clear();
+        }
+
         mXString = "[";
         mYString = "[";
 
+        if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+        {
+            mWString = "[";
+        }
+
         // Return if doesn't match
         if (pricePointsTemp.length() != valuePoints.length())
+        {
+            return;
+        }
+
+        if (calculationSettings->WeightSetting == WeightingMode::Weighted && pricePointsTemp.length() != weightPointsTemp.length())
         {
             return;
         }
@@ -1439,12 +1489,22 @@ void SheetWidget::Calculate()
                     mXString.append("[" + QString::number(calculationSettings->customQ0replacement) + "]");
 
                     tempDataPrices.append(calculationSettings->customQ0replacement);
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
                 else
                 {
                     mXString.append("[" + pricePointsTemp[i] + "]");
 
                     tempDataPrices.append(pricePointsTemp[i].toDouble());
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
 
                 xStart = true;
@@ -1456,12 +1516,22 @@ void SheetWidget::Calculate()
                     mXString.append(",[" + QString::number(calculationSettings->customQ0replacement) + "]");
 
                     tempDataPrices.append(calculationSettings->customQ0replacement);
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
                 else
                 {
                     mXString.append(",[" + pricePointsTemp[i] + "]");
 
                     tempDataPrices.append(pricePointsTemp[i].toDouble());
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
             }
 
@@ -1472,12 +1542,22 @@ void SheetWidget::Calculate()
                     mYString.append(QString::number(calculationSettings->customZeroConsumptionReplacement));
 
                     tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
                 else
                 {
                     mYString.append(valuePoints[i]);
 
                     tempDataConsumption.append(valuePoints[i].toDouble());
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
 
                 yStart = true;
@@ -1489,12 +1569,22 @@ void SheetWidget::Calculate()
                     mYString.append("," + QString::number(calculationSettings->customZeroConsumptionReplacement));
 
                     tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
                 else
                 {
                     mYString.append("," + valuePoints[i]);
 
                     tempDataConsumption.append(valuePoints[i].toDouble());
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        mWString.append(weightPointsTemp[i]);
+                    }
                 }
             }
 
@@ -1512,12 +1602,17 @@ void SheetWidget::Calculate()
         mXString.append("]");
         mYString.append("]");
 
+        if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+        {
+            mWString.append("]");
+        }
+
         mStoredValueHolder.clear();
         mStoredValueHolder << mXString << mYString << pricePointsTemp.join(",") << valuePoints.join(",");
 
         mStoredValues << mStoredValueHolder;
 
-        mStoredNewValues.append(FittingData(mXString, mYString,
+        mStoredNewValues.append(FittingData(mXString, mYString, mWString,
                                             tempDataPrices, tempDataConsumption,
                                             localMin, localMax));
     }
@@ -1609,6 +1704,93 @@ void SheetWidget::WorkFinished(int status)
             tr("Demand Curve Analyser"),
             tr("There was an error in fitting. Please evaluate your fit settings. Scaling model parameters often helps in these cases."));
     }
+}
+
+bool SheetWidget::areWeightsValid(QStringList &weightValues, bool isRowData, int topWeight, int leftWeight, int bottomWeight, int rightWeight)
+{
+    weightValues.clear();
+
+    QString holder;
+    bool valueCheck = true;
+
+    if (isRowData)
+    {
+        int r = topWeight;
+
+        for (int c = leftWeight; c <= rightWeight; c++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your weights doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            weightValues << holder;
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your weights doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+        }
+    }
+    else
+    {
+        int c = leftWeight;
+
+        for (int r = topWeight; r <= bottomWeight; r++)
+        {
+            if (table->item(r, c) == NULL)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your weights doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+
+            holder = table->item(r, c)->data(Qt::DisplayRole).toString();
+            holder.toDouble(&valueCheck);
+
+            weightValues << holder;
+
+            if (!valueCheck)
+            {
+                QMessageBox::critical(this, "Error",
+                                      "One of your weights doesn't look correct. Please re-check these values or selections.");
+
+                if (demandWindowDialog->isVisible())
+                {
+                    demandWindowDialog->ToggleButton(true);
+                }
+
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 bool SheetWidget::arePricePointsValid(QStringList &pricePoints, bool isRowData, int topDelay, int leftDelay, int bottomDelay, int rightDelay)
@@ -1898,10 +2080,17 @@ void SheetWidget::getDataPointsGlobal(double, bool isRowData, DemandModel mModel
     }
 }
 
-void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints, bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
+void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tempDelayPoints, QStringList delayPoints,
+                                      QStringList &weightPointsTemp, QStringList weightPoints,
+                                      bool isRowData, int topValue, int leftValue, int bottomValue, int rightValue, int i)
 {
     valuePoints.clear();
     tempDelayPoints.clear();
+
+    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+    {
+        weightPointsTemp.clear();
+    }
 
     QString holder;
     bool valueCheck = true;
@@ -1924,6 +2113,11 @@ void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tem
                 {
                     valuePoints << QString::number(valHolder);
                     tempDelayPoints << delayPoints.at(index);
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        weightPointsTemp << weightPoints.at(index);
+                    }
                 }
             }
 
@@ -1945,6 +2139,11 @@ void SheetWidget::areValuePointsValid(QStringList &valuePoints, QStringList &tem
                 {
                     valuePoints << QString::number(valHolder);
                     tempDelayPoints << delayPoints.at(index);
+
+                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
+                    {
+                        weightPointsTemp << weightPoints.at(index);
+                    }
                 }
             }
 

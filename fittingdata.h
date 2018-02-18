@@ -31,10 +31,11 @@ class FittingData
 public:
     FittingData();
 
-    FittingData(QString _Prices, QString _Consumption, QList<double> _PriceValues, QList<double> _ConsumptionValues, double _localMin, double _localMax);
+    FittingData(QString _Prices, QString _Consumption, QString _Weights, QList<double> _PriceValues, QList<double> _ConsumptionValues, double _localMin, double _localMax);
 
     QString Prices;
     QString Consumption;
+    QString Weights;
 
     QList<double> PriceValues;
     QList<double> ConsumptionValues;

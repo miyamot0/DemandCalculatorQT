@@ -99,6 +99,11 @@ public:
         bottomConsumption,
         rightConsumption;
 
+    int topWeight,
+        leftWeight,
+        bottomWeight,
+        rightWeight;
+
     double globalMaxConsumption,
            globalMinConsumption;
 
