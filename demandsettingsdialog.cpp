@@ -92,6 +92,16 @@ void DemandSettingsDialog::UpdateConsumption(QString label, int top, int left, i
     rightConsumption = right;
 }
 
+void DemandSettingsDialog::UpdateWeights(QString label, int top, int left, int bottom, int right)
+{
+    ui->weightRangeText->setText(label);
+
+    topWeight = top;
+    leftWeight = left;
+    bottomWeight = bottom;
+    rightWeight = right;
+}
+
 void DemandSettingsDialog::on_modelingLinear_toggled(bool checked)
 {
     if (checked)
@@ -246,6 +256,9 @@ void DemandSettingsDialog::on_pushButton_clicked()
 
     // Scaling Mode
     temp->calculationSettings->ParameterScaling = getScalingMode();
+
+    // Weighting Mode
+    temp->calculationSettings->WeightSetting = ui->checkBoxWeighting->isChecked() ? WeightingMode::Weighted : WeightingMode::Unweighted;
 
     // Fitting Mode
     temp->calculationSettings->settingsFitting = getFittingAlgorithm();
@@ -434,4 +447,10 @@ void DemandSettingsDialog::on_breakpointModifyValueCustom_toggled(bool checked)
 void DemandSettingsDialog::on_q0ModifyValue_toggled(bool checked)
 {
     ui->q0CustomValueText->setEnabled(checked);
+}
+
+void DemandSettingsDialog::on_checkBoxWeighting_toggled(bool checked)
+{
+    ui->weightRangeText->setEnabled(checked);
+    ui->labelWeight->setEnabled(checked);
 }

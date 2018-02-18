@@ -54,6 +54,7 @@ public:
 public slots:
     void UpdatePrices(QString label, int top, int left, int bottom, int right);
     void UpdateConsumption(QString label, int top, int left, int bottom, int right);
+    void UpdateWeights(QString label, int top, int left, int bottom, int right);
     void ToggleButton(bool status);
     void WindowStateActive(bool status);
 
@@ -71,6 +72,8 @@ private slots:
 
     void on_q0ModifyValue_toggled(bool checked);
 
+    void on_checkBoxWeighting_toggled(bool checked);
+
 private:
     Ui::DemandSettingsDialog *ui;
 
@@ -83,6 +86,11 @@ private:
     int leftConsumption;
     int bottomConsumption;
     int rightConsumption;
+
+    int topWeight;
+    int leftWeight;
+    int bottomWeight;
+    int rightWeight;
 
     bool isRunningAnalyses;
 };

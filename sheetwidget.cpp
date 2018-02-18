@@ -327,6 +327,10 @@ void SheetWidget::buildMenus()
     consumptionAction->setIcon(QIcon(":/images/preferences-system.png"));
     connect(consumptionAction, &QAction::triggered, this, &SheetWidget::updateConsumptionModalWindow);
 
+    weightAction = new QAction("Set Weights", this);
+    weightAction->setIcon(QIcon(":/images/preferences-system.png"));
+    connect(weightAction, &QAction::triggered, this, &SheetWidget::updateWeightModalWindow);
+
     for (int i = 0; i < MaxRecentFiles; ++i) {
         recentFileActs[i] = new QAction(this);
         recentFileActs[i]->setVisible(false);
@@ -389,6 +393,7 @@ void SheetWidget::buildMenus()
 
     addAction(priceAction);
     addAction(consumptionAction);
+    addAction(weightAction);
 
     QAction *separatorTwo = new QAction(this);
     separatorTwo->setSeparator(true);
@@ -1171,6 +1176,42 @@ void SheetWidget::updateConsumptionModalWindow()
     if (demandWindowDialog->isVisible())
     {
         demandWindowDialog->UpdateConsumption(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
+    }
+}
+
+void SheetWidget::updateWeightModalWindow()
+{
+    if (!isToolWindowShown())
+    {
+        return;
+    }
+
+    QList<QTableWidgetSelectionRange> mList = table->selectedRanges();
+    QTableWidgetSelectionRange range = mList.first();
+
+    QString mLeft = "";
+    convertExcelColumn(mLeft, range.leftColumn());
+
+    QString mRight = "";
+    convertExcelColumn(mRight, range.rightColumn());
+
+    mLeft.append(QString::number(range.topRow() + 1));
+    mLeft.append(":");
+    mLeft.append(mRight);
+    mLeft.append(QString::number(range.bottomRow() + 1));
+
+    int mWidth = range.rightColumn() - range.leftColumn();
+    int mHeight = range.bottomRow() - range.topRow();
+
+    if (mWidth > 0 && mHeight > 0)
+    {
+        QMessageBox::critical(this, "Error", "Please select a vector of weights (e.g., one column or one row).");
+        return;
+    }
+
+    if (demandWindowDialog->isVisible())
+    {
+        demandWindowDialog->UpdateWeights(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
     }
 }
 

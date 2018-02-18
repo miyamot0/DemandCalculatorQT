@@ -62,6 +62,12 @@ enum class ScalingMode
     Disabled
 };
 
+enum class WeightingMode
+{
+    Unweighted,
+    Weighted
+};
+
 enum class SystematicCheck
 {
     Always,
@@ -108,6 +114,8 @@ public:
     double customQ0replacement = -1;
 
     ScalingMode ParameterScaling;
+
+    WeightingMode WeightSetting;
 
     SystematicCheck settingsCheck;
 

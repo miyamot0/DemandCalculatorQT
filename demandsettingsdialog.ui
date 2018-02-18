@@ -88,6 +88,23 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="labelWeight">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Weighting Range:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="weightRangeText">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
          </layout>
@@ -376,6 +393,13 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="checkBoxWeighting">
+              <property name="text">
+               <string>Use Weighting</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QCheckBox" name="checkBoxAlternativePmax">
               <property name="enabled">
                <bool>false</bool>
@@ -403,6 +427,7 @@
            <zorder>checkBoxScaling</zorder>
            <zorder>comboBoxFitting</zorder>
            <zorder>checkBoxAlternativePmax</zorder>
+           <zorder>checkBoxWeighting</zorder>
           </widget>
          </item>
         </layout>

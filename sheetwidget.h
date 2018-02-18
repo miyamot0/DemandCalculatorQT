@@ -132,6 +132,7 @@ public slots:
 
     void updatePriceModalWindow();
     void updateConsumptionModalWindow();
+    void updateWeightModalWindow();
 
     void saveSettings();
 
@@ -207,6 +208,7 @@ private:
 
     QAction *priceAction;
     QAction *consumptionAction;
+    QAction *weightAction;
 
     QStringList pricePoints;
     QStringList consumptionPoints;
