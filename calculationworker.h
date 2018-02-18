@@ -137,17 +137,19 @@ private:
 
     QString getFittingAlgorithm(FittingAlgorithm value)
     {
+        QString mWeightTag = calculationSettings.WeightSetting == WeightingMode::Weighted ? "-w)" : ")";
+
         if (value == FittingAlgorithm::Function)
         {
-            return " (f)";
+            return " (f" + mWeightTag;
         }
         else if (value == FittingAlgorithm::FunctionGradient)
         {
-            return " (fg)";
+            return " (fg" + mWeightTag;
         }
         else if (value == FittingAlgorithm::FunctionGradientHessian)
         {
-            return " (fgh)";
+            return " (fgh" + mWeightTag;
         }
 
         return " (---)";

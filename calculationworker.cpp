@@ -816,6 +816,7 @@ void CalculationWorker::working()
         }
     }
 
+    // Checking on shared k, if successful
     if (calculationSettings.settingsK == BehaviorK::Share)
     {
         if (GetSharedK() == -1)
@@ -908,6 +909,11 @@ void CalculationWorker::working()
 
         mObj->SetX(mLocalStoredValues[i].Prices.toUtf8().constData());
         mObj->SetY(mLocalStoredValues[i].Consumption.toUtf8().constData());
+
+        if (calculationSettings.WeightSetting == WeightingMode::Weighted)
+        {
+            mObj->SetW(mLocalStoredValues[i].Weights.toUtf8().constData());
+        }
 
         mTempHolder.clear();
 

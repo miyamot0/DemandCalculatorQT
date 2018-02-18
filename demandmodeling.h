@@ -70,6 +70,7 @@ public:
     void SetModel(DemandModel model);
     void SetX(const char *mString);
     void SetY(const char *mString);
+    void SetW(const char *mString);
     void SetStarts(const char *mString);
     void SetScale(const char *mString);
     void SetBounds(const char *mUpperString,
@@ -130,6 +131,7 @@ public:
 private:
     real_2d_array x;
     real_1d_array y;
+    real_1d_array w;
 
     real_1d_array yStored;
     real_1d_array c;

@@ -74,6 +74,11 @@ void demandmodeling::SetY(const char *mString)
     }
 }
 
+void demandmodeling::SetW(const char *mString)
+{
+    w = mString;
+}
+
 void demandmodeling::SetStarts(const char *mString)
 {
     c = mString;
