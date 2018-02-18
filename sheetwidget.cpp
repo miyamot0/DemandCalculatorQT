@@ -1519,7 +1519,7 @@ void SheetWidget::Calculate()
 
                     if (calculationSettings->WeightSetting == WeightingMode::Weighted)
                     {
-                        mWString.append(weightPointsTemp[i]);
+                        mWString.append("," + weightPointsTemp[i]);
                     }
                 }
                 else
@@ -1530,7 +1530,7 @@ void SheetWidget::Calculate()
 
                     if (calculationSettings->WeightSetting == WeightingMode::Weighted)
                     {
-                        mWString.append(weightPointsTemp[i]);
+                        mWString.append("," + weightPointsTemp[i]);
                     }
                 }
             }
@@ -1542,22 +1542,12 @@ void SheetWidget::Calculate()
                     mYString.append(QString::number(calculationSettings->customZeroConsumptionReplacement));
 
                     tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
-
-                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
-                    {
-                        mWString.append(weightPointsTemp[i]);
-                    }
                 }
                 else
                 {
                     mYString.append(valuePoints[i]);
 
                     tempDataConsumption.append(valuePoints[i].toDouble());
-
-                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
-                    {
-                        mWString.append(weightPointsTemp[i]);
-                    }
                 }
 
                 yStart = true;
@@ -1569,22 +1559,12 @@ void SheetWidget::Calculate()
                     mYString.append("," + QString::number(calculationSettings->customZeroConsumptionReplacement));
 
                     tempDataConsumption.append(calculationSettings->customZeroConsumptionReplacement);
-
-                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
-                    {
-                        mWString.append(weightPointsTemp[i]);
-                    }
                 }
                 else
                 {
                     mYString.append("," + valuePoints[i]);
 
                     tempDataConsumption.append(valuePoints[i].toDouble());
-
-                    if (calculationSettings->WeightSetting == WeightingMode::Weighted)
-                    {
-                        mWString.append(weightPointsTemp[i]);
-                    }
                 }
             }
 
