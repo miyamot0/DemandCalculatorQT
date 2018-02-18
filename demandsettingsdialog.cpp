@@ -98,6 +98,8 @@ void DemandSettingsDialog::on_modelingLinear_toggled(bool checked)
     {
         ui->q0DropValue->setChecked(true);
         ui->breakpointDropValue->setChecked(true);
+
+        ui->checkBoxScaling->setChecked(false);
     }
 
     ui->groupBoxK->setEnabled(!checked);
@@ -111,6 +113,8 @@ void DemandSettingsDialog::on_modelingExponential_toggled(bool checked)
     {
         ui->q0KeepValue->setChecked(true);
         ui->breakpointDropValue->setChecked(true);
+
+        ui->checkBoxScaling->setChecked(false);
     }
 }
 
@@ -120,6 +124,8 @@ void DemandSettingsDialog::on_modelingExponentiated_toggled(bool checked)
     {
         ui->q0KeepValue->setChecked(true);
         ui->breakpointKeepValue->setChecked(true);
+
+        ui->checkBoxScaling->setChecked(true);
     }
 }
 
