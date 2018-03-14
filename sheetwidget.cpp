@@ -289,11 +289,6 @@ void SheetWidget::buildMenus()
 
     demandWindowDialog = new DemandSettingsDialog(this);
 
-    //unlockExtraFunctions = new QAction("Unlock Features", this);
-    //unlockExtraFunctions->setShortcut(QKeySequence::Underline);
-    //unlockExtraFunctions->setVisible(false);
-    //connect(unlockExtraFunctions, &QAction::triggered, this, &SheetWidget::unlockDeveloper);
-
     openLicenseDCA = new QAction("DCA License (GPL-V3)", this);
     openLicenseDCA->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseDCA, &QAction::triggered, this, &SheetWidget::showDCALicenseWindow);
@@ -336,6 +331,7 @@ void SheetWidget::buildMenus()
 
     weightAction = new QAction("Set Weights", this);
     weightAction->setIcon(QIcon(":/images/preferences-system.png"));
+    weightAction->setVisible(false);
     connect(weightAction, &QAction::triggered, this, &SheetWidget::updateWeightModalWindow);
 
     for (int i = 0; i < MaxRecentFiles; ++i) {
@@ -579,18 +575,11 @@ bool SheetWidget::eventFilter(QObject *object, QEvent *event)
 
         if (currentlyPressedKeys.contains(Qt::Key_Control) && currentlyPressedKeys.contains(Qt::Key_U))
         {
-            if (demandWindowDialog->isVisible())
+            if (demandWindowDialog->isVisible() && !weightAction->isVisible())
             {
-                qDebug() << "unlock windows";
+                weightAction->setVisible(true);
                 demandWindowDialog->ShowDeveloperOptions();
-                //demandWindowDialog->UpdatePrices(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
             }
-
-
-
-
-
-
         }
     }
     else if (event->type() == QEvent::KeyRelease)
