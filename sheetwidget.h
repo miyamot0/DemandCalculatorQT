@@ -144,7 +144,6 @@ public slots:
     void showDemandWindow();
 
     void KillThread();
-
     void showCreditsWindow();
     void showFAQWindow();
 
@@ -274,6 +273,7 @@ private:
     QString str;
     QString clearStr;
 
+    QSet<int> currentlyPressedKeys;
 };
 
 

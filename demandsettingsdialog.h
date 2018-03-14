@@ -57,6 +57,7 @@ public slots:
     void UpdateWeights(QString label, int top, int left, int bottom, int right);
     void ToggleButton(bool status);
     void WindowStateActive(bool status);
+    void ShowDeveloperOptions();
 
 private slots:
     QString getReplaceQ0String();

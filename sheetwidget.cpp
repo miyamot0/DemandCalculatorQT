@@ -98,6 +98,8 @@
 #include "sheetdelegate.h"
 #include "fittingdata.h"
 
+#include <QDebug>
+
 QTXLSX_USE_NAMESPACE
 
 SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
@@ -286,6 +288,11 @@ void SheetWidget::buildMenus()
      */
 
     demandWindowDialog = new DemandSettingsDialog(this);
+
+    //unlockExtraFunctions = new QAction("Unlock Features", this);
+    //unlockExtraFunctions->setShortcut(QKeySequence::Underline);
+    //unlockExtraFunctions->setVisible(false);
+    //connect(unlockExtraFunctions, &QAction::triggered, this, &SheetWidget::unlockDeveloper);
 
     openLicenseDCA = new QAction("DCA License (GPL-V3)", this);
     openLicenseDCA->setIcon(QIcon(":/images/format-justify-center.png"));
@@ -558,6 +565,8 @@ bool SheetWidget::eventFilter(QObject *object, QEvent *event)
     {
         QKeyEvent *keyCode = static_cast<QKeyEvent *>(event);
 
+        currentlyPressedKeys += keyCode->key();
+
         if (keyCode->key() == (int) Qt::Key_Return)
         {
             if (table->currentRow() + 1 >= table->rowCount())
@@ -567,6 +576,28 @@ bool SheetWidget::eventFilter(QObject *object, QEvent *event)
 
             table->setCurrentCell(table->currentRow() + 1, table->currentColumn());
         }
+
+        if (currentlyPressedKeys.contains(Qt::Key_Control) && currentlyPressedKeys.contains(Qt::Key_U))
+        {
+            if (demandWindowDialog->isVisible())
+            {
+                qDebug() << "unlock windows";
+                demandWindowDialog->ShowDeveloperOptions();
+                //demandWindowDialog->UpdatePrices(mLeft, range.topRow(), range.leftColumn(), range.bottomRow(), range.rightColumn());
+            }
+
+
+
+
+
+
+        }
+    }
+    else if (event->type() == QEvent::KeyRelease)
+    {
+        QKeyEvent *keyCode = static_cast<QKeyEvent *>(event);
+
+        currentlyPressedKeys -= keyCode->key();
     }
 
     return QObject::eventFilter(object, event);

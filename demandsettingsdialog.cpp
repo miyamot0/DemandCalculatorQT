@@ -34,6 +34,12 @@ DemandSettingsDialog::DemandSettingsDialog(QWidget *parent) :
 
     this->setWindowFlags(Qt::Tool);
 
+    ui->labelWeight->setHidden(true);
+    ui->checkBoxWeighting->setHidden(true);
+    ui->weightRangeText->setHidden(true);
+
+    ui->checkBoxAlternativePmax->setHidden(true);
+
     isRunningAnalyses = false;
 }
 
@@ -70,6 +76,15 @@ void DemandSettingsDialog::WindowStateActive(bool status)
     ui->groupBoxFigure->setEnabled(status);
 
     ui->pushButton->setEnabled(status);
+}
+
+void DemandSettingsDialog::ShowDeveloperOptions()
+{
+    ui->labelWeight->setHidden(false);
+    ui->checkBoxWeighting->setHidden(false);
+    ui->weightRangeText->setHidden(false);
+
+    ui->checkBoxAlternativePmax->setHidden(false);
 }
 
 void DemandSettingsDialog::UpdatePrices(QString label, int top, int left, int bottom, int right)
