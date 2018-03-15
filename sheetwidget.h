@@ -113,6 +113,8 @@ public:
 
     QRegExp regExParser;
 
+    QAction *weightAction;
+
 public slots:
     void downloadedFile(QNetworkReply *reply);
 
@@ -152,6 +154,8 @@ public slots:
     void showALGLIBLicenseWindow();
     void showQTLicenseWindow();
     void showTangoLicenseWindow();
+    void showGSLLicenseWindow();
+    void showMathNetLicenseWindow();
 
     bool isToolWindowShown();
 
@@ -202,13 +206,14 @@ private:
     QAction *openLicenseALGLIB;
     QAction *openLicenseQt;
     QAction *openLicenseTango;
+    QAction *openLicenseGSL;
+    QAction *openLicenseMathNet;
 
     QAction *openAbout;
     QAction *openFAQ;
 
     QAction *priceAction;
     QAction *consumptionAction;
-    QAction *weightAction;
 
     QStringList pricePoints;
     QStringList consumptionPoints;

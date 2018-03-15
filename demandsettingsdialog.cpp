@@ -40,6 +40,19 @@ DemandSettingsDialog::DemandSettingsDialog(QWidget *parent) :
 
     ui->checkBoxAlternativePmax->setHidden(true);
 
+    SheetWidget *mParent = static_cast<SheetWidget *>(parent);
+
+    if (mParent != NULL)
+    {
+        //if (mParent->weightAction->isVisible())
+        //{
+            //ShowDeveloperOptions();
+        //}
+    }
+
+    /*
+    */
+
     isRunningAnalyses = false;
 }
 

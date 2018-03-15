@@ -98,8 +98,6 @@
 #include "sheetdelegate.h"
 #include "fittingdata.h"
 
-#include <QDebug>
-
 QTXLSX_USE_NAMESPACE
 
 SheetWidget::SheetWidget(QWidget *parent) : QMainWindow(parent)
@@ -309,6 +307,14 @@ void SheetWidget::buildMenus()
     openLicenseTango->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseTango, &QAction::triggered, this, &SheetWidget::showTangoLicenseWindow);
 
+    openLicenseGSL = new QAction("GSL License (GPLv3)", this);
+    openLicenseGSL->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseGSL, &QAction::triggered, this, &SheetWidget::showGSLLicenseWindow);
+
+    openLicenseMathNet = new QAction("Math.Net License (MIT/X11)", this);
+    openLicenseMathNet->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseMathNet, &QAction::triggered, this, &SheetWidget::showMathNetLicenseWindow);
+
     openAbout = new QAction("Credits", this);
     openAbout->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openAbout, &QAction::triggered, this, &SheetWidget::showCreditsWindow);
@@ -385,6 +391,8 @@ void SheetWidget::buildMenus()
     sheetLicensesMenu->addAction(openLicenseALGLIB);
     sheetLicensesMenu->addAction(openLicenseQt);
     sheetLicensesMenu->addAction(openLicenseTango);
+    sheetLicensesMenu->addAction(openLicenseGSL);
+    sheetLicensesMenu->addAction(openLicenseMathNet);
     sheetLicensesMenu->addAction(openAbout);
 
     QMenu *sheetAboutMenu = menuBar()->addMenu(tr("&Help"));
@@ -876,6 +884,62 @@ void SheetWidget::showTangoLicenseWindow()
     licenseDialog->setModal(true);
     licenseDialog->show();
 }
+
+void SheetWidget::showGSLLicenseWindow()
+{
+    QString mFilePath = "";
+
+    #ifdef _WIN32
+            mFilePath = "License_GSL.txt";
+    #elif TARGET_OS_MAC
+            QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
+            runDirectory.cdUp();
+            runDirectory.cd("Resources");
+            mFilePath = runDirectory.filePath("License_GSL.txt");
+    #endif
+
+    licenseDialog = new LicenseDialog(mFilePath, this);
+    licenseDialog->setWindowTitle("GSL License (GPL-V3)");
+    licenseDialog->setModal(true);
+    licenseDialog->show();
+}
+
+void SheetWidget::showMathNetLicenseWindow()
+{
+    QString mFilePath = "";
+
+    #ifdef _WIN32
+            mFilePath = "License_Math.Net.txt";
+    #elif TARGET_OS_MAC
+            QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
+            runDirectory.cdUp();
+            runDirectory.cd("Resources");
+            mFilePath = runDirectory.filePath("License_Math.Net.txt");
+    #endif
+
+    licenseDialog = new LicenseDialog(mFilePath, this);
+    licenseDialog->setWindowTitle("Math.NET License (MIT/X11)");
+    licenseDialog->setModal(true);
+    licenseDialog->show();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void SheetWidget::showCreditsWindow()
 {

@@ -135,6 +135,8 @@ win32 {
                     License_Tango.txt \
                     License_Beezdemand.txt \
                     License_Qt.txt \
+                    License_GSL.txt \
+                    License_Math.NET.txt \
                     COPYING \
                     SNS.ico
 
@@ -164,6 +166,8 @@ macx {
                     License_Tango.txt \
                     License_Beezdemand.txt \
                     License_Qt.txt \
+                    License_GSL.txt \
+                    License_Math.NET.txt \
                     COPYING \
                     SNS.icns
 
@@ -180,4 +184,6 @@ DISTFILES += \
     COPYING \
     README.md \
     SNS.ico \
-    SNS.icns
+    SNS.icns \
+    License_GSL.txt \
+    License_Math.NET.txt
