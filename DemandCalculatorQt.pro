@@ -73,7 +73,8 @@ SOURCES += main.cpp\
     calculationsettings.cpp \
     calculationworker.cpp \
     fittingdata.cpp \
-    lambertresult.cpp
+    lambertresult.cpp \
+    numericsport.cpp
 
 HEADERS  += \
     aboutdialog.h \
@@ -105,7 +106,8 @@ HEADERS  += \
     calculationsettings.h \
     calculationworker.h \
     fittingdata.h \
-    lambertresult.h
+    lambertresult.h \
+    numericsport.h
 
 FORMS    += \
     aboutdialog.ui \

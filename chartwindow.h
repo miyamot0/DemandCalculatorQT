@@ -37,14 +37,16 @@
 #include <QtCharts>
 
 #include "calculationsettings.h"
+#include "numericsport.h"
 
 class chartwindow : public QMainWindow
 {
 public:
-    explicit chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, QWidget *parent = 0);
+    explicit chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, bool alternativePmax, QWidget *parent = 0);
 
     bool eventFilter(QObject *, QEvent *e);
 
+    void buildPlot();
     void buildLinearPlot();
     void plotLinearSeries(int index);
 
@@ -53,6 +55,12 @@ public:
 
     void buildExponentiatedPlot();
     void plotExponentiatedSeries(int index);
+
+    void buildResidualPlot();
+    void plotResiduals(int index);
+
+    void buildResidualQQPlot();
+    void plotQQResiduals(int index);
 
 private slots:
     void on_NextButton_clicked();
@@ -65,6 +73,31 @@ private:
     QLogValueAxis *axisX;
     QLogValueAxis *axisY;
     QValueAxis *axisY2;
+
+    // residuals
+
+    QChart chartError;
+    QChartView *chartViewError;
+    QValueAxis axisXerror;
+    QValueAxis axisYerror;
+    QLineSeries errSeries;
+    QScatterSeries errDataPoints;
+
+    // qq plot
+
+    QChart chartErrorQQ;
+    QChartView *chartViewErrorQQ;
+    QValueAxis axisXerrorQQ;
+    QValueAxis axisYerrorQQ;
+    QLineSeries errSeriesQQ;
+    QScatterSeries errDataPointsQQ;
+
+    //
+
+    bool isAlternativePmaxUsed;
+
+    QFont mTitle = QFont("Serif", 14, -1, false),
+          mLegendFont = QFont("Serif", 10, -1, false);
 
     QList<QStringList> mDisplayData;
 
@@ -116,6 +149,63 @@ private:
     double exponentiatedAlpha;
     double exponentiatedQ0;
     double exponentiatedK;
+
+    QStackedWidget stackedWidget;
+
+    QString xValues;
+    QString yValues;
+    QStringList mSplitX;
+    QStringList mSplitY;
+
+    double tempX, tempY;
+    double tempFitY;
+
+    bool canConvertY;
+    bool canConvertX;
+
+    double minList, maxList;
+
+    QList<double> yValuesTempHolder;
+
+    double tempQ0, tempA, tempK;
+
+    NumericsPort qqCalculations;
+
+    double meanResid;
+    double sdRes;
+    double seriesCount;
+    double cdf;
+    double expectedValue;
+    double zValue;
+
+    double MeanResiduals()
+    {
+        double residualSum = 0;
+
+        for (double val : yValuesTempHolder)
+        {
+            residualSum += val;
+        }
+
+        return residualSum / (double) yValuesTempHolder.length();
+    }
+
+    double VarianceResiduals() {
+        double mu = MeanResiduals();
+
+        double residualSumSquared = 0;
+
+        for (double val : yValuesTempHolder)
+        {
+            residualSumSquared += (val-mu)*(val-mu);
+        }
+
+        return residualSumSquared / ((double) yValuesTempHolder.length() -1);
+    }
+
+    double StdDevResiduals() {
+        return sqrt(VarianceResiduals());
+    }
 };
 
 #endif // CHARTWINDOW_H

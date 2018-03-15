@@ -29,11 +29,12 @@
 #include "chartwindow.h"
 #include "calculationsettings.h"
 
-chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, QWidget *parent)
+chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, bool alternativePmax, QWidget *parent)
 {
     mDisplayData = stringList;
     modelType = mModel;
     showStandardized = showChartsStandardized;
+    isAlternativePmaxUsed = alternativePmax;
 
     QVBoxLayout *windowLayout = new QVBoxLayout;
 
@@ -43,77 +44,19 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
 
     chart = new QChart();
 
-    QFont mTitle("Serif", 16, -1, false);
-    chart->setTitleFont(mTitle);
+    // Create regular plot
 
-    auto mLegend = chart->legend();
+    buildPlot();
+    stackedWidget.addWidget(chartView);
 
-    QFont mLegendFont("Serif", 12, -1, false);
-    mLegend->setFont(mLegendFont);
-    mLegend->setAlignment(Qt::AlignBottom);
+    buildResidualPlot();
+    stackedWidget.addWidget(chartViewError);
 
-    axisX = new QLogValueAxis;
-    //axisX->setGridLineColor(Qt::transparent);
-    axisX->setTitleText("Unit Price");
-    axisX->setBase(10);
-    axisX->setLabelsFont(mLegendFont);
-    axisX->setLinePenColor(Qt::black);
-    axisX->setLinePen(QPen(Qt::black));
-    axisX->setMin(0.001);
+    buildResidualQQPlot();
+    stackedWidget.addWidget(chartViewErrorQQ);
 
-    QString mTitleDescription = (showStandardized) ? "Standardized " : "";
-
-    if (mModel == DemandModel::Linear)
-    {
-        setWindowTitle(QString("%1Linear Demand Model Plots").arg(mTitleDescription));
-
-        axisY = new QLogValueAxis;
-        axisY->setBase(10);
-        //axisY->setGridLineColor(Qt::transparent);
-        axisY->setTitleText("Overall Consumption");
-        axisY->setLabelsFont(mLegendFont);
-        axisY->setLinePenColor(Qt::black);
-        axisY->setLinePen(QPen(Qt::black));
-        axisY->setMin(0.001);
-
-        buildLinearPlot();
-    }
-    else if (mModel == DemandModel::Exponential)
-    {
-        setWindowTitle(QString("%1Exponential Demand Model Plots").arg(mTitleDescription));
-
-        axisY = new QLogValueAxis;
-        axisY->setBase(10);
-        //axisY->setGridLineColor(Qt::transparent);
-        axisY->setTitleText("Overall Consumption");
-        axisY->setLabelsFont(mLegendFont);
-        axisY->setLinePenColor(Qt::black);
-        axisY->setLinePen(QPen(Qt::black));
-        axisY->setMin(0.001);
-
-        buildExponentialPlot();
-    }
-    else if (mModel == DemandModel::Exponentiated)
-    {
-        setWindowTitle(QString("%1Exponentiated Demand Model Plots").arg(mTitleDescription));
-        setWindowTitle("Exponentiated Demand Model Plots");
-
-        axisY2 = new QValueAxis;
-        //axisY2->setGridLineColor(Qt::transparent);
-        axisY2->setTitleText("Overall Consumption");
-        axisY2->setTickCount(5);
-        axisY2->setLabelsFont(mLegendFont);
-        axisY2->setLinePenColor(Qt::black);
-        axisY2->setLinePen(QPen(Qt::black));
-        axisY2->setMin(0.001);
-
-        buildExponentiatedPlot();
-    }
-
-    chartView = new QChartView(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
-
-    windowLayout->addWidget(chartView);
+    //windowLayout->addWidget(chartView);
+    windowLayout->addWidget(&stackedWidget);
 
     // Set layout in QWidget
     QWidget *window = new QWidget(parent);
@@ -139,6 +82,202 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
     resize(800, 600);
 
     setWindowFlags(Qt::WindowStaysOnTopHint);
+
+    plotResiduals(0);
+    plotQQResiduals(0);
+}
+
+void chartwindow::buildPlot()
+{
+    QFont mTitle("Serif", 16, -1, false);
+    chart->setTitleFont(mTitle);
+
+    auto mLegend = chart->legend();
+
+    QFont mLegendFont("Serif", 12, -1, false);
+    mLegend->setFont(mLegendFont);
+    mLegend->setAlignment(Qt::AlignBottom);
+
+    axisX = new QLogValueAxis;
+    //axisX->setGridLineColor(Qt::transparent);
+    axisX->setTitleText("Unit Price");
+    axisX->setBase(10);
+    axisX->setLabelsFont(mLegendFont);
+    axisX->setLinePenColor(Qt::black);
+    axisX->setLinePen(QPen(Qt::black));
+    axisX->setMin(0.001);
+
+    QString mTitleDescription = (showStandardized) ? "Standardized " : "";
+
+    if (modelType == DemandModel::Linear)
+    {
+        setWindowTitle(QString("%1Linear Demand Model Plots").arg(mTitleDescription));
+
+        axisY = new QLogValueAxis;
+        axisY->setBase(10);
+        //axisY->setGridLineColor(Qt::transparent);
+        axisY->setTitleText("Overall Consumption");
+        axisY->setLabelsFont(mLegendFont);
+        axisY->setLinePenColor(Qt::black);
+        axisY->setLinePen(QPen(Qt::black));
+        axisY->setMin(0.001);
+
+        buildLinearPlot();
+    }
+    else if (modelType == DemandModel::Exponential)
+    {
+        setWindowTitle(QString("%1Exponential Demand Model Plots").arg(mTitleDescription));
+
+        axisY = new QLogValueAxis;
+        axisY->setBase(10);
+        //axisY->setGridLineColor(Qt::transparent);
+        axisY->setTitleText("Overall Consumption");
+        axisY->setLabelsFont(mLegendFont);
+        axisY->setLinePenColor(Qt::black);
+        axisY->setLinePen(QPen(Qt::black));
+        axisY->setMin(0.001);
+
+        buildExponentialPlot();
+    }
+    else if (modelType == DemandModel::Exponentiated)
+    {
+        setWindowTitle(QString("%1Exponentiated Demand Model Plots").arg(mTitleDescription));
+        setWindowTitle("Exponentiated Demand Model Plots");
+
+        axisY2 = new QValueAxis;
+        //axisY2->setGridLineColor(Qt::transparent);
+        axisY2->setTitleText("Overall Consumption");
+        axisY2->setTickCount(5);
+        axisY2->setLabelsFont(mLegendFont);
+        axisY2->setLinePenColor(Qt::black);
+        axisY2->setLinePen(QPen(Qt::black));
+        axisY2->setMin(0.001);
+
+        buildExponentiatedPlot();
+    }
+
+    chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+}
+
+void chartwindow::buildResidualPlot()
+{
+    chartError.setTitleFont(mTitle);
+    chartError.setFont(mTitle);
+    chartError.setTitleBrush(Qt::black);
+
+    chartError.legend()->setFont(mLegendFont);
+    chartError.legend()->setAlignment(Qt::AlignBottom);
+    chartError.legend()->setBrush(Qt::black);
+    chartError.legend()->setColor(Qt::black);
+
+    // do we need a table?
+    chartError.legend()->setVisible(false);
+
+    axisXerror.setGridLineColor(Qt::transparent);
+    axisXerror.setTitleText(tr("Residual"));
+    axisXerror.setMin(0);
+    axisXerror.setLabelsFont(QFont("Serif", 10, -1, false));
+    axisXerror.setLabelsColor(Qt::black);
+    axisXerror.setLabelFormat(QString("%.0f"));
+    axisXerror.setLinePenColor(Qt::black);
+    axisXerror.setLinePen(QPen(Qt::black));
+    axisXerror.setTitleBrush(Qt::black);
+    axisXerror.setTitleFont(QFont("Serif", 10, -1, false));
+
+    axisYerror.setGridLineColor(Qt::transparent);
+    axisYerror.setTitleText(tr("Error Value Value"));
+    axisYerror.setTickCount(9);
+    axisYerror.setLabelsFont(QFont("Serif", 10, -1, false));
+    axisYerror.setLabelsColor(Qt::black);
+    axisYerror.setMin(-1);
+    axisYerror.setMax(1);
+    axisYerror.setLinePenColor(Qt::black);
+    axisYerror.setLinePen(QPen(Qt::black));
+    axisYerror.setTitleBrush(Qt::black);
+    axisYerror.setTitleFont(QFont("Serif", 10, -1, false));
+
+    errSeries.setUseOpenGL(true);
+    errSeries.setName("");
+    errSeries.setPointsVisible(false);
+    errSeries.setPen(QPen(Qt::black));
+    chartError.addSeries(&errSeries);
+
+    errDataPoints.setName(tr("err"));
+    errDataPoints.setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+    errDataPoints.setPen(QPen(Qt::black));
+    errDataPoints.setBrush(QBrush(Qt::black));
+    errDataPoints.setMarkerSize(10);
+    chartError.addSeries(&errDataPoints);
+
+    chartError.setAxisX(&axisXerror, &errSeries);
+    chartError.setAxisY(&axisYerror, &errSeries);
+
+    chartError.setAxisX(&axisXerror, &errDataPoints);
+    chartError.setAxisY(&axisYerror, &errDataPoints);
+
+    chartViewError = new QChartView(&chartError);
+}
+
+void chartwindow::buildResidualQQPlot()
+{
+    chartErrorQQ.setTitleFont(mTitle);
+    chartErrorQQ.setFont(mTitle);
+    chartErrorQQ.setTitleBrush(Qt::black);
+
+    chartErrorQQ.legend()->setFont(mLegendFont);
+    chartErrorQQ.legend()->setAlignment(Qt::AlignBottom);
+    chartErrorQQ.legend()->setBrush(Qt::black);
+    chartErrorQQ.legend()->setColor(Qt::black);
+
+    // do we need a table?
+    chartErrorQQ.legend()->setVisible(false);
+
+    axisXerrorQQ.setGridLineColor(Qt::transparent);
+    axisXerrorQQ.setTitleText(tr("Theoretical Quantiles"));
+    axisXerrorQQ.setTickCount(5);
+    axisXerrorQQ.setMin(-2);
+    axisXerrorQQ.setMax(2);
+    axisXerrorQQ.setLabelsFont(QFont("Serif", 10, -1, false));
+    axisXerrorQQ.setLabelsColor(Qt::black);
+    axisXerrorQQ.setLabelFormat(QString("%.0f"));
+    axisXerrorQQ.setLinePenColor(Qt::black);
+    axisXerrorQQ.setLinePen(QPen(Qt::black));
+    axisXerrorQQ.setTitleBrush(Qt::black);
+    axisXerrorQQ.setTitleFont(QFont("Serif", 10, -1, false));
+
+    axisYerrorQQ.setGridLineColor(Qt::transparent);
+    axisYerrorQQ.setTitleText(tr("Observed Values"));
+    axisYerrorQQ.setTickCount(9);
+    axisYerrorQQ.setLabelsFont(QFont("Serif", 10, -1, false));
+    axisYerrorQQ.setLabelsColor(Qt::black);
+    axisYerrorQQ.setMin(-1);
+    axisYerrorQQ.setMax(1);
+    axisYerrorQQ.setLinePenColor(Qt::black);
+    axisYerrorQQ.setLinePen(QPen(Qt::black));
+    axisYerrorQQ.setTitleBrush(Qt::black);
+    axisYerrorQQ.setTitleFont(QFont("Serif", 10, -1, false));
+
+    errSeriesQQ.setUseOpenGL(true);
+    errSeriesQQ.setName("");
+    errSeriesQQ.setPointsVisible(false);
+    errSeriesQQ.setPen(QPen(Qt::black));
+    chartErrorQQ.addSeries(&errSeriesQQ);
+
+    errDataPointsQQ.setName(tr("err"));
+    errDataPointsQQ.setMarkerShape(QScatterSeries::MarkerShapeRectangle);
+    errDataPointsQQ.setPen(QPen(Qt::black));
+    errDataPointsQQ.setBrush(QBrush(Qt::black));
+    errDataPointsQQ.setMarkerSize(10);
+    chartErrorQQ.addSeries(&errDataPointsQQ);
+
+    chartErrorQQ.setAxisX(&axisXerrorQQ, &errSeriesQQ);
+    chartErrorQQ.setAxisY(&axisYerrorQQ, &errSeriesQQ);
+
+    chartErrorQQ.setAxisX(&axisXerrorQQ, &errDataPointsQQ);
+    chartErrorQQ.setAxisY(&axisYerrorQQ, &errDataPointsQQ);
+
+    chartViewErrorQQ = new QChartView(&chartErrorQQ);
 }
 
 void chartwindow::buildLinearPlot()
@@ -795,6 +934,213 @@ void chartwindow::plotExponentiatedSeries(int index)
     axisX->setMin(0.01);
 }
 
+void chartwindow::plotResiduals(int index)
+{
+    mList = mDisplayData.at(index);
+
+    errSeries.clear();
+    errDataPoints.clear();
+
+    if (isAlternativePmaxUsed)
+    {
+        xValues = mList[mList.length() - 3];
+        yValues = mList[mList.length() - 3];
+    }
+    else
+    {
+        xValues = mList[mList.length() - 1];
+        yValues = mList[mList.length() - 1];
+    }
+
+    errSeries << QPointF(0, 0);
+
+    //xValues = mList[mList.length() - 1];
+    xValues = xValues.remove('[');
+    xValues = xValues.remove(']');
+
+    mSplitX = xValues.split(',');
+
+    //yValues = mList[mList.length() - 1];
+    yValues = yValues.remove('[');
+    yValues = yValues.remove(']');
+
+    mSplitY = yValues.split(',');
+
+    canConvertY = false;
+    canConvertX = false;
+
+    yValuesTempHolder.clear();
+
+    for (int j = 0; j < mSplitX.length() && j < mSplitY.length(); j++)
+    {
+        tempX = mSplitX[j].toDouble(&canConvertX);
+        tempY = mSplitY[j].toDouble(&canConvertY);
+
+        if (modelType == DemandModel::Exponential || modelType == DemandModel::Exponentiated)
+        {
+            // Alpha = 2
+            // Q0d = 4
+            // k = 9
+
+            tempA = mList[2].toDouble();
+            tempQ0 = mList[4].toDouble();
+            tempK = mList[9].toDouble();
+
+            if (modelType == DemandModel::Exponential)
+            {
+                tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
+
+                tempY = log10(tempY);
+            }
+            else if (modelType == DemandModel::Exponentiated)
+            {
+                //tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
+                tempFitY = tempQ0 * pow(10, (tempK * (exp(-tempA * tempQ0 * tempX) - 1)));
+
+                tempY = tempY;
+            }
+        }
+
+        if (canConvertX && canConvertY)
+        {
+            errSeries << QPointF(j+1, 0);
+            errDataPoints << QPointF(j+1, (tempY - tempFitY));
+
+            yValuesTempHolder.append((tempY - tempFitY));
+        }
+    }
+
+    if (mSplitX.length() > 0)
+    {
+        minList = std::abs(*std::min_element(yValuesTempHolder.begin(), yValuesTempHolder.end())) * 1.5;
+        maxList = std::abs(*std::max_element(yValuesTempHolder.begin(), yValuesTempHolder.end())) * 1.5;
+
+        axisYerror.setMin((maxList >= minList) ? -maxList : -minList);
+        axisYerror.setMax((maxList >= minList) ? maxList : minList);
+        axisYerror.setTickCount(9);
+    }
+
+    axisXerror.setMin(0);
+    axisXerror.setMax(mSplitX.length());
+    axisXerror.setTickCount(mSplitX.length() + 1);
+
+    chartError.setTitle(QString("Participant #%1: Residual Plot").arg(QString::number(currentIndexShown + 1)));
+}
+
+void chartwindow::plotQQResiduals(int index)
+{
+    mList = mDisplayData.at(index);
+
+    errSeriesQQ.clear();
+    errDataPointsQQ.clear();
+
+    if (isAlternativePmaxUsed)
+    {
+        xValues = mList[mList.length() - 3];
+        yValues = mList[mList.length() - 3];
+    }
+    else
+    {
+        xValues = mList[mList.length() - 1];
+        yValues = mList[mList.length() - 1];
+    }
+
+    xValues = xValues.remove('[');
+    xValues = xValues.remove(']');
+
+    mSplitX = xValues.split(',');
+
+    yValues = yValues.remove('[');
+    yValues = yValues.remove(']');
+
+    mSplitY = yValues.split(',');
+
+    canConvertY = false;
+    canConvertX = false;
+
+    yValuesTempHolder.clear();
+
+    for (int j = 0; j < mSplitX.length() && j < mSplitY.length(); j++)
+    {
+        tempX = mSplitX[j].toDouble(&canConvertX);
+        tempY = mSplitY[j].toDouble(&canConvertY);
+
+        if (modelType == DemandModel::Exponential || modelType == DemandModel::Exponentiated)
+        {
+            // Alpha = 2
+            // Q0d = 4
+            // k = 9
+
+            tempA = mList[2].toDouble();
+            tempQ0 = mList[4].toDouble();
+            tempK = mList[9].toDouble();
+
+            if (modelType == DemandModel::Exponential)
+            {
+                tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
+
+                tempY = log10(tempY);
+            }
+            else if (modelType == DemandModel::Exponentiated)
+            {
+                tempFitY = tempQ0 * pow(10, (tempK * (exp(-tempA * tempQ0 * tempX) - 1)));
+
+                tempY = tempY;
+            }
+        }
+
+        if (canConvertX && canConvertY)
+        {
+            yValuesTempHolder.append((tempY - tempFitY));
+        }
+    }
+
+    meanResid = MeanResiduals();
+    sdRes = StdDevResiduals();
+
+    std::sort(yValuesTempHolder.begin(), yValuesTempHolder.end());
+
+    seriesCount = (double) yValuesTempHolder.length();
+    cdf = 0.0;
+    expectedValue = 0;
+    zValue = 0;
+
+    for (int j = 0; j < yValuesTempHolder.count(); j++)
+    {
+        if (j == 0)
+        {
+            cdf = 1.0 / (2.0 * seriesCount);
+        }
+        else
+        {
+            cdf += 2.0 / (2.0 * seriesCount);
+        }
+
+        expectedValue = qqCalculations.NormInv(cdf, meanResid, sdRes);
+
+        zValue = qqCalculations.InvCDF(0, 1, cdf);
+
+        errSeriesQQ << QPointF(zValue, expectedValue);
+        errDataPointsQQ << QPointF(zValue, yValuesTempHolder[j]);
+    }
+
+    if (mSplitX.length() > 0)
+    {
+        minList = std::abs(*std::min_element(yValuesTempHolder.begin(), yValuesTempHolder.end())) * 1.5;
+        maxList = std::abs(*std::max_element(yValuesTempHolder.begin(), yValuesTempHolder.end())) * 1.5;
+
+        axisYerrorQQ.setMin((maxList >= minList) ? -maxList : -minList);
+        axisYerrorQQ.setMax((maxList >= minList) ? maxList : minList);
+        axisYerrorQQ.setTickCount(9);
+    }
+
+    axisXerrorQQ.setMin(-2);
+    axisXerrorQQ.setMax(2);
+    axisXerrorQQ.setTickCount(5);
+
+    chartErrorQQ.setTitle(QString("Participant #%1: Probability Plot").arg(QString::number(currentIndexShown + 1)));
+}
+
 bool chartwindow::eventFilter(QObject *, QEvent *e)
 {
     if (e->type() == QEvent::ShortcutOverride)
@@ -808,6 +1154,24 @@ bool chartwindow::eventFilter(QObject *, QEvent *e)
         else if (keyEvent->key() == Qt::Key::Key_Right)
         {
             on_NextButton_clicked();
+        }
+        else if (keyEvent->key() == Qt::Key::Key_Up)
+        {
+            if (stackedWidget.currentIndex() <= 0)
+            {
+                return false;
+            }
+
+            stackedWidget.setCurrentIndex(stackedWidget.currentIndex() - 1);
+        }
+        else if (keyEvent->key() == Qt::Key::Key_Down)
+        {
+            if (stackedWidget.currentIndex() >= (stackedWidget.count() - 1))
+            {
+                return false;
+            }
+
+            stackedWidget.setCurrentIndex(stackedWidget.currentIndex() + 1);
         }
     }
 
@@ -863,6 +1227,9 @@ void chartwindow::on_NextButton_clicked()
     {
         plotExponentiatedSeries(currentIndexShown);
     }
+
+    plotResiduals(currentIndexShown);
+    plotQQResiduals(currentIndexShown);
 }
 
 void chartwindow::on_PreviousButton_clicked()
@@ -886,4 +1253,7 @@ void chartwindow::on_PreviousButton_clicked()
     {
         plotExponentiatedSeries(currentIndexShown);
     }
+
+    plotResiduals(currentIndexShown);
+    plotQQResiduals(currentIndexShown);
 }

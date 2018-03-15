@@ -1673,6 +1673,7 @@ void SheetWidget::WorkFinished(int status)
                 chartWindow = new chartwindow(allResults,
                                               calculationSettings->settingsChart == ChartingOptions::Standardized,
                                               calculationSettings->settingsModel,
+                                              calculationSettings->settingsAlternativePmax,
                                               this);
             }
 
