@@ -166,6 +166,7 @@ void DemandSettingsDialog::on_pushButton_clicked()
 {
     SheetWidget *temp = qobject_cast <SheetWidget *>(parent());
 
+    // Fire cancel
     if (isRunningAnalyses)
     {
         temp->KillThread();

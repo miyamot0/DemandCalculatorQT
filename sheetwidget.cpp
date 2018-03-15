@@ -1328,10 +1328,7 @@ void SheetWidget::Calculate()
         //TODO color and text change while running
     }
 
-    // Display figures?
-
-    bool isRowData = (calculationSettings->rightPrice - calculationSettings->leftPrice == 0) ? false :
-                                                                                               true;
+    bool isRowData = (calculationSettings->rightPrice - calculationSettings->leftPrice == 0) ? false : true;
 
     int nSeries = (isRowData) ? calculationSettings->bottomConsumption - calculationSettings->topConsumption + 1 :
                                 nSeries = calculationSettings->rightConsumption - calculationSettings->leftConsumption + 1;
@@ -1361,6 +1358,11 @@ void SheetWidget::Calculate()
                                                                                          calculationSettings->bottomWeight,
                                                                                          calculationSettings->rightWeight))
     {
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
+
         return;
     }
 
@@ -1388,6 +1390,11 @@ void SheetWidget::Calculate()
         QMessageBox::critical(this, "Error",
                               "You have fewer than 3 different price pionts. Please re-check these values or selections.");
 
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
+
         return;
     }
 
@@ -1395,6 +1402,11 @@ void SheetWidget::Calculate()
     {
         QMessageBox::critical(this, "Error",
                               "Your number of weights should correspond with the number of price points. Please re-check these values or selections.");
+
+        if (demandWindowDialog->isVisible())
+        {
+            demandWindowDialog->ToggleButton(true);
+        }
 
         return;
     }
@@ -1545,11 +1557,21 @@ void SheetWidget::Calculate()
         // Return if doesn't match
         if (pricePointsTemp.length() != valuePoints.length())
         {
+            if (demandWindowDialog->isVisible())
+            {
+                demandWindowDialog->ToggleButton(true);
+            }
+
             return;
         }
 
         if (calculationSettings->WeightSetting == WeightingMode::Weighted && pricePointsTemp.length() != weightPointsTemp.length())
         {
+            if (demandWindowDialog->isVisible())
+            {
+                demandWindowDialog->ToggleButton(true);
+            }
+
             return;
         }
 
