@@ -123,7 +123,7 @@ private:
 
     DemandModel modelType;
 
-    double deltaVar = 5;
+    double deltaVar = 3;
 
     bool showStandardized;
 

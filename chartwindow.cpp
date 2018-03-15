@@ -328,11 +328,11 @@ void chartwindow::plotLinearSeries(int index)
         pmaxLine->clear();
         pmaxLine->setName("pMax");
 
-
         return;
     }
 
     rawPrices = mList.at(19);
+
     rawPrices = rawPrices.replace(QString("["), QString(""));
     rawPrices = rawPrices.replace(QString("]"), QString(""));
 
@@ -403,6 +403,8 @@ void chartwindow::plotLinearSeries(int index)
 
     axisX->setMax(highestPrice * 2.0);
 
+    axisY->setMin(0.001);
+
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
         param1 = rawPricesSplit[i].toDouble(&checkValue1);
@@ -437,7 +439,7 @@ void chartwindow::plotLinearSeries(int index)
     {
         double projectedValue = log(linearL) + (linearb * log(i)) - lineara * (i);
 
-        if (projectedValue >= 0.001)
+        if (projectedValue > 0)
         {
             if (showStandardized)
             {
@@ -445,7 +447,7 @@ void chartwindow::plotLinearSeries(int index)
             }
             else
             {
-                *demandCurve << QPointF(i, qExp(projectedValue));
+                *demandCurve << QPointF(i, exp(projectedValue));
             }
         }
 
@@ -487,12 +489,10 @@ void chartwindow::plotLinearSeries(int index)
     if (showStandardized)
     {
         axisY->setMax(200);
-        axisY->setMin(0.01);
     }
     else
     {
         axisY->setMax(highestConsumption * 2);
-        axisY->setMin(0.01);
     }
 
     axisX->setMax(highestPrice * 2);
@@ -707,16 +707,16 @@ void chartwindow::plotExponentialSeries(int index)
     if (showStandardized)
     {
         axisY->setMax(200);
-        axisY->setMin(0.01);
+        axisY->setMin(0.001);
     }
     else
     {
         axisY->setMax(highestConsumption * 2);
-        axisY->setMin(0.01);
+        axisY->setMin(0.001);
     }
 
     axisX->setMax(highestPrice * 2);
-    axisX->setMin(0.01);
+    axisX->setMin(0.001);
 }
 
 void chartwindow::buildExponentiatedPlot()
@@ -850,12 +850,12 @@ void chartwindow::plotExponentiatedSeries(int index)
 
         if (param1 <= 0)
         {
-            param1 = 0.01;
+            param1 = 0.001;
         }
 
         if (param2 <= 0)
         {
-            param2 = 0.01;
+            param2 = 0.001;
         }
 
         if (showStandardized)
@@ -931,7 +931,7 @@ void chartwindow::plotExponentiatedSeries(int index)
     }
 
     axisX->setMax(highestPrice * 2);
-    axisX->setMin(0.01);
+    axisX->setMin(0.001);
 }
 
 void chartwindow::plotResiduals(int index)
@@ -945,18 +945,18 @@ void chartwindow::plotResiduals(int index)
     {
         if (isAlternativePmaxUsed)
         {
-            xValues = mList[mList.length() - 3];
+            xValues = mList[mList.length() - 4];
             yValues = mList[mList.length() - 3];
         }
         else
         {
-            xValues = mList[mList.length() - 1];
+            xValues = mList[mList.length() - 2];
             yValues = mList[mList.length() - 1];
         }
     }
     else
     {
-        xValues = mList[mList.length() - 1];
+        xValues = mList[mList.length() - 2];
         yValues = mList[mList.length() - 1];
     }
 
@@ -982,25 +982,26 @@ void chartwindow::plotResiduals(int index)
         tempX = mSplitX[j].toDouble(&canConvertX);
         tempY = mSplitY[j].toDouble(&canConvertY);
 
+        //tempX = (tempX == 0) ? 0.01 : tempX;
+
         if (modelType == DemandModel::Exponential || modelType == DemandModel::Exponentiated)
         {
-            // Alpha = 2
-            // Q0d = 4
-            // k = 9
-
             tempA = mList[2].toDouble();
             tempQ0 = mList[4].toDouble();
-            tempK = mList[9].toDouble();
 
             if (modelType == DemandModel::Exponential)
             {
-                tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
+                tempK = mList[9].toDouble();
 
-                tempY = log10(tempY);
+                tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
+                tempFitY = pow(10, tempFitY);
+
+                tempY = tempY;
             }
             else if (modelType == DemandModel::Exponentiated)
             {
-                //tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
+                tempK = mList[10].toDouble();
+
                 tempFitY = tempQ0 * pow(10, (tempK * (exp(-tempA * tempQ0 * tempX) - 1)));
 
                 tempY = tempY;
@@ -1050,14 +1051,22 @@ void chartwindow::plotQQResiduals(int index)
     errSeriesQQ.clear();
     errDataPointsQQ.clear();
 
-    if (isAlternativePmaxUsed)
+    if (modelType == DemandModel::Exponential || modelType == DemandModel::Exponentiated)
     {
-        xValues = mList[mList.length() - 3];
-        yValues = mList[mList.length() - 3];
+        if (isAlternativePmaxUsed)
+        {
+            xValues = mList[mList.length() - 4];
+            yValues = mList[mList.length() - 3];
+        }
+        else
+        {
+            xValues = mList[mList.length() - 2];
+            yValues = mList[mList.length() - 1];
+        }
     }
     else
     {
-        xValues = mList[mList.length() - 1];
+        xValues = mList[mList.length() - 2];
         yValues = mList[mList.length() - 1];
     }
 
@@ -1081,24 +1090,25 @@ void chartwindow::plotQQResiduals(int index)
         tempX = mSplitX[j].toDouble(&canConvertX);
         tempY = mSplitY[j].toDouble(&canConvertY);
 
+        tempX = (tempX == 0) ? 0.01 : tempX;
+
         if (modelType == DemandModel::Exponential || modelType == DemandModel::Exponentiated)
         {
-            // Alpha = 2
-            // Q0d = 4
-            // k = 9
-
             tempA = mList[2].toDouble();
             tempQ0 = mList[4].toDouble();
-            tempK = mList[9].toDouble();
 
             if (modelType == DemandModel::Exponential)
             {
+                tempK = mList[9].toDouble();
+
                 tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
 
                 tempY = log10(tempY);
             }
             else if (modelType == DemandModel::Exponentiated)
             {
+                tempK = mList[10].toDouble();
+
                 tempFitY = tempQ0 * pow(10, (tempK * (exp(-tempA * tempQ0 * tempX) - 1)));
 
                 tempY = tempY;
