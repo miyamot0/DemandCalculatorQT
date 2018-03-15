@@ -10,9 +10,11 @@ Features include:
   - Full range of BE outcome metrics (empirical and derived), saveable in common spreadsheet file formats
 
 ### Version
-1.4.0.0
+1.5.1.0
 
 ### Changelog
+ * 1.5.2.0 - Add residual/QQ plotting
+ * 1.5.1.0 - Bugfixes with hessians
  * 1.4.0.0 - Update to global regression k
  ...
  * 1.0.0.0 - alpha build
@@ -23,6 +25,8 @@ The Small N Stats Demand Calculator uses a number of open source projects to wor
 * Qt Framework (5.8) - LGPL 3.0 (GPL 3.0 Licensed). Copyright (C). Qt Team [Site](https://www.qt.io/)
 * Qt Examples (Spreadsheet, Recent Files) - BSD-3 Clause. Copyright (C). Qt Team [Site](https://www.qt.io/)
 * Tango icon set - Public Domain Licensed. Copyright (C) 2009, "Tango Desktop Project" [Site](http://tango.freedesktop.org/Tango_Desktop_Project)
+* GNU Scientific Library - GPLv2+ Licensed. Copyright (C) 1996-2018. GNU Project [Site](https://www.gnu.org/software/gsl/)
+* Math.NET Numerics - MIT Licensed. Copyright (C) 2002-2015. Math.NET [Github](https://github.com/mathnet/mathnet-numerics)
 
 ### Referenced Works (R packages/scripts)
 * beezdemand R package - GPLv2+ Licensed. Copyright (c) 2016, Brent Kaplan [Github](https://github.com/brentkaplan/beezdemand)
