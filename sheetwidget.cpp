@@ -787,6 +787,7 @@ void SheetWidget::showDemandWindow()
 
     demandWindowDialog = new DemandSettingsDialog(this);
     demandWindowDialog->setModal(false);
+    demandWindowDialog->SetDeveloperMode(weightAction->isVisible());
     demandWindowDialog->show();
 }
 

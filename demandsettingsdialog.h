@@ -51,6 +51,8 @@ public:
     SystematicCheck getSystematicCheck();
     ChartingOptions getCharting();
 
+    void SetDeveloperMode(bool status);
+
 public slots:
     void UpdatePrices(QString label, int top, int left, int bottom, int right);
     void UpdateConsumption(QString label, int top, int left, int bottom, int right);
