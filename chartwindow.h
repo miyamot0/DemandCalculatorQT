@@ -123,7 +123,7 @@ private:
 
     DemandModel modelType;
 
-    double deltaVar = 10;
+    double deltaVar = 5;
 
     bool showStandardized;
 
@@ -168,6 +168,7 @@ private:
     QList<double> yValuesTempHolder;
 
     double tempQ0, tempA, tempK;
+    double tempLinearL, tempLinearA, tempLinearB;
 
     NumericsPort qqCalculations;
 

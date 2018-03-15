@@ -433,7 +433,7 @@ void chartwindow::plotLinearSeries(int index)
         }
     }
 
-    for (double i = 0.001; i < highestPrice * 2; )
+    for (double i = 0.001; i <= highestPrice * 10; )
     {
         double projectedValue = log(linearL) + (linearb * log(i)) - lineara * (i);
 
@@ -941,10 +941,18 @@ void chartwindow::plotResiduals(int index)
     errSeries.clear();
     errDataPoints.clear();
 
-    if (isAlternativePmaxUsed)
+    if (modelType == DemandModel::Exponential || modelType == DemandModel::Exponentiated)
     {
-        xValues = mList[mList.length() - 3];
-        yValues = mList[mList.length() - 3];
+        if (isAlternativePmaxUsed)
+        {
+            xValues = mList[mList.length() - 3];
+            yValues = mList[mList.length() - 3];
+        }
+        else
+        {
+            xValues = mList[mList.length() - 1];
+            yValues = mList[mList.length() - 1];
+        }
     }
     else
     {
@@ -954,13 +962,11 @@ void chartwindow::plotResiduals(int index)
 
     errSeries << QPointF(0, 0);
 
-    //xValues = mList[mList.length() - 1];
     xValues = xValues.remove('[');
     xValues = xValues.remove(']');
 
     mSplitX = xValues.split(',');
 
-    //yValues = mList[mList.length() - 1];
     yValues = yValues.remove('[');
     yValues = yValues.remove(']');
 
@@ -999,6 +1005,16 @@ void chartwindow::plotResiduals(int index)
 
                 tempY = tempY;
             }
+        }
+        else
+        {
+            tempLinearL = mList[6].toDouble();
+            tempLinearB = mList[8].toDouble();
+            tempLinearA = mList[10].toDouble();
+
+            tempFitY = log(tempLinearL) + (tempLinearB * log(tempX)) - tempLinearA * tempX;
+
+            tempY = log(tempY);
         }
 
         if (canConvertX && canConvertY)
