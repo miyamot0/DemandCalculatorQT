@@ -1,12 +1,5 @@
-#ifndef TESTFUNCTIONS_H
-#define TESTFUNCTIONS_H
-
-/**
- * \file TestFunctions.h
- * \author Milos Stojanovic Stojke (milsto)
- *
- * Collection of several popular test functions for optimization algorithms
- */
+#ifndef EVOLUTIONFUNCTIONS_H
+#define EVOLUTIONFUNCTIONS_H
 
 #pragma once
 
@@ -330,4 +323,4 @@ namespace de
     };
 }
 
-#endif // TESTFUNCTIONS_H
+#endif // EVOLUTIONFUNCTIONS_H

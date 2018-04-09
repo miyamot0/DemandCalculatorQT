@@ -22,11 +22,8 @@
   */
 
 #include <QApplication>
-#include "Controls/sheetwidget.h"
 
-//#include "DifferentialEvolution.h"
-//#include "TestFunctions.h"
-//#include <QDebug>
+#include "Controls/sheetwidget.h"
 
 int main(int argc, char *argv[])
 {
@@ -35,55 +32,6 @@ int main(int argc, char *argv[])
     SheetWidget mNewSheet;
     mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
     mNewSheet.show();
-
-    /*
-    double values[11] = { 1000,
-                          1000,
-                          1000,
-                          800,
-                          800,
-                          700,
-                          600,
-                          500,
-                          400,
-                          200,
-                          100 };
-
-    double price[11] = {0.0,
-                        0.5,
-                        1.0,
-                        1.5,
-                        2.0,
-                        2.5,
-                        3.0,
-                        4.0,
-                        5.0,
-                        10.0,
-                        15.0};
-
-    unsigned int popSize = 100;
-    int lengthOfArray = 11;
-    double upperQ0Bound = 100000;
-    double upperKBound = 100;
-    */
-
-    //de::ExponentialDemand objectiveExponentialFunction(price, values, lengthOfArray, upperQ0Bound);
-    //de::DifferentialEvolution de(objectiveExponentialFunction, popSize);
-
-    //de::ExponentialDemandFitK objectiveExponentialFunctionFitK(price, values, lengthOfArray, upperQ0Bound, upperKBound);
-    //de::DifferentialEvolution de(objectiveExponentialFunctionFitK, popSize);
-
-    //de::ExponentiatedDemand objectiveExponentiatedFunction(price, values, lengthOfArray, upperQ0Bound);
-    //de::DifferentialEvolution de(objectiveExponentiatedFunction, popSize);
-
-    //de::ExponentiatedDemandFitK objectiveExponentiatedFunctionFitK(price, values, lengthOfArray, upperQ0Bound, upperKBound);
-    //de::DifferentialEvolution de(objectiveExponentiatedFunctionFitK, popSize);
-
-    //de.Optimize(1000, false);
-
-    //auto bestAgent = de.GetBestAgent();
-
-    //qDebug() << bestAgent;
 
     return app.exec();
 }
