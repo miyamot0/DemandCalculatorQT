@@ -242,6 +242,39 @@ void FailedLinearDEOutput(QStringList * mTempHolder, int i, FittingData fittingD
                 << fittingData.Consumption;
 }
 
+void SuccessfulLinearDEOutput(QStringList * mTempHolder, int i,
+                              FittingData fittingData, double L, double a, double b)
+{
+    double pmaxd = (1 + b)/a;
+    double omaxd = (L * pow(pmaxd, b)) / exp(a * pmaxd) * pmaxd;
+
+    double pbar = getPbar(fittingData.PriceValues);
+
+    mTempHolder->clear();
+    *mTempHolder << QString::number(i + 1)
+                << "Linear"
+                << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
+                << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
+                << getOmaxEString(fittingData.ConsumptionValues, fittingData.PriceValues)
+                << getPmaxEString(fittingData.ConsumptionValues, fittingData.PriceValues)
+                << QString::number(L)
+                << "---"
+                << QString::number(b)
+                << "---"
+                << QString::number(a)
+                << "---"
+                << "---"
+                << "---"
+                << QString::number(b - (a * pbar))
+                << getIntensityString(fittingData.ConsumptionValues, fittingData.PriceValues)
+                << QString::number(omaxd)
+                << QString::number(pmaxd)
+                << "---"
+                << fittingData.Prices
+                << fittingData.Consumption;
+
+}
+
 void SuccessfulLinearLMOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings,
                               FittingData fittingData, double L, double Lse,
                               double a, double ase,

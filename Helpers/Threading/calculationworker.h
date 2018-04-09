@@ -29,7 +29,6 @@
 
 #include "Modeling/demandmodeling.h"
 #include "Models/fittingdata.h"
-
 #include "Models/calculationsettings.h"
 
 class CalculationWorker : public QObject
@@ -47,16 +46,7 @@ public:
     demandmodeling *mObj;
     DemandModel modelType;
 
-    double getPbar(QList<double> &yValues);
     double GetSharedK();
-
-    QString getCodeString(ae_int_t code);
-    QString getKMessage(BehaviorK call);
-    QString getPmaxEString(QList<double> &yValues, QList<double> &xValues);
-    QString getOmaxEString(QList<double> &yValues, QList<double> &xValues);
-    QString getIntensityString(QList<double> &yValues, QList<double> &xValues);
-    QString getBP0String(QList<double> &yValues, QList<double> &xValues);
-    QString getBP1String(QList<double> &yValues, QList<double> &xValues);
 
     double GetMagnitude(double num);
 

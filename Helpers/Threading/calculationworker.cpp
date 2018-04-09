@@ -731,10 +731,28 @@ void CalculationWorker::working()
 
                 continue;
 
-            default:
+            case DemandModel::Linear:
+                if (true)
+                {
+                    LinearDemand objectiveLinearFunction(mLocalStoredValues[i].PriceValues,
+                                                         mLocalStoredValues[i].ConsumptionValues,
+                                                         mLocalStoredValues[i].LocalMax * 2.0);
+
+                    de::DifferentialEvolution de(objectiveLinearFunction, popSize);
+
+                    de.Optimize(1000, false);
+
+                    result = de.GetBestAgent();
+
+                    SuccessfulLinearDEOutput(&mTempHolder, i, mLocalStoredValues[i], result[0], result[1], result[2]);
+                }
+
+                emit workingResult(mTempHolder);
 
                 continue;
-                // Pass
+
+            default:
+                continue;
             }
         }
 
@@ -1088,9 +1106,9 @@ void CalculationWorker::working()
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
                 SuccessfulLinearLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
-                                         mObj->GetState().c[2], mObj->GetState().c[2],
-                                         mObj->GetState().c[0], mObj->GetState().c[0],
-                                         mObj->GetState().c[1], mObj->GetState().c[1],
+                                         mObj->GetState().c[2], mObj->GetReport().errpar[2],
+                                         mObj->GetState().c[0], mObj->GetReport().errpar[0],
+                                         mObj->GetState().c[1], mObj->GetReport().errpar[1],
                                          mObj->GetReport().avgerror, mObj->GetReport().r2,
                                          (int) mObj->GetInfo());
             }

@@ -10,6 +10,84 @@
 
 using namespace de;
 
+class LinearDemand : public IOptimizable
+{
+public:
+    LinearDemand(QList<double> prices, QList<double> consumption, double upperBound)
+    {
+        m_dim = 3;
+
+        upperLBound = upperBound;
+
+        storedData.clear();
+
+        for (int i = 0; i < prices.length(); i++)
+        {
+            storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
+        }
+    }
+
+    double EvaluteCost(std::vector<double> inputs) const override
+    {
+        double val = 0.0;
+
+        double L = inputs[0];
+        double a = inputs[1];
+        double b = inputs[2];
+
+        double tempPrice, tempConsumption;
+
+        double temp;
+
+        // hack
+        if (L <= 0)
+        {
+            return 1e7;
+        }
+
+        for (int j = 0; j < (int) storedData.size(); j++)
+        {
+            tempPrice = std::get<0>(storedData.at(j));
+            tempConsumption = std::get<1>(storedData.at(j));
+
+            temp = log(tempConsumption) - (log(L) + (b * log(tempPrice)) - a * tempPrice);
+
+            val = val + (temp * temp);
+        }
+
+        val = val / (double) storedData.size();
+
+        return val;
+    }
+
+    unsigned int NumberOfParameters() const override
+    {
+        return m_dim;
+    }
+
+    std::vector<Constraints> GetConstraints() const override
+    {
+        std::vector<Constraints> constr(3);
+
+        // L
+        constr[0] = Constraints(0.01, upperLBound, true);
+
+        // a
+        constr[1] = Constraints(-10, 10, true);
+
+        // b
+        constr[2] = Constraints(-10, 10, true);
+
+        return constr;
+    }
+private:
+    unsigned int m_dim = 3;
+
+    vector<tuple<double, double>> storedData;
+
+    double upperLBound;
+};
+
 class ExponentialDemand : public IOptimizable
 {
 public:

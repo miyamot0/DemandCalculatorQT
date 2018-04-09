@@ -136,8 +136,6 @@ void DemandSettingsDialog::on_modelingLinear_toggled(bool checked)
     }
 
     ui->groupBoxK->setEnabled(!checked);
-
-    ui->comboBoxFitting->setEnabled(!checked);
 }
 
 void DemandSettingsDialog::on_modelingExponential_toggled(bool checked)
