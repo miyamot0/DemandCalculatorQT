@@ -315,6 +315,10 @@ void SheetWidget::buildMenus()
     openLicenseMathNet->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseMathNet, &QAction::triggered, this, &SheetWidget::showMathNetLicenseWindow);
 
+    openLicenseDifferentialEvolution = new QAction("Differential-Evolution License (...)", this);
+    openLicenseDifferentialEvolution->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseDifferentialEvolution, &QAction::triggered, this, &SheetWidget::showDifferentialEvolutionLicenseWindow);
+
     openAbout = new QAction("Credits", this);
     openAbout->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openAbout, &QAction::triggered, this, &SheetWidget::showCreditsWindow);
@@ -393,6 +397,7 @@ void SheetWidget::buildMenus()
     sheetLicensesMenu->addAction(openLicenseTango);
     sheetLicensesMenu->addAction(openLicenseGSL);
     sheetLicensesMenu->addAction(openLicenseMathNet);
+    sheetLicensesMenu->addAction(openLicenseDifferentialEvolution);
     sheetLicensesMenu->addAction(openAbout);
 
     QMenu *sheetAboutMenu = menuBar()->addMenu(tr("&Help"));
@@ -924,23 +929,24 @@ void SheetWidget::showMathNetLicenseWindow()
     licenseDialog->show();
 }
 
+void SheetWidget::showDifferentialEvolutionLicenseWindow()
+{
+    QString mFilePath = "";
 
+    #ifdef _WIN32
+            mFilePath = "License_differential-evolution.txt";
+    #elif TARGET_OS_MAC
+            QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
+            runDirectory.cdUp();
+            runDirectory.cd("Resources");
+            mFilePath = runDirectory.filePath("License_differential-evolution.txt");
+    #endif
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    licenseDialog = new LicenseDialog(mFilePath, this);
+    licenseDialog->setWindowTitle("Differential-Evolution License (...)");
+    licenseDialog->setModal(true);
+    licenseDialog->show();
+}
 
 void SheetWidget::showCreditsWindow()
 {

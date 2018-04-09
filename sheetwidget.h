@@ -156,6 +156,7 @@ public slots:
     void showTangoLicenseWindow();
     void showGSLLicenseWindow();
     void showMathNetLicenseWindow();
+    void showDifferentialEvolutionLicenseWindow();
 
     bool isToolWindowShown();
 
@@ -208,6 +209,7 @@ private:
     QAction *openLicenseTango;
     QAction *openLicenseGSL;
     QAction *openLicenseMathNet;
+    QAction *openLicenseDifferentialEvolution;
 
     QAction *openAbout;
     QAction *openFAQ;

@@ -22,14 +22,16 @@ VERSION_MAJOR = 1
 VERSION_MINOR = 5
 VERSION_BUILD = 5
 
-DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
-       "VERSION_MINOR=$$VERSION_MINOR"\
-       "VERSION_BUILD=$$VERSION_BUILD"\
-       "VERSION_TESTING=$$TEST_FEATURES"
+CONFIG   += c++11
+
+DEFINES  += "VERSION_MAJOR=$$VERSION_MAJOR"\
+            "VERSION_MINOR=$$VERSION_MINOR"\
+            "VERSION_BUILD=$$VERSION_BUILD"\
+            "VERSION_TESTING=$$TEST_FEATURES"
 
 QT       += core gui widgets xlsx charts network xml
 
-TARGET = DemandCalculatorQt
+TARGET   = DemandCalculatorQt
 
 TEMPLATE = app
 
@@ -37,14 +39,15 @@ TEMPLATE = app
 # any feature of Qt which as been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES  += QT_DEPRECATED_WARNINGS
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-SOURCES += main.cpp\
+SOURCES += \
+    main.cpp \
     aboutdialog.cpp \
     creditsdialog.cpp \
     licensedialog.cpp \
@@ -107,7 +110,9 @@ HEADERS  += \
     calculationworker.h \
     fittingdata.h \
     lambertresult.h \
-    numericsport.h
+    numericsport.h \
+    evolutionfunctions.h \
+    differentialevolution.h
 
 FORMS    += \
     aboutdialog.ui \
@@ -132,13 +137,14 @@ win32 {
     win32:RC_ICONS += SNS.ico
 
     DCA_FILES.files = License_ALGLIB.txt \
-                    License_Tango.txt \
-                    License_Beezdemand.txt \
-                    License_Qt.txt \
-                    License_GSL.txt \
-                    License_Math.NET.txt \
-                    COPYING \
-                    SNS.ico
+                      License_Beezdemand.txt \
+                      License_differential-evolution.txt \
+                      License_GSL.txt \
+                      License_Math.NET.txt \
+                      License_Qt.txt \
+                      License_Tango.txt \
+                      COPYING \
+                      SNS.ico
 
 
     CONFIG(debug, debug|release) {
@@ -163,13 +169,14 @@ macx {
     macx:ICON = $${PWD}/SNS.icns
 
     DCA_FILES.files = License_ALGLIB.txt \
-                    License_Tango.txt \
-                    License_Beezdemand.txt \
-                    License_Qt.txt \
-                    License_GSL.txt \
-                    License_Math.NET.txt \
-                    COPYING \
-                    SNS.icns
+                      License_Beezdemand.txt \
+                      License_differential-evolution.txt \
+                      License_GSL.txt \
+                      License_Math.NET.txt \
+                      License_Qt.txt \
+                      License_Tango.txt \
+                      COPYING \
+                      SNS.icns
 
     DCA_FILES.path = Contents/Resources
 
@@ -186,4 +193,5 @@ DISTFILES += \
     SNS.ico \
     SNS.icns \
     License_GSL.txt \
-    License_Math.NET.txt
+    License_Math.NET.txt \
+    License_differential-evolution.txt

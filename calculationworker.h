@@ -151,11 +151,17 @@ private:
         {
             return " (fgh" + mWeightTag;
         }
+        else if (value == FittingAlgorithm::DifferentialEvolution)
+        {
+            return " (de)";
+        }
 
         return " (---)";
     }
 
     bool killSwitch = false;
+
+    unsigned int popSize = 100;
 
 signals:
     void workStarted();

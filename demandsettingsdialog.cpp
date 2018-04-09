@@ -429,9 +429,13 @@ FittingAlgorithm DemandSettingsDialog::getFittingAlgorithm()
     {
         return FittingAlgorithm::FunctionGradientHessian;
     }
+    else if (ui->comboBoxFitting->currentIndex() == 3)
+    {
+        return FittingAlgorithm::DifferentialEvolution;
+    }
     else
     {
-        return FittingAlgorithm::FunctionGradientHessian;
+        return FittingAlgorithm::Function;
     }
 }
 

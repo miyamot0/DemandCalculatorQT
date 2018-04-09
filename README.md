@@ -10,9 +10,10 @@ Features include:
   - Full range of BE outcome metrics (empirical and derived), saveable in common spreadsheet file formats
 
 ### Version
-1.5.3.0
+1.5.4.0
 
 ### Changelog
+ * 1.5.4.0 - Optimizer options - Differential Evolution
  * 1.5.3.0 - Developer options
  * 1.5.2.0 - Add residual/QQ plotting
  * 1.5.1.0 - Bugfixes with hessians
@@ -23,6 +24,7 @@ Features include:
 ### Referenced Works (F/OSS software)
 The Small N Stats Demand Calculator uses a number of open source projects to work properly:
 * ALGLIB (3.11.0) - GPLv3 Licensed. Copyright 1994-2017 ALGLIB Project. [Site](http://www.alglib.net/)
+* Differential Evolution - ... Copyright 2017 Milos Stojanovic Stojke. [Github](https://github.com/milsto/differential-evolution)
 * Qt Framework (5.8) - LGPL 3.0 (GPL 3.0 Licensed). Copyright (C). Qt Team [Site](https://www.qt.io/)
 * Qt Examples (Spreadsheet, Recent Files) - BSD-3 Clause. Copyright (C). Qt Team [Site](https://www.qt.io/)
 * Tango icon set - Public Domain Licensed. Copyright (C) 2009, "Tango Desktop Project" [Site](http://tango.freedesktop.org/Tango_Desktop_Project)

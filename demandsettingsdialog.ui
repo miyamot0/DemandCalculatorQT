@@ -363,21 +363,26 @@
             <item>
              <widget class="QComboBox" name="comboBoxFitting">
               <property name="currentIndex">
-               <number>2</number>
+               <number>0</number>
               </property>
               <item>
                <property name="text">
-                <string>Function</string>
+                <string>LM: Function</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Function + Gradient</string>
+                <string>LM: Function + Gradient</string>
                </property>
               </item>
               <item>
                <property name="text">
-                <string>Function + Gradient + Hessian</string>
+                <string>LM: Function + Gradient + Hessian</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>Differential Evolution Methods</string>
                </property>
               </item>
              </widget>
