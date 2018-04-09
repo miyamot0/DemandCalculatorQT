@@ -28,6 +28,8 @@
 
 #include <QDebug>
 
+#include "Helpers/Demand/demandmeasures.h"
+
 using namespace std;
 
 /**
@@ -842,37 +844,7 @@ void CalculationWorker::working()
 
         if (calculationSettings.settingsModel != DemandModel::Linear && mLocalStoredValues[i].PriceValues.length() < 3)
         {
-            mTempHolder.clear();
-            mTempHolder << QString::number(i + 1)
-                << ((calculationSettings.settingsModel == DemandModel::Exponential) ? "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting) :
-                                                                                      "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting))
-                << "---"
-                << "---"
-                << "---"
-                << "---"
-                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                << "---"
-                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                << "---"
-                << "---"
-                << "---"
-                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                << "---"
-                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                << "---"
-                << "---"
-                << "---"
-                << "---"
-                << "Fewer than 3 data points, skipped"
-                << getKMessage(calculationSettings.settingsK)
-                << mLocalStoredValues[i].Prices
-                << mLocalStoredValues[i].Consumption;
-
-            if (calculationSettings.settingsAlternativePmax)
-            {
-                mTempHolder << "---";
-                mTempHolder << "---";
-            }
+            FailedExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i]);
 
             emit workingResult(mTempHolder);
 
@@ -880,32 +852,106 @@ void CalculationWorker::working()
         }
         else if (calculationSettings.settingsModel == DemandModel::Linear && mLocalStoredValues[i].PriceValues.length() < 3)
         {
-            mTempHolder.clear();
-            mTempHolder << QString::number(i + 1)
-                        << "Linear"
-                        << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                        << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                        << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                        << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                        << "---"
-                        << "---"
-                        << "---"
-                        << "---"
-                        << "---"
-                        << "---"
-                        << "---"
-                        << "---"
-                        << "---"
-                        << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                        << "---"
-                        << "---"
-                        << "---"
-                        << mLocalStoredValues[i].Prices
-                        << mLocalStoredValues[i].Consumption;
+            FailedLinearDEOutput(&mTempHolder, i, mLocalStoredValues[i]);
 
             emit workingResult(mTempHolder);
 
             continue;
+        }
+
+        if (calculationSettings.settingsFitting == FittingAlgorithm::DifferentialEvolution)
+        {
+            switch (calculationSettings.settingsModel) {
+
+            case DemandModel::Exponential:
+                if (calculationSettings.settingsK == BehaviorK::Fit)
+                {
+                    ExponentialDemandFitK objectiveExponentialFunctionFitK(mLocalStoredValues[i].PriceValues,
+                                                                               mLocalStoredValues[i].ConsumptionValues,
+                                                                               mLocalStoredValues[i].LocalMax * 2.0,
+                                                                               mLocalStoredValues[i].LocalMax);
+
+                    de::DifferentialEvolution de(objectiveExponentialFunctionFitK, popSize);
+
+                    // TODO: fix hard coded reps
+                    de.Optimize(1000, false);
+
+                    result = de.GetBestAgent();
+
+                    SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
+                                                                  mLocalStoredValues[i], result[0], result[1], result[2], de.GetBestCost());
+                }
+                else
+                {
+                    k = GetDerivedK(&calculationSettings, mLocalStoredValues[i], savedGlobalFits);
+
+                    ExponentialDemand objectiveExponentialFunction(mLocalStoredValues[i].PriceValues,
+                                                                       mLocalStoredValues[i].ConsumptionValues,
+                                                                       k,
+                                                                       mLocalStoredValues[i].LocalMax * 2.0);
+
+                    de::DifferentialEvolution de(objectiveExponentialFunction, popSize);
+
+                    de.Optimize(1000, false);
+
+                    result = de.GetBestAgent();
+
+                    SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
+                                                                  mLocalStoredValues[i], result[0], result[1], k, de.GetBestCost());
+
+                }
+
+                emit workingResult(mTempHolder);
+
+                continue;
+
+            case DemandModel::Exponentiated:
+                if (calculationSettings.settingsK == BehaviorK::Fit)
+                {
+                    ExponentialDemandFitK objectiveExponentiatedFunctionFitK(mLocalStoredValues[i].PriceValues,
+                                                                               mLocalStoredValues[i].ConsumptionValues,
+                                                                               mLocalStoredValues[i].LocalMax * 2.0,
+                                                                               mLocalStoredValues[i].LocalMax);
+
+                    de::DifferentialEvolution de(objectiveExponentiatedFunctionFitK, popSize);
+
+                    // TODO: fix hard coded reps
+                    de.Optimize(1000, false);
+
+                    result = de.GetBestAgent();
+
+                    SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
+                                                                  mLocalStoredValues[i], result[0], result[1], result[2], de.GetBestCost());
+                }
+                else
+                {
+                    k = GetDerivedK(&calculationSettings, mLocalStoredValues[i], savedGlobalFits);
+
+                    ExponentialDemand objectiveExponentiatedFunction(mLocalStoredValues[i].PriceValues,
+                                                                       mLocalStoredValues[i].ConsumptionValues,
+                                                                       k,
+                                                                       mLocalStoredValues[i].LocalMax * 2.0);
+
+                    de::DifferentialEvolution de(objectiveExponentiatedFunction, popSize);
+
+                    de.Optimize(1000, false);
+
+                    result = de.GetBestAgent();
+
+                    SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
+                                                                  mLocalStoredValues[i], result[0], result[1], k, de.GetBestCost());
+
+                }
+
+                emit workingResult(mTempHolder);
+
+                continue;
+
+            default:
+
+                continue;
+                // Pass
+            }
         }
 
         mObj->SetModel(calculationSettings.settingsModel);
@@ -918,856 +964,364 @@ void CalculationWorker::working()
             mObj->SetW(mLocalStoredValues[i].Weights.toUtf8().constData());
         }
 
-        mTempHolder.clear();
+        switch (calculationSettings.settingsModel) {
 
-        if (calculationSettings.settingsModel == DemandModel::Exponential)
-        {
-            if (calculationSettings.settingsFitting == FittingAlgorithm::DifferentialEvolution)
+        case DemandModel::Exponential:
+
+            if (calculationSettings.settingsK == BehaviorK::Fit)
             {
-                if (calculationSettings.settingsK == BehaviorK::Fit)
+                lowerK = log(0.5);
+                upperK = log((log(mLocalStoredValues[i].LocalMax) + 0.5) * 2);
+                kSpan = upperK - lowerK;
+                tempK = -1;
+
+                lowerQ = mLocalStoredValues[i].LocalMin;
+                    lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
+                tempQ = -1;
+
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
+
+                counter = 0;
+
+                for (int k = 0; k < 100; k++)
                 {
-                    qDebug() << "in fit k";
+                    tempK = lowerK + (kSpan * (((double) k ) / 100.0));
 
-                    de::ExponentialDemandFitK objectiveExponentialFunctionFitK(mLocalStoredValues[i].PriceValues,
-                                                                               mLocalStoredValues[i].ConsumptionValues,
-                                                                               mLocalStoredValues[i].LocalMax * 2.0,
-                                                                               mLocalStoredValues[i].LocalMax);
-
-                    qDebug() << "created function good";
-
-                    de::DifferentialEvolution de(objectiveExponentialFunctionFitK, popSize);
-
-                    qDebug() << "pre optimize";
-
-                    de.Optimize(1000, true);
-
-                    std::vector<double> result = de.GetBestAgent();
-
-                    q0 = result[0];
-
-                    alpha = result[1];
-
-                    k = result[2];
-
-                    pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                    omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                    EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << QString::number(alpha)
-                                << "---"
-                                << QString::number(q0)
-                                << "---"
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(EV)
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(k)
-                                << "---"
-                                << QString::number(omaxd)
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(pmaxd)
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(de.GetBestCost())
-                                << "---"
-                                << QString::number(sqrt(de.GetBestCost()))
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << "---"
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        // TODO
-
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmax());
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-
-                        mTempHolder << "---";
-                        mTempHolder << "---";
-                    }
-                }
-                else
-                {
-                    double temporaryK = -1;
-
-                    if (calculationSettings.settingsK == BehaviorK::Individual)
-                    {
-                        temporaryK = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Range)
-                    {
-                        temporaryK = (log10(calculationSettings.globalMaxConsumption) - log10(calculationSettings.globalMinConsumption)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Share)
-                    {
-                        temporaryK = savedGlobalFits[savedGlobalFits.length() - 1];
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Custom)
-                    {
-                        temporaryK = calculationSettings.customK;
-                    }
-
-                    de::ExponentialDemand objectiveExponentialFunction(mLocalStoredValues[i].PriceValues,
-                                                                       mLocalStoredValues[i].ConsumptionValues,
-                                                                       temporaryK,
-                                                                       mLocalStoredValues[i].LocalMax * 2.0);
-
-                    de::DifferentialEvolution de(objectiveExponentialFunction, popSize);
-
-                    de.Optimize(1000, false);
-
-                    std::vector<double> result = de.GetBestAgent();
-
-                    q0 = result[0];
-
-                    alpha = result[1];
-
-                    k = temporaryK;
-
-                    pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                    omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                    EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << QString::number(alpha)
-                                << "---"
-                                << QString::number(q0)
-                                << "---"
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(EV)
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(k)
-                                << "---"
-                                << QString::number(omaxd)
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(pmaxd)
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(de.GetBestCost())
-                                << "---"
-                                << QString::number(sqrt(de.GetBestCost()))
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << "---"
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        // TODO
-
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmax());
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-
-                        mTempHolder << "---";
-                        mTempHolder << "---";
-                    }
-                }
-
-                emit workingResult(mTempHolder);
-            }
-            else
-            {
-                if (calculationSettings.settingsK == BehaviorK::Fit)
-                {
-                    lowerK = log(0.5);
-                    upperK = log((log(mLocalStoredValues[i].LocalMax) + 0.5) * 2);
-                    kSpan = upperK - lowerK;
-                    tempK = -1;
-
-                    lowerQ = mLocalStoredValues[i].LocalMin;
-                        lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
-                    upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                    qSpan = upperQ - lowerQ;
-                    tempQ = -1;
-
-                    lowerA = 0.99;
-                    upperA = 1.07;
-                    aSpan = upperA - lowerA;
-
-                    counter = 0;
-
-                    for (int k = 0; k < 100; k++)
-                    {
-                        tempK = lowerK + (kSpan * (((double) k ) / 100.0));
-
-                        for (int i = 0; i < 100; i++)
-                        {
-                            tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
-
-                            for (int j = 0; j < 100; j++)
-                            {
-                                provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
-                                provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                                provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
-
-                                provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
-                                                                                                                      provisionalValues.largeParamStartingValueArray[counter].p2,
-                                                                                                                      provisionalValues.largeParamStartingValueArray[counter].p3);
-                                counter++;
-                            }
-                        }
-                    }
-
-                    std::sort(provisionalValues.largeParamStartingValueArray,
-                              provisionalValues.largeParamStartingValueArray + 1000000,
-                              &BruteSorter);
-
-                    k = (log(mLocalStoredValues[i].LocalMax) + 0.5) * 2;
-
-                    mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
-                                    "[0.0001, -inf, 0.5]");
-
-                    scale.clear();
-
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
-
-                    mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
-                    mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
-
-                    try
-                    {
-                        mObj->FitExponentialWithK(QString("[%1, %2, %3]")
-                                                  .arg(provisionalValues.largeParamStartingValueArray[0].p1)
-                                                  .arg(provisionalValues.largeParamStartingValueArray[0].p2)
-                                                  .arg(provisionalValues.largeParamStartingValueArray[0].p3)
-                                                  .toUtf8().constData());
-
-                        failed = false;
-                    }
-                    catch (alglib::ap_error err)
-                    {
-                        failed = true;
-                    }
-                }
-                else
-                {
-                    mParams.clear();
-
-                    if (calculationSettings.settingsK == BehaviorK::Individual)
-                    {
-                        mParams << (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Range)
-                    {
-                        mParams << (log10(calculationSettings.globalMaxConsumption) - log10(calculationSettings.globalMinConsumption)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Share)
-                    {
-                        mParams << savedGlobalFits[savedGlobalFits.length() - 1];
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Custom)
-                    {
-                        mParams << calculationSettings.customK;
-                    }
-
-                    lowerQ = mLocalStoredValues[i].LocalMin;
-                        lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
-
-                    upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                    qSpan = upperQ - lowerQ;
-
-                    tempQ = -1;
-
-                    lowerA = 0.99;
-                    upperA = 1.07;
-                    aSpan = upperA - lowerA;
-
-                    counter = 0;
-
-                    for (int i = 0; i < 1000; i++)
+                    for (int i = 0; i < 100; i++)
                     {
                         tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
 
-                        for (int j = 0; j < 1000; j++)
+                        for (int j = 0; j < 100; j++)
                         {
                             provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
                             provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                            provisionalValues.largeParamStartingValueArray[counter].p3 = mParams[0];
+                            provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
 
                             provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p2,
                                                                                                                   provisionalValues.largeParamStartingValueArray[counter].p3);
-
                             counter++;
                         }
                     }
-
-                    std::sort(provisionalValues.largeParamStartingValueArray,
-                              provisionalValues.largeParamStartingValueArray + 1000000,
-                              &BruteSorter);
-
-                    mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
-
-                    scale.clear();
-
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-
-                    mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
-                    mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
-
-                    try
-                    {
-                        mObj->FitExponential(QString("[%1, %2]")
-                                            .arg(provisionalValues.largeParamStartingValueArray[0].p1)
-                                            .arg(provisionalValues.largeParamStartingValueArray[0].p2)
-                                            .toUtf8()
-                                            .constData(), mParams);
-
-                        failed = false;
-                    }
-                    catch (alglib::ap_error err)
-                    {
-                        failed = true;
-                    }
                 }
 
-                if (failed)
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
+                          &BruteSorter);
+
+                k = (log(mLocalStoredValues[i].LocalMax) + 0.5) * 2;
+
+                mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
+                                "[0.0001, -inf, 0.5]");
+
+                scale.clear();
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
+
+                try
                 {
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1);
+                    mObj->FitExponentialWithK(QString("[%1, %2, %3]")
+                                              .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                              .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                              .arg(provisionalValues.largeParamStartingValueArray[0].p3)
+                                              .toUtf8().constData());
+
+                    failed = false;
                 }
-                else if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+                catch (alglib::ap_error err)
                 {
-                    alpha = mObj->GetState().c[1];
-                    alphase = mObj->GetReport().errpar[1];
-
-                    k = (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0);
-                    kse = (calculationSettings.settingsK == BehaviorK::Fit) ? QString::number(mObj->GetReport().errpar[2]) : "---";
-
-                    q0 = mObj->GetState().c[0];
-                    q0se = mObj->GetReport().errpar[0];
-
-                    pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                    omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                    EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << QString::number(alpha)
-                                << QString::number(alphase)
-                                << QString::number(q0)
-                                << QString::number(q0se)
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(EV)
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(k)
-                                << kse
-                                << QString::number(omaxd)
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(pmaxd)
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(mObj->GetReport().rmserror)
-                                << QString::number(mObj->GetReport().r2)
-                                << QString::number(mObj->GetReport().avgerror)
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << getCodeString(mObj->GetInfo())
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        mTempHolder << QString::number(mObj->GetBootStrapPmax());
-                        mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-                    }
+                    failed = true;
                 }
-                else
-                {
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponential" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << ""
-                                << ""
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << ""
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << ""
-                                << ""
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << getCodeString(mObj->GetInfo())
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        mTempHolder << "---";
-                        mTempHolder << "---";
-                    }
-                }
-
-                emit workingResult(mTempHolder);
-            }
-        }
-        else if (calculationSettings.settingsModel == DemandModel::Exponentiated)
-        {
-            if (calculationSettings.settingsFitting == FittingAlgorithm::DifferentialEvolution)
-            {
-                if (calculationSettings.settingsK == BehaviorK::Fit)
-                {
-                    de::ExponentiatedDemandFitK objectiveExponentiatedFunctionFitK(mLocalStoredValues[i].PriceValues,
-                                                                                   mLocalStoredValues[i].ConsumptionValues,
-                                                                                   mLocalStoredValues[i].LocalMax * 2.0,
-                                                                                   mLocalStoredValues[i].LocalMax);
-
-                    de::DifferentialEvolution de(objectiveExponentiatedFunctionFitK, popSize);
-
-                    de.Optimize(1000, false);
-
-                    std::vector<double> result = de.GetBestAgent();
-
-                    q0 = result[0];
-
-                    alpha = result[1];
-
-                    k = result[2];
-
-                    pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                    omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                    EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << QString::number(alpha)
-                                << "---"
-                                << QString::number(q0)
-                                << "---"
-                                << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(EV)
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(k)
-                                << "---"
-                                << QString::number(omaxd)
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(pmaxd)
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(sqrt(de.GetBestCost()))
-                                << "---"
-                                << QString::number(de.GetBestCost())
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << "---"
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        // TODO
-
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmax());
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-
-                        mTempHolder << "---";
-                        mTempHolder << "---";
-                    }
-                }
-                else
-                {
-                    double temporaryK = -1;
-
-                    if (calculationSettings.settingsK == BehaviorK::Individual)
-                    {
-                        temporaryK = (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Range)
-                    {
-                        temporaryK = (log10(calculationSettings.globalMaxConsumption) - log10(calculationSettings.globalMinConsumption)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Share)
-                    {
-                        temporaryK = savedGlobalFits[savedGlobalFits.length() - 1];
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Custom)
-                    {
-                        temporaryK = calculationSettings.customK;
-                    }
-
-                    de::ExponentiatedDemand objectiveExponentiatedFunction(mLocalStoredValues[i].PriceValues,
-                                                                           mLocalStoredValues[i].ConsumptionValues,
-                                                                           temporaryK,
-                                                                           mLocalStoredValues[i].LocalMax * 2.0);
-
-                    de::DifferentialEvolution de(objectiveExponentiatedFunction, popSize);
-
-                    de.Optimize(1000, false);
-
-                    std::vector<double> result = de.GetBestAgent();
-
-                    q0 = result[0];
-
-                    alpha = result[1];
-
-                    k = temporaryK;
-
-                    pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                    omaxd = (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                    EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << QString::number(alpha)
-                                << "---"
-                                << QString::number(q0)
-                                << "---"
-                                << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(EV)
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(k)
-                                << "---"
-                                << QString::number(omaxd)
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(pmaxd)
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(sqrt(de.GetBestCost()))
-                                << "---"
-                                << QString::number(de.GetBestCost())
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << "---"
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        // TODO
-
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmax());
-                        //mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-
-                        mTempHolder << "---";
-                        mTempHolder << "---";
-                    }
-                }
-
-                emit workingResult(mTempHolder);
             }
             else
             {
-                if (calculationSettings.settingsK == BehaviorK::Fit)
+                mParams.clear();
+
+                mParams << GetDerivedK(&calculationSettings, mLocalStoredValues[i], savedGlobalFits);
+
+                lowerQ = mLocalStoredValues[i].LocalMin;
+                lowerQ = (lowerQ > 0) ? lowerQ : 0.1;
+
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
+
+                tempQ = -1;
+
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
+
+                counter = 0;
+
+                for (int i = 0; i < 1000; i++)
                 {
-                    lowerK = log(0.5);
-                    upperK = log((log(mLocalStoredValues[i].LocalMax) + 0.5) * 2);
-                    kSpan = upperK - lowerK;
-                    tempK = -1;
+                    tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
 
-                    lowerQ = mLocalStoredValues[i].LocalMin;
-                        lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
-                    upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                    qSpan = upperQ - lowerQ;
-                    tempQ = -1;
-
-                    lowerA = 0.99;
-                    upperA = 1.07;
-                    aSpan = upperA - lowerA;
-
-                    counter = 0;
-
-                    for (int k = 0; k < 100; k++)
+                    for (int j = 0; j < 1000; j++)
                     {
-                        tempK = lowerK + (kSpan * (((double) k ) / 100.0));
+                        provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
+                        provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
+                        provisionalValues.largeParamStartingValueArray[counter].p3 = mParams[0];
 
-                        for (int i = 0; i < 100; i++)
-                        {
-                            tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
+                        provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentialSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                              provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                              provisionalValues.largeParamStartingValueArray[counter].p3);
 
-                            for (int j = 0; j < 100; j++)
-                            {
-                                provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
-                                provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
-                                provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
-
-                                provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
-                                                                                                                        provisionalValues.largeParamStartingValueArray[counter].p2,
-                                                                                                                        provisionalValues.largeParamStartingValueArray[counter].p3);
-                                counter++;
-                            }
-                        }
-                    }
-
-                    std::sort(provisionalValues.largeParamStartingValueArray,
-                              provisionalValues.largeParamStartingValueArray + 1000000,
-                              &BruteSorter);
-
-                    k = (log(mLocalStoredValues[i].LocalMax) + 0.5) * 2;
-
-                    mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
-                                    "[0.0001, -inf, 0.5]");
-
-                    scale.clear();
-
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
-
-                    mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
-                    mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
-
-                    try
-                    {
-                        mObj->FitExponentiatedWithK(QString("[%1, %2, %3]")
-                                                    .arg(provisionalValues.largeParamStartingValueArray[0].p1)
-                                                    .arg(provisionalValues.largeParamStartingValueArray[0].p2)
-                                                    .arg(provisionalValues.largeParamStartingValueArray[0].p3)
-                                                    .toUtf8().constData());
-
-                        failed = false;
-                    }
-                    catch (alglib::ap_error err)
-                    {
-                        failed = true;
+                        counter++;
                     }
                 }
-                else
+
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
+                          &BruteSorter);
+
+                mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
+
+                scale.clear();
+
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
+
+                try
                 {
-                    mParams.clear();
+                    mObj->FitExponential(QString("[%1, %2]")
+                                        .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                        .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                        .toUtf8()
+                                        .constData(), mParams);
 
-                    if (calculationSettings.settingsK == BehaviorK::Individual)
-                    {
-                        mParams << (log10(mLocalStoredValues[i].LocalMax) - log10(mLocalStoredValues[i].LocalMin)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Range)
-                    {
-                        mParams << (log10(calculationSettings.globalMaxConsumption) - log10(calculationSettings.globalMinConsumption)) + 0.5;
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Share)
-                    {
-                        mParams << savedGlobalFits[savedGlobalFits.length() - 1];
-                    }
-                    else if (calculationSettings.settingsK == BehaviorK::Custom)
-                    {
-                        mParams << calculationSettings.customK;
-                    }
+                    failed = false;
+                }
+                catch (alglib::ap_error err)
+                {
+                    failed = true;
+                }
+            }
 
-                    lowerQ = mLocalStoredValues[i].LocalMin;
-                        lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
+            if (failed)
+            {
+                FailedExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i]);
+            }
+            else if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            {
+                SuccessfulExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
+                                                           mObj->GetState().c[0], mObj->GetReport().errpar[0],
+                                                           mObj->GetState().c[1], mObj->GetReport().errpar[1],
+                                                           (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0),
+                                                           (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetReport().errpar[2] : -1,
+                                                           mObj->GetReport().avgerror, mObj->GetReport().r2);
+            }
+            else
+            {
+                FailedExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i]);
+            }
 
-                    upperQ = mLocalStoredValues[i].LocalMax * 1.5;
-                    qSpan = upperQ - lowerQ;
+            emit workingResult(mTempHolder);
 
-                    tempQ = -1;
+            continue;
 
-                    lowerA = 0.99;
-                    upperA = 1.07;
-                    aSpan = upperA - lowerA;
+        case DemandModel::Exponentiated:
 
-                    counter = 0;
+            if (calculationSettings.settingsK == BehaviorK::Fit)
+            {
+                lowerK = log(0.5);
+                upperK = log((log(mLocalStoredValues[i].LocalMax) + 0.5) * 2);
+                kSpan = upperK - lowerK;
+                tempK = -1;
 
-                    for (int i = 0; i < 1000; i++)
+                lowerQ = mLocalStoredValues[i].LocalMin;
+                    lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
+                tempQ = -1;
+
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
+
+                counter = 0;
+
+                for (int k = 0; k < 100; k++)
+                {
+                    tempK = lowerK + (kSpan * (((double) k ) / 100.0));
+
+                    for (int i = 0; i < 100; i++)
                     {
                         tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
 
-                        for (int j = 0; j < 1000; j++)
+                        for (int j = 0; j < 100; j++)
                         {
                             provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
-                            provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 1000.0))));
-                            provisionalValues.largeParamStartingValueArray[counter].p3 = mParams[0];
+                            provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 100.0))));
+                            provisionalValues.largeParamStartingValueArray[counter].p3 = exp(tempK);
 
                             provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
                                                                                                                     provisionalValues.largeParamStartingValueArray[counter].p2,
                                                                                                                     provisionalValues.largeParamStartingValueArray[counter].p3);
-
                             counter++;
                         }
                     }
-
-                    std::sort(provisionalValues.largeParamStartingValueArray,
-                              provisionalValues.largeParamStartingValueArray + 1000000,
-                              &BruteSorter);
-
-                    mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
-
-                    scale.clear();
-
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
-                    scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
-
-                    mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
-                    mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
-
-                    try
-                    {
-                        mObj->FitExponentiated(QString("[%1, %2]")
-                                              .arg(provisionalValues.largeParamStartingValueArray[0].p1)
-                                              .arg(provisionalValues.largeParamStartingValueArray[0].p2)
-                                              .toUtf8()
-                                              .constData(), mParams);
-
-                        failed = false;
-                    }
-                    catch (alglib::ap_error err)
-                    {
-                        failed = true;
-                    }
                 }
 
-                if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
+                          &BruteSorter);
+
+                k = (log(mLocalStoredValues[i].LocalMax) + 0.5) * 2;
+
+                mObj->SetBounds(QString("[+inf, +inf, %1]").arg(k).toUtf8().constData(),
+                                "[0.0001, -inf, 0.5]");
+
+                scale.clear();
+
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p3));
+
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
+
+                try
                 {
-                    alpha = mObj->GetState().c[1];
-                    alphase = mObj->GetReport().errpar[1];
-                    k = (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0);
-                    kse = (calculationSettings.settingsK == BehaviorK::Fit) ? QString::number(mObj->GetReport().errpar[2]) : "---";
+                    mObj->FitExponentiatedWithK(QString("[%1, %2, %3]")
+                                                .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                                .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                                .arg(provisionalValues.largeParamStartingValueArray[0].p3)
+                                                .toUtf8().constData());
 
-                    q0 = mObj->GetState().c[0];
-                    q0se = mObj->GetReport().errpar[0];
-                    pmaxd = 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
-                    omaxd = (q0 * (pow(10,(k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
-
-                    EV = 1/(alpha * pow(k, 1.5) * 100);
-
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << QString::number(alpha)
-                                << QString::number(alphase)
-                                << QString::number(q0)
-                                << QString::number(q0se)
-                                << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(EV)
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(k)
-                                << kse
-                                << QString::number(omaxd)
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(pmaxd)
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << QString::number(mObj->GetReport().rmserror)
-                                << QString::number(mObj->GetReport().r2)
-                                << QString::number(mObj->GetReport().avgerror)
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << getCodeString(mObj->GetInfo())
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        mTempHolder << QString::number(mObj->GetBootStrapPmax());
-                        mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentiatedSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-                    }
+                    failed = false;
                 }
-                else
+                catch (alglib::ap_error err)
                 {
-                    mTempHolder.clear();
-                    mTempHolder << QString::number(i + 1)
-                                << "Exponentiated" + getFittingAlgorithm(calculationSettings.settingsFitting)
-                                << ""
-                                << ""
-                                << ""
-                                << ""
-                                << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << ""
-                                << ""
-                                << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                                << ""
-                                << ""
-                                << ""
-                                << QString::number(mLocalStoredValues[i].PriceValues.count())
-                                << getCodeString(mObj->GetInfo())
-                                << getKMessage(calculationSettings.settingsK)
-                                << mLocalStoredValues[i].Prices
-                                << mLocalStoredValues[i].Consumption;
-
-                    if (calculationSettings.settingsAlternativePmax)
-                    {
-                        mTempHolder << "---";
-                        mTempHolder << "---";
-                    }
+                    failed = true;
                 }
-
-                emit workingResult(mTempHolder);
-            }
-        }
-        else if (calculationSettings.settingsModel == DemandModel::Linear)
-        {
-            mObj->SetBounds("[+inf, +inf, +inf]", "[-inf, -inf, -inf]");
-            mObj->FitLinear("[1, 1, 1]");
-            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
-            {
-                double a = mObj->GetState().c[0];
-                double b = mObj->GetState().c[1];
-                double L = mObj->GetState().c[2];
-                double pmaxd = (1 + b)/a;
-                double omaxd = (L * pow(pmaxd, b)) / exp(a * pmaxd) * pmaxd;
-
-                double pbar = getPbar(mLocalStoredValues[i].PriceValues);
-
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Linear"
-                            << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << QString::number(L)
-                            << QString::number(mObj->GetReport().errpar[2])
-                            << QString::number(b)
-                            << QString::number(mObj->GetReport().errpar[1])
-                            << QString::number(a)
-                            << QString::number(mObj->GetReport().errpar[0])
-                            << QString::number(mObj->GetReport().r2)
-                            << "---"
-                            << QString::number(b - (a * pbar))
-                            << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << QString::number(omaxd)
-                            << QString::number(pmaxd)
-                            << getCodeString(mObj->GetInfo())
-                            << mLocalStoredValues[i].Prices
-                            << mLocalStoredValues[i].Consumption;
             }
             else
             {
-                mTempHolder.clear();
-                mTempHolder << QString::number(i + 1)
-                            << "Linear"
-                            << getBP0String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << getBP1String(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << getOmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << getPmaxEString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << ""
-                            << ""
-                            << ""
-                            << ""
-                            << "TO DO"
-                            << ""
-                            << getIntensityString(mLocalStoredValues[i].ConsumptionValues, mLocalStoredValues[i].PriceValues)
-                            << ""
-                            << ""
-                            << getCodeString(mObj->GetInfo())
-                            << mLocalStoredValues[i].Prices
-                            << mLocalStoredValues[i].Consumption;
+                mParams.clear();
+
+                mParams << GetDerivedK(&calculationSettings, mLocalStoredValues[i], savedGlobalFits);
+
+                lowerQ = mLocalStoredValues[i].LocalMin;
+                    lowerQ = (lowerQ > 0) ? lowerQ : 0.10;
+
+                upperQ = mLocalStoredValues[i].LocalMax * 1.5;
+                qSpan = upperQ - lowerQ;
+
+                tempQ = -1;
+
+                lowerA = 0.99;
+                upperA = 1.07;
+                aSpan = upperA - lowerA;
+
+                counter = 0;
+
+                for (int i = 0; i < 1000; i++)
+                {
+                    tempQ = lowerQ + (qSpan * (((double) i ) / 1000.0));
+
+                    for (int j = 0; j < 1000; j++)
+                    {
+                        provisionalValues.largeParamStartingValueArray[counter].p1 = tempQ;
+                        provisionalValues.largeParamStartingValueArray[counter].p2 = log((lowerA + (aSpan * (((double) j ) / 1000.0))));
+                        provisionalValues.largeParamStartingValueArray[counter].p3 = mParams[0];
+
+                        provisionalValues.largeParamStartingValueArray[counter].err = mObj->getExponentiatedSSR(provisionalValues.largeParamStartingValueArray[counter].p1,
+                                                                                                                provisionalValues.largeParamStartingValueArray[counter].p2,
+                                                                                                                provisionalValues.largeParamStartingValueArray[counter].p3);
+
+                        counter++;
+                    }
+                }
+
+                std::sort(provisionalValues.largeParamStartingValueArray,
+                          provisionalValues.largeParamStartingValueArray + 1000000,
+                          &BruteSorter);
+
+                mObj->SetBounds(QString("[+inf, +inf]").toUtf8().constData(), "[0.001, -inf]");
+
+                scale.clear();
+
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p1));
+                scale << GetMagnitudeString(GetMagnitude(provisionalValues.largeParamStartingValueArray[0].p2));
+
+                mObj->SetScalingEnabled(calculationSettings.ParameterScaling == ScalingMode::Enabled);
+                mObj->SetScale(QString("[" + scale.join(',') + "]").toUtf8().constData());
+
+                try
+                {
+                    mObj->FitExponentiated(QString("[%1, %2]")
+                                          .arg(provisionalValues.largeParamStartingValueArray[0].p1)
+                                          .arg(provisionalValues.largeParamStartingValueArray[0].p2)
+                                          .toUtf8()
+                                          .constData(), mParams);
+
+                    failed = false;
+                }
+                catch (alglib::ap_error err)
+                {
+                    failed = true;
+                }
+            }
+
+            if (failed)
+            {
+                FailedExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i]);
+            }
+            else if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            {
+                SuccessfulExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
+                                                           mObj->GetState().c[0], mObj->GetReport().errpar[0],
+                                                           mObj->GetState().c[1], mObj->GetReport().errpar[1],
+                                                           mObj->GetState().c[2], mObj->GetReport().errpar[2],
+                                                           mObj->GetReport().avgerror, mObj->GetReport().r2);
+            }
+            else
+            {
+                FailedExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i]);
             }
 
             emit workingResult(mTempHolder);
+
+            continue;
+
+        case DemandModel::Linear:
+            mObj->SetBounds("[+inf, +inf, +inf]", "[-inf, -inf, -inf]");
+
+            mObj->FitLinear("[1, 1, 1]");
+
+            if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
+            {
+                SuccessfulLinearLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
+                                         mObj->GetState().c[2], mObj->GetState().c[2],
+                                         mObj->GetState().c[0], mObj->GetState().c[0],
+                                         mObj->GetState().c[1], mObj->GetState().c[1],
+                                         mObj->GetReport().avgerror, mObj->GetReport().r2,
+                                         (int) mObj->GetInfo());
+            }
+            else
+            {
+                FailedLinearLMOutput(&mTempHolder, i, mLocalStoredValues[i], (int) mObj->GetInfo());
+            }
+
+            emit workingResult(mTempHolder);
+
+            break;
+
+        default:
+
+            continue;
         }
     }
 

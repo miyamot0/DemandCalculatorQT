@@ -89,6 +89,7 @@ HEADERS  += \
     Dialogs/resultsdialog.h \
     Dialogs/sheetselectdialog.h \
     Dialogs/steincheck.h \
+    Helpers/Demand/demandmeasures.h \
     Helpers/Threading/calculationworker.h \
     Helpers/GeneticAlgorithms/evolutionfunctions.h \
     Libraries/alglib-3.11.0/src/alglibinternal.h \
@@ -112,7 +113,8 @@ HEADERS  += \
     Models/lambertresult.h \
     Modeling/demandmodeling.h \
     Utilities/commanding.h \
-    Utilities/sheetdelegate.h
+    Utilities/sheetdelegate.h \
+    Utilities/tags.h
 
 FORMS    += \
     Dialogs/aboutdialog.ui \

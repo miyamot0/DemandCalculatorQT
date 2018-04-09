@@ -164,6 +164,8 @@ private:
 
     unsigned int popSize = 100;
 
+    std::vector<double> result;
+
 signals:
     void workStarted();
     void statusUpdate(const QString &value);
