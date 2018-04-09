@@ -27,7 +27,8 @@
 #include <QHBoxLayout>
 #include <QtMath>
 #include "chartwindow.h"
-#include "calculationsettings.h"
+
+#include "Models/calculationsettings.h"
 
 chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, bool alternativePmax, QWidget *parent)
 {

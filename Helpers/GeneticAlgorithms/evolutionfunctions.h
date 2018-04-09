@@ -13,9 +13,7 @@
 #include <vector>
 #include <QWidget>
 
-#include <QDebug>
-
-#include "DifferentialEvolution.h"
+#include "Libraries/differential-evolution/differentialevolution.h"
 
 namespace de
 {
@@ -55,7 +53,7 @@ namespace de
                 return 1e7;
             }
 
-            for (int j = 0; j < storedData.size(); j++)
+            for (int j = 0; j < (int) storedData.size(); j++)
             {
                 tempPrice = std::get<0>(storedData.at(j));
                 tempConsumption = std::get<1>(storedData.at(j));
@@ -134,7 +132,7 @@ namespace de
                 return 1e7;
             }
 
-            for (int j = 0; j < 11; j++)
+            for (int j = 0; j < (int) storedData.size(); j++)
             {
                 tempPrice = std::get<0>(storedData.at(j));
                 tempConsumption = std::get<1>(storedData.at(j));
@@ -168,7 +166,7 @@ namespace de
             return constr;
         }
     private:
-        unsigned int m_dim = 2;
+        unsigned int m_dim = 3;
 
         vector<tuple<double, double>> storedData;
 
@@ -212,7 +210,7 @@ namespace de
                 return 1e7;
             }
 
-            for (int j = 0; j < 11; j++)
+            for (int j = 0; j < (int) storedData.size(); j++)
             {
                 tempPrice = std::get<0>(storedData.at(j));
                 tempConsumption = std::get<1>(storedData.at(j));
@@ -289,7 +287,7 @@ namespace de
                 return 1e7;
             }
 
-            for (int j = 0; j < 11; j++)
+            for (int j = 0; j < (int) storedData.size(); j++)
             {
                 tempPrice = std::get<0>(storedData.at(j));
                 tempConsumption = std::get<1>(storedData.at(j));
@@ -323,7 +321,7 @@ namespace de
             return constr;
         }
     private:
-        unsigned int m_dim = 2;
+        unsigned int m_dim = 3;
 
         vector<tuple<double, double>> storedData;
 

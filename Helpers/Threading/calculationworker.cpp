@@ -926,14 +926,20 @@ void CalculationWorker::working()
             {
                 if (calculationSettings.settingsK == BehaviorK::Fit)
                 {
+                    qDebug() << "in fit k";
+
                     de::ExponentialDemandFitK objectiveExponentialFunctionFitK(mLocalStoredValues[i].PriceValues,
                                                                                mLocalStoredValues[i].ConsumptionValues,
                                                                                mLocalStoredValues[i].LocalMax * 2.0,
                                                                                mLocalStoredValues[i].LocalMax);
 
+                    qDebug() << "created function good";
+
                     de::DifferentialEvolution de(objectiveExponentialFunctionFitK, popSize);
 
-                    de.Optimize(1000, false);
+                    qDebug() << "pre optimize";
+
+                    de.Optimize(1000, true);
 
                     std::vector<double> result = de.GetBestAgent();
 

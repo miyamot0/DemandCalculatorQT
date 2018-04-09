@@ -27,9 +27,10 @@
 #include <QObject>
 #include <QVector>
 
-#include "demandmodeling.h"
-#include "calculationsettings.h"
-#include "fittingdata.h"
+#include "Modeling/demandmodeling.h"
+#include "Models/fittingdata.h"
+
+#include "Models/calculationsettings.h"
 
 class CalculationWorker : public QObject
 {

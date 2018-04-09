@@ -26,7 +26,8 @@
 
 #include <QDialog>
 #include <QtWidgets>
-#include <calculationsettings.h>
+
+#include <Models/calculationsettings.h>
 
 namespace Ui {
 class ResultsDialog;

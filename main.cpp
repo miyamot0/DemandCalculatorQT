@@ -22,7 +22,7 @@
   */
 
 #include <QApplication>
-#include "sheetwidget.h"
+#include "Controls/sheetwidget.h"
 
 //#include "DifferentialEvolution.h"
 //#include "TestFunctions.h"

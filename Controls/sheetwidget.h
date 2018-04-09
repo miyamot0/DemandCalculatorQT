@@ -81,18 +81,22 @@
 #include <QDomDocument>
 #include <QRegExp>
 
-#include "sheetselectdialog.h"
-#include "demandsettingsdialog.h"
-#include "demandmodeling.h"
-#include "steincheck.h"
+#include "Controls/chartwindow.h"
 
-#include "calculationworker.h"
-#include "calculationsettings.h"
-#include "chartwindow.h"
-#include "resultsdialog.h"
-#include "licensedialog.h"
-#include "creditsdialog.h"
-#include "aboutdialog.h"
+#include "Dialogs/sheetselectdialog.h"
+#include "Dialogs/demandsettingsdialog.h"
+#include "Dialogs/resultsdialog.h"
+#include "Dialogs/licensedialog.h"
+#include "Dialogs/creditsdialog.h"
+#include "Dialogs/aboutdialog.h"
+#include "Dialogs/steincheck.h"
+
+#include "Modeling/demandmodeling.h"
+
+#include "Helpers/Threading/calculationworker.h"
+
+#include "Models/calculationsettings.h"
+
 
 class SheetWidget : public QMainWindow
 {
@@ -282,6 +286,5 @@ private:
 
     QSet<int> currentlyPressedKeys;
 };
-
 
 #endif // SHEETWIDGET_H

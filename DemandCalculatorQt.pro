@@ -47,14 +47,16 @@ DEFINES  += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    main.cpp \
-    aboutdialog.cpp \
-    creditsdialog.cpp \
-    licensedialog.cpp \
-    resultsdialog.cpp \
-    sheetselectdialog.cpp \
-    sheetwidget.cpp \
-    demandsettingsdialog.cpp \
+    Controls/chartwindow.cpp \
+    Controls/sheetwidget.cpp \
+    Dialogs/aboutdialog.cpp \
+    Dialogs/creditsdialog.cpp \
+    Dialogs/demandsettingsdialog.cpp \
+    Dialogs/licensedialog.cpp \
+    Dialogs/resultsdialog.cpp \
+    Dialogs/sheetselectdialog.cpp \
+    Dialogs/steincheck.cpp \
+    Helpers/Threading/calculationworker.cpp \
     Libraries/alglib-3.11.0/src/alglibinternal.cpp \
     Libraries/alglib-3.11.0/src/alglibmisc.cpp \
     Libraries/alglib-3.11.0/src/ap.cpp \
@@ -68,25 +70,27 @@ SOURCES += \
     Libraries/alglib-3.11.0/src/solvers.cpp \
     Libraries/alglib-3.11.0/src/specialfunctions.cpp \
     Libraries/alglib-3.11.0/src/statistics.cpp \
-    demandmodeling.cpp \
-    chartwindow.cpp \
-    steincheck.cpp \
-    commanding.cpp \
-    sheetdelegate.cpp \
-    calculationsettings.cpp \
-    calculationworker.cpp \
-    fittingdata.cpp \
-    lambertresult.cpp \
-    numericsport.cpp
+    Libraries/numerics/numericsport.cpp \
+    Models/calculationsettings.cpp \
+    Modeling/demandmodeling.cpp \
+    Models/fittingdata.cpp \
+    Models/lambertresult.cpp \
+    Utilities/commanding.cpp \
+    Utilities/sheetdelegate.cpp \
+    main.cpp
 
 HEADERS  += \
-    aboutdialog.h \
-    creditsdialog.h \
-    licensedialog.h \
-    resultsdialog.h \
-    sheetselectdialog.h \
-    sheetwidget.h \
-    demandsettingsdialog.h \
+    Controls/chartwindow.h \
+    Controls/sheetwidget.h \
+    Dialogs/aboutdialog.h \
+    Dialogs/creditsdialog.h \
+    Dialogs/demandsettingsdialog.h \
+    Dialogs/licensedialog.h \
+    Dialogs/resultsdialog.h \
+    Dialogs/sheetselectdialog.h \
+    Dialogs/steincheck.h \
+    Helpers/Threading/calculationworker.h \
+    Helpers/GeneticAlgorithms/evolutionfunctions.h \
     Libraries/alglib-3.11.0/src/alglibinternal.h \
     Libraries/alglib-3.11.0/src/alglibmisc.h \
     Libraries/alglib-3.11.0/src/ap.h \
@@ -101,27 +105,23 @@ HEADERS  += \
     Libraries/alglib-3.11.0/src/specialfunctions.h \
     Libraries/alglib-3.11.0/src/statistics.h \
     Libraries/alglib-3.11.0/src/stdafx.h \
-    demandmodeling.h \
-    chartwindow.h \
-    steincheck.h \
-    commanding.h \
-    sheetdelegate.h \
-    calculationsettings.h \
-    calculationworker.h \
-    fittingdata.h \
-    lambertresult.h \
-    numericsport.h \
-    evolutionfunctions.h \
-    differentialevolution.h
+    Libraries/differential-evolution/differentialevolution.h \
+    Libraries/numerics/numericsport.h \
+    Models/calculationsettings.h \
+    Models/fittingdata.h \
+    Models/lambertresult.h \
+    Modeling/demandmodeling.h \
+    Utilities/commanding.h \
+    Utilities/sheetdelegate.h
 
 FORMS    += \
-    aboutdialog.ui \
-    creditsdialog.ui \
-    licensedialog.ui \
-    resultsdialog.ui \
-    sheetselectdialog.ui \
-    demandsettingsdialog.ui \
-    steincheck.ui
+    Dialogs/aboutdialog.ui \
+    Dialogs/creditsdialog.ui \
+    Dialogs/licensedialog.ui \
+    Dialogs/resultsdialog.ui \
+    Dialogs/sheetselectdialog.ui \
+    Dialogs/demandsettingsdialog.ui \
+    Dialogs/steincheck.ui
 
 RESOURCES += \
     spreadsheet.qrc

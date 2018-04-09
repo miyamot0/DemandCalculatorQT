@@ -24,9 +24,9 @@
 #include <QtWidgets>
 #include <QTableWidgetItem>
 
-#include "sheetwidget.h"
+#include "Controls/sheetwidget.h"
 #include "sheetdelegate.h"
-#include "commanding.h"
+#include "Utilities/commanding.h"
 
 SheetDelegate::SheetDelegate()
 {

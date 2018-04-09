@@ -45,20 +45,23 @@
 #define DEMANDMODELING_H
 
 #include <QMap>
-#include <iostream>
-#include "interpolation.h"
+//#include <iostream>
 
 #include "stdafx.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#include "interpolation.h"
 #include "optimization.h"
 
-#include "calculationsettings.h"
-#include "lambertresult.h"
+#include "Helpers/GeneticAlgorithms/evolutionfunctions.h"
 
-#include "differentialevolution.h"
-#include "evolutionfunctions.h"
+#include "Models/calculationsettings.h"
+#include "Models/lambertresult.h"
+
+#include "Libraries/differential-evolution/differentialevolution.h"
+
 
 using namespace alglib;
 

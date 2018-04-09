@@ -36,8 +36,8 @@
 #include <QTextStream>
 #include <QtCharts>
 
-#include "calculationsettings.h"
-#include "numericsport.h"
+#include "Models/calculationsettings.h"
+#include "Libraries/numerics/numericsport.h"
 
 class chartwindow : public QMainWindow
 {

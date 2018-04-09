@@ -25,7 +25,7 @@
 #define DEMANDSETTINGSDIALOG_H
 
 #include <QDialog>
-#include "calculationsettings.h"
+#include "Models/calculationsettings.h"
 
 namespace Ui {
 class DemandSettingsDialog;

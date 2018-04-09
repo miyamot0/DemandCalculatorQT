@@ -24,7 +24,7 @@
 #include "demandsettingsdialog.h"
 #include "ui_demandsettingsdialog.h"
 
-#include "sheetwidget.h"
+#include "Controls/sheetwidget.h"
 
 DemandSettingsDialog::DemandSettingsDialog(QWidget *parent) :
     QDialog(parent),

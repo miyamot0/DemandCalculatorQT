@@ -92,11 +92,14 @@
 #include <QtXlsx>
 #include <QTableWidgetItem>
 
-#include "sheetwidget.h"
-#include "resultsdialog.h"
-#include "commanding.h"
-#include "sheetdelegate.h"
-#include "fittingdata.h"
+#include "Controls/sheetwidget.h"
+
+#include "Dialogs/resultsdialog.h"
+
+#include "Models/fittingdata.h"
+
+#include "Utilities/commanding.h"
+#include "Utilities/sheetdelegate.h"
 
 QTXLSX_USE_NAMESPACE
 
