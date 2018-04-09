@@ -27,6 +27,12 @@ public:
         }
     }
 
+    void SetWeights(QList<double> customWeights)
+    {
+        weights = customWeights;
+        isWeighted = true;
+    }
+
     double EvaluteCost(std::vector<double> inputs) const override
     {
         double val = 0.0;
@@ -85,6 +91,9 @@ private:
 
     vector<tuple<double, double>> storedData;
 
+    QList<double> weights;
+    bool isWeighted;
+
     double upperLBound;
 };
 
@@ -105,6 +114,12 @@ public:
         {
             storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
         }
+    }
+
+    void SetWeights(QList<double> customWeights)
+    {
+        weights = customWeights;
+        isWeighted = true;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -161,6 +176,9 @@ private:
 
     vector<tuple<double, double>> storedData;
 
+    QList<double> weights;
+    bool isWeighted;
+
     double upperQ0Bound;
 
     double k;
@@ -183,6 +201,12 @@ public:
         {
             storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
         }
+    }
+
+    void SetWeights(QList<double> customWeights)
+    {
+        weights = customWeights;
+        isWeighted = true;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -241,6 +265,9 @@ private:
 
     vector<tuple<double, double>> storedData;
 
+    QList<double> weights;
+    bool isWeighted;
+
     double upperQ0Bound;
     double upperKBound;
 };
@@ -262,6 +289,12 @@ public:
         {
             storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
         }
+    }
+
+    void SetWeights(QList<double> customWeights)
+    {
+        weights = customWeights;
+        isWeighted = true;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -316,6 +349,9 @@ private:
 
     vector<tuple<double, double>> storedData;
 
+    QList<double> weights;
+    bool isWeighted;
+
     double upperQ0Bound;
 
     double k;
@@ -338,6 +374,12 @@ public:
         {
             storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
         }
+    }
+
+    void SetWeights(QList<double> customWeights)
+    {
+        weights = customWeights;
+        isWeighted = true;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -395,6 +437,9 @@ private:
     unsigned int m_dim = 3;
 
     vector<tuple<double, double>> storedData;
+
+    QList<double> weights;
+    bool isWeighted;
 
     double upperQ0Bound;
     double upperKBound;
