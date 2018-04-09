@@ -520,8 +520,6 @@ double CalculationWorker::GetSharedK()
             bl << "-inf" << "-inf";
             bu << "+inf" << "+inf";
 
-            //scale << QString::number(GetMagnitude(q0Ave))
-            //      << QString::number(GetMagnitude(alphaAve));
             scale << GetMagnitudeString(GetMagnitude(q0Ave))
                   << GetMagnitudeString(GetMagnitude(alphaAve));
 
@@ -532,7 +530,6 @@ double CalculationWorker::GetSharedK()
         bl << "0.5";
         bu << QString::number((log(calculationSettings.globalMaxConsumption) + 0.5) * 2);
 
-        //scale << QString::number(GetMagnitude(holdingBestK));
         scale << GetMagnitudeString(GetMagnitude(holdingBestK));
 
         starts << QString::number(holdingBestK);
@@ -655,6 +652,11 @@ void CalculationWorker::working()
                                                                                mLocalStoredValues[i].LocalMax * 2.0,
                                                                                mLocalStoredValues[i].LocalMax);
 
+                    if (calculationSettings.WeightSetting == WeightingMode::Weighted)
+                    {
+                        objectiveExponentialFunctionFitK.SetWeights(mLocalStoredValues[i].Weights);
+                    }
+
                     de::DifferentialEvolution de(objectiveExponentialFunctionFitK, popSize);
 
                     // TODO: fix hard coded reps
@@ -673,6 +675,11 @@ void CalculationWorker::working()
                                                                        mLocalStoredValues[i].ConsumptionValues,
                                                                        k,
                                                                        mLocalStoredValues[i].LocalMax * 2.0);
+
+                    if (calculationSettings.WeightSetting == WeightingMode::Weighted)
+                    {
+                        objectiveExponentialFunction.SetWeights(mLocalStoredValues[i].Weights);
+                    }
 
                     de::DifferentialEvolution de(objectiveExponentialFunction, popSize);
 
@@ -697,6 +704,11 @@ void CalculationWorker::working()
                                                                                mLocalStoredValues[i].LocalMax * 2.0,
                                                                                mLocalStoredValues[i].LocalMax);
 
+                    if (calculationSettings.WeightSetting == WeightingMode::Weighted)
+                    {
+                        objectiveExponentiatedFunctionFitK.SetWeights(mLocalStoredValues[i].Weights);
+                    }
+
                     de::DifferentialEvolution de(objectiveExponentiatedFunctionFitK, popSize);
 
                     // TODO: fix hard coded reps
@@ -715,6 +727,11 @@ void CalculationWorker::working()
                                                                        mLocalStoredValues[i].ConsumptionValues,
                                                                        k,
                                                                        mLocalStoredValues[i].LocalMax * 2.0);
+
+                    if (calculationSettings.WeightSetting == WeightingMode::Weighted)
+                    {
+                        objectiveExponentiatedFunction.SetWeights(mLocalStoredValues[i].Weights);
+                    }
 
                     de::DifferentialEvolution de(objectiveExponentiatedFunction, popSize);
 
@@ -737,6 +754,11 @@ void CalculationWorker::working()
                     LinearDemand objectiveLinearFunction(mLocalStoredValues[i].PriceValues,
                                                          mLocalStoredValues[i].ConsumptionValues,
                                                          mLocalStoredValues[i].LocalMax * 2.0);
+
+                    if (calculationSettings.WeightSetting == WeightingMode::Weighted)
+                    {
+                        objectiveLinearFunction.SetWeights(mLocalStoredValues[i].Weights);
+                    }
 
                     de::DifferentialEvolution de(objectiveLinearFunction, popSize);
 

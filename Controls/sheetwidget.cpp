@@ -1498,9 +1498,8 @@ void SheetWidget::Calculate()
     calculationSettings->globalMinConsumption = globalMin;
     calculationSettings->globalMaxConsumption = globalMax;
 
-    // todo, results?
-
     statusBar()->showMessage("Beginning calculations...", 3000);
+
     allResults.clear();
 
     QList<QStringList> mStoredValues;

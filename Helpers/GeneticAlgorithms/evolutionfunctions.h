@@ -27,11 +27,31 @@ public:
         }
     }
 
-    void SetWeights(QList<double> customWeights)
+    void SetWeights(QString customWeights)
     {
-        weights = customWeights;
+        weights = SplitWeights(customWeights);
         isWeighted = true;
     }
+
+    QList<double> SplitWeights(QString value)
+    {
+        QString temp = value.replace("[", "");
+        QString temp2 = temp.replace("]", "");
+
+        QStringList tempList = temp2.split(",");
+
+        QList<double> returnList;
+
+        double num;
+        foreach (QString str, tempList) {
+            num = str.toDouble();
+
+            returnList << num;
+        }
+
+        return returnList;
+    }
+
 
     double EvaluteCost(std::vector<double> inputs) const override
     {
@@ -58,7 +78,14 @@ public:
 
             temp = log(tempConsumption) - (log(L) + (b * log(tempPrice)) - a * tempPrice);
 
-            val = val + (temp * temp);
+            if (isWeighted)
+            {
+                val = val + (temp * temp) * weights[j];
+            }
+            else
+            {
+                val = val + (temp * temp);
+            }
         }
 
         val = val / (double) storedData.size();
@@ -116,10 +143,29 @@ public:
         }
     }
 
-    void SetWeights(QList<double> customWeights)
+    void SetWeights(QString customWeights)
     {
-        weights = customWeights;
+        weights = SplitWeights(customWeights);
         isWeighted = true;
+    }
+
+    QList<double> SplitWeights(QString value)
+    {
+        QString temp = value.replace("[", "");
+        QString temp2 = temp.replace("]", "");
+
+        QStringList tempList = temp2.split(",");
+
+        QList<double> returnList;
+
+        double num;
+        foreach (QString str, tempList) {
+            num = str.toDouble();
+
+            returnList << num;
+        }
+
+        return returnList;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -146,7 +192,14 @@ public:
 
             temp = log10(tempConsumption) - (log10(q0) + k * (exp(-a * q0 * tempPrice) - 1));
 
-            val = val + (temp * temp);
+            if (isWeighted)
+            {
+                val = val + (temp * temp) * weights[j];
+            }
+            else
+            {
+                val = val + (temp * temp);
+            }
         }
 
         val = val / (double) storedData.size();
@@ -203,10 +256,29 @@ public:
         }
     }
 
-    void SetWeights(QList<double> customWeights)
+    void SetWeights(QString customWeights)
     {
-        weights = customWeights;
+        weights = SplitWeights(customWeights);
         isWeighted = true;
+    }
+
+    QList<double> SplitWeights(QString value)
+    {
+        QString temp = value.replace("[", "");
+        QString temp2 = temp.replace("]", "");
+
+        QStringList tempList = temp2.split(",");
+
+        QList<double> returnList;
+
+        double num;
+        foreach (QString str, tempList) {
+            num = str.toDouble();
+
+            returnList << num;
+        }
+
+        return returnList;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -234,7 +306,14 @@ public:
 
             temp = log10(tempConsumption) - (log10(q0) + k * (exp(-a * q0 * tempPrice) - 1));
 
-            val = val + (temp * temp);
+            if (isWeighted)
+            {
+                val = val + (temp * temp) * weights[j];
+            }
+            else
+            {
+                val = val + (temp * temp);
+            }
         }
 
         return val;
@@ -291,10 +370,29 @@ public:
         }
     }
 
-    void SetWeights(QList<double> customWeights)
+    void SetWeights(QString customWeights)
     {
-        weights = customWeights;
+        weights = SplitWeights(customWeights);
         isWeighted = true;
+    }
+
+    QList<double> SplitWeights(QString value)
+    {
+        QString temp = value.replace("[", "");
+        QString temp2 = temp.replace("]", "");
+
+        QStringList tempList = temp2.split(",");
+
+        QList<double> returnList;
+
+        double num;
+        foreach (QString str, tempList) {
+            num = str.toDouble();
+
+            returnList << num;
+        }
+
+        return returnList;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -321,7 +419,14 @@ public:
 
             temp = tempConsumption - (q0 * pow(10, (k * (exp(-a * q0 * tempPrice) - 1))));
 
-            val = val + (temp * temp);
+            if (isWeighted)
+            {
+                val = val + (temp * temp) * weights[j];
+            }
+            else
+            {
+                val = val + (temp * temp);
+            }
         }
 
         return val;
@@ -376,10 +481,29 @@ public:
         }
     }
 
-    void SetWeights(QList<double> customWeights)
+    void SetWeights(QString customWeights)
     {
-        weights = customWeights;
+        weights = SplitWeights(customWeights);
         isWeighted = true;
+    }
+
+    QList<double> SplitWeights(QString value)
+    {
+        QString temp = value.replace("[", "");
+        QString temp2 = temp.replace("]", "");
+
+        QStringList tempList = temp2.split(",");
+
+        QList<double> returnList;
+
+        double num;
+        foreach (QString str, tempList) {
+            num = str.toDouble();
+
+            returnList << num;
+        }
+
+        return returnList;
     }
 
     double EvaluteCost(std::vector<double> inputs) const override
@@ -407,7 +531,14 @@ public:
 
             temp = tempConsumption - (q0 * pow(10, (k * (exp(-a * q0 * tempPrice) - 1))));
 
-            val = val + (temp * temp);
+            if (isWeighted)
+            {
+                val = val + (temp * temp) * weights[j];
+            }
+            else
+            {
+                val = val + (temp * temp);
+            }
         }
 
         return val;

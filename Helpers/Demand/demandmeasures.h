@@ -5,7 +5,7 @@
 
 #include <QString>
 
-#include "Modeling/demandmodeling.h"
+//#include "Modeling/demandmodeling.h"
 
 #include "Models/calculationsettings.h"
 #include "Models/fittingdata.h"
@@ -43,6 +43,27 @@ double CalculateHurshEV(double alpha, double k)
 {
     return 1/(alpha * pow(k, 1.5) * 100);
 }
+
+/*
+QList<double> SplitWeights(QString value)
+{
+    QString temp = value.replace("[", "");
+    QString temp2 = temp.replace("]", "");
+
+    QStringList tempList = temp2.split(",");
+
+    QList<double> returnList;
+
+    double num;
+    foreach (QString str, tempList) {
+        num = str.toDouble();
+
+        returnList << num;
+    }
+
+    return returnList;
+}
+*/
 
 /*
  * Output for sheet
