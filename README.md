@@ -10,9 +10,10 @@ Features include:
   - Full range of BE outcome metrics (empirical and derived), saveable in common spreadsheet file formats
 
 ### Version
-1.5.4.0
+1.5.6.0
 
 ### Changelog
+ * 1.5.6.0 - Bug fixes
  * 1.5.4.0 - Optimizer options - Differential Evolution
  * 1.5.3.0 - Developer options
  * 1.5.2.0 - Add residual/QQ plotting
