@@ -52,7 +52,6 @@ public:
         return returnList;
     }
 
-
     double EvaluteCost(std::vector<double> inputs) const override
     {
         double val = 0.0;
@@ -397,20 +396,22 @@ public:
 
     double EvaluteCost(std::vector<double> inputs) const override
     {
+        // hack
+        if (inputs[0] <= 0)
+        {
+            return 1e7;
+        }
+
         double val = 0.0;
 
-        double q0 = inputs[0];
+        double q0 = pow(10, inputs[0]);
         double a = inputs[1];
 
         double tempPrice, tempConsumption;
 
         double temp;
 
-        // hack
-        if (q0 <= 0)
-        {
-            return 1e7;
-        }
+
 
         for (int j = 0; j < (int) storedData.size(); j++)
         {
@@ -442,7 +443,7 @@ public:
         std::vector<Constraints> constr(2);
 
         // Q0
-        constr[0] = Constraints(1, upperQ0Bound, true);
+        constr[0] = Constraints(-3, log10(upperQ0Bound) * 2, true);
 
         // A
         constr[1] = Constraints(-0.1, 0.1, true);
@@ -508,21 +509,21 @@ public:
 
     double EvaluteCost(std::vector<double> inputs) const override
     {
+        // hack
+        if (inputs[0] <= 0)
+        {
+            return 1e7;
+        }
+
         double val = 0.0;
 
-        double q0 = inputs[0];
+        double q0 = pow(10, inputs[0]);
         double a = inputs[1];
         double k = inputs[2];
 
         double tempPrice, tempConsumption;
 
         double temp;
-
-        // hack
-        if (q0 <= 0)
-        {
-            return 1e7;
-        }
 
         for (int j = 0; j < (int) storedData.size(); j++)
         {
@@ -554,7 +555,7 @@ public:
         std::vector<Constraints> constr(3);
 
         // Q0
-        constr[0] = Constraints(1, upperQ0Bound, true);
+        constr[0] = Constraints(1, log10(upperQ0Bound) * 2, true);
 
         // A
         constr[1] = Constraints(-0.1, 0.1, true);

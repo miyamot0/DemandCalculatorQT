@@ -674,7 +674,7 @@ void CalculationWorker::working()
                     ExponentialDemand objectiveExponentialFunction(mLocalStoredValues[i].PriceValues,
                                                                        mLocalStoredValues[i].ConsumptionValues,
                                                                        k,
-                                                                       mLocalStoredValues[i].LocalMax * 2.0);
+                                                                       mLocalStoredValues[i].LocalMax);
 
                     if (calculationSettings.WeightSetting == WeightingMode::Weighted)
                     {
@@ -699,7 +699,7 @@ void CalculationWorker::working()
             case DemandModel::Exponentiated:
                 if (calculationSettings.settingsK == BehaviorK::Fit)
                 {
-                    ExponentialDemandFitK objectiveExponentiatedFunctionFitK(mLocalStoredValues[i].PriceValues,
+                    ExponentiatedDemandFitK objectiveExponentiatedFunctionFitK(mLocalStoredValues[i].PriceValues,
                                                                                mLocalStoredValues[i].ConsumptionValues,
                                                                                mLocalStoredValues[i].LocalMax * 2.0,
                                                                                mLocalStoredValues[i].LocalMax);
@@ -717,13 +717,13 @@ void CalculationWorker::working()
                     result = de.GetBestAgent();
 
                     SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], result[0], result[1], result[2], de.GetBestCost());
+                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], result[2], de.GetBestCost());
                 }
                 else
                 {
                     k = GetDerivedK(&calculationSettings, mLocalStoredValues[i], savedGlobalFits);
 
-                    ExponentialDemand objectiveExponentiatedFunction(mLocalStoredValues[i].PriceValues,
+                    ExponentiatedDemand objectiveExponentiatedFunction(mLocalStoredValues[i].PriceValues,
                                                                        mLocalStoredValues[i].ConsumptionValues,
                                                                        k,
                                                                        mLocalStoredValues[i].LocalMax * 2.0);
@@ -740,7 +740,7 @@ void CalculationWorker::working()
                     result = de.GetBestAgent();
 
                     SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], result[0], result[1], k, de.GetBestCost());
+                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], k, de.GetBestCost());
 
                 }
 
