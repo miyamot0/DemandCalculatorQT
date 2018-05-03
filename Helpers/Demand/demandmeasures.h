@@ -114,9 +114,11 @@ void SuccessfulExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i
     double omaxd = CalculateHurshOmax(q0, alpha, k, pmaxd);
     double EV = CalculateHurshEV(alpha, k);
 
+    QString modelString = calculationSettings->settingsModel == DemandModel::Exponential ? "Exponential" : "Exponentiated";
+
     mTempHolder->clear();
     *mTempHolder << QString::number(i + 1)
-                 << "Exponential" + getFittingAlgorithm(calculationSettings)
+                 << modelString + getFittingAlgorithm(calculationSettings)
                  << QString::number(alpha)
                  << "---"
                  << QString::number(q0)
@@ -199,14 +201,17 @@ void SuccessfulExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i
 
     QString kseString = kse == -1 ? "---" : QString::number(kse);
 
+    QString modelString = calculationSettings->settingsModel == DemandModel::Exponential ? "Exponential" : "Exponentiated";
+
     mTempHolder->clear();
     *mTempHolder << QString::number(i + 1)
-                 << "Exponential" + getFittingAlgorithm(calculationSettings)
+                 << modelString + getFittingAlgorithm(calculationSettings)
                  << QString::number(alpha)
                  << QString::number(alphase)
                  << QString::number(q0)
                  << QString::number(q0se)
                  << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
+                 << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
                  << QString::number(EV)
                  << getIntensityString(fittingData.ConsumptionValues, fittingData.PriceValues)
                  << QString::number(k)

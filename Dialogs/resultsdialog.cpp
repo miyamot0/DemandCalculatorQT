@@ -59,6 +59,8 @@ void ResultsDialog::setOptions(bool showPmax)
 
 void ResultsDialog::setResults(QList<QStringList> mData)
 {
+    auto mTags = getExponentiatedKeys();
+
     for(int i=0; i<mData.count(); i++)
     {
         ui->tableWidget->insertRow(ui->tableWidget->rowCount());
@@ -114,6 +116,7 @@ QStringList ResultsDialog::getExponentialKeys()
                 << "Q0d"
                 << "Q0dse"
                 << "BP1"
+                << "BP0"
                 << "EV"
                 << "Intensity"
                 << "K"

@@ -1108,7 +1108,8 @@ void CalculationWorker::working()
                 SuccessfulExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
                                                            mObj->GetState().c[0], mObj->GetReport().errpar[0],
                                                            mObj->GetState().c[1], mObj->GetReport().errpar[1],
-                                                           mObj->GetState().c[2], mObj->GetReport().errpar[2],
+                                                           (calculationSettings.settingsK == BehaviorK::Fit ? mObj->GetState().c[2] : mParams[0]),
+                                                           (calculationSettings.settingsK == BehaviorK::Fit ? mObj->GetReport().errpar[2] : -1),
                                                            mObj->GetReport().avgerror, mObj->GetReport().r2);
             }
             else
