@@ -127,7 +127,7 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To calculate demand curves, users must select a range of Pricing Values and Consumption Values in the main spreadsheet. Data may be either horizontally (Left to Right) or vertically (Top to Bottom) oriented, so long as the arrangement is consistent. Advanced users may also select the Linear Demand Function (), the Exponential Demand Function (Hursh &amp;amp; Silberburg, 2008) or the Exponentiated Demand Function (Koffarnus, Franck, Stein &amp;amp; Bickel, 2015) to apply to the provided data. Whenever possible, users are urged to proceed with the assigned defaults. The defaults for each model are automatically updated when models are selected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To calculate demand curves, users must select a range of Pricing Values and Consumption Values in the main spreadsheet. Data may be either horizontally (Left to Right) or vertically (Top to Bottom) oriented, so long as the arrangement is consistent. Advanced users may also select the Linear Demand Function (Hursh, Raslear, Bauman &amp;amp; Black, 1989), the Exponential Demand Function (Hursh &amp;amp; Silberburg, 2008) or the Exponentiated Demand Function (Koffarnus, Franck, Stein &amp;amp; Bickel, 2015) to apply to the provided data. Whenever possible, users are urged to proceed with the assigned defaults. The defaults for each model are automatically updated when models are selected.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
