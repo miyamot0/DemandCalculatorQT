@@ -28,8 +28,6 @@
 
 #include <QString>
 
-//#include "Modeling/demandmodeling.h"
-
 #include "Models/calculationsettings.h"
 #include "Models/fittingdata.h"
 
@@ -143,7 +141,7 @@ void FailedExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i, Ca
  * @param avgerr
  */
 void SuccessfulExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings,
-                                              FittingData fittingData, double q0, double alpha, double k, double avgerr)
+                                              FittingData fittingData, double q0, double alpha, double k, double avgerr, double altPmax, double altPmaxSlope)
 {
 
     double pmaxd = CalculateHurshPmax(q0, alpha, k);
@@ -180,13 +178,8 @@ void SuccessfulExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i
 
     if (calculationSettings->settingsAlternativePmax)
     {
-        // TODO
-
-        //mTempHolder << QString::number(mObj->GetBootStrapPmax());
-        //mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-
-        *mTempHolder << "---";
-        *mTempHolder << "---";
+        mTempHolder->append((altPmax == NULL) ? "---" : QString::number(altPmax));
+        mTempHolder->append((altPmaxSlope == NULL) ? "---" : QString::number(altPmaxSlope));
     }
 }
 
@@ -253,7 +246,8 @@ void SuccessfulExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i
                                                 FittingData fittingData, double q0, double q0se,
                                                 double alpha, double alphase,
                                                 double k, double kse,
-                                                double avgerr, double r2)
+                                                double avgerr, double r2,
+                                                double altPmax, double altPmaxSlope)
 {
     double pmaxd = CalculateHurshPmax(q0, alpha, k);
     double omaxd = CalculateHurshOmax(q0, alpha, k, pmaxd);
@@ -291,13 +285,8 @@ void SuccessfulExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i
 
     if (calculationSettings->settingsAlternativePmax)
     {
-        // TODO
-
-        //mTempHolder << QString::number(mObj->GetBootStrapPmax());
-        //mTempHolder << QString::number(mObj->GetBootStrapPmaxExponentialSlope(q0, alpha, k, mObj->GetBootStrapPmax()));
-
-        *mTempHolder << "---";
-        *mTempHolder << "---";
+        mTempHolder->append((altPmax == NULL) ? "---" : QString::number(altPmax));
+        mTempHolder->append((altPmaxSlope == NULL) ? "---" : QString::number(altPmaxSlope));
     }
 }
 
@@ -392,11 +381,11 @@ void SuccessfulLinearDEOutput(QStringList * mTempHolder, int i,
  * @param r2
  * @param code
  */
-void SuccessfulLinearLMOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings,
+void SuccessfulLinearLMOutput(QStringList * mTempHolder, int i,
                               FittingData fittingData, double L, double Lse,
                               double a, double ase,
                               double b, double bse,
-                              double avgerr, double r2,
+                              double r2,
                               int code)
 {
     double pmaxd = (1 + b)/a;

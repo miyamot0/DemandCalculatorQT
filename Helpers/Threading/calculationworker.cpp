@@ -664,8 +664,17 @@ void CalculationWorker::working()
 
                     result = de.GetBestAgent();
 
+                    double altPmax = NULL;
+                    double altPmaxSlope = NULL;
+
+                    if (calculationSettings.settingsAlternativePmax)
+                    {
+                        altPmax = mObj->ExactSolutionPmax(result[0], result[1], result[2]);
+                        altPmaxSlope = mObj->GetBootStrapPmaxExponentialSlope(result[0], result[1], result[2], altPmax);
+                    }
+
                     SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], result[0], result[1], result[2], de.GetBestCost());
+                                                                  mLocalStoredValues[i], result[0], result[1], result[2], de.GetBestCost(), altPmax, altPmaxSlope);
                 }
                 else
                 {
@@ -687,8 +696,17 @@ void CalculationWorker::working()
 
                     result = de.GetBestAgent();
 
+                    double altPmax = NULL;
+                    double altPmaxSlope = NULL;
+
+                    if (calculationSettings.settingsAlternativePmax)
+                    {
+                        altPmax = mObj->ExactSolutionPmax(result[0], result[1], k);
+                        altPmaxSlope = mObj->GetBootStrapPmaxExponentialSlope(result[0], result[1], k, altPmax);
+                    }
+
                     SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], result[0], result[1], k, de.GetBestCost());
+                                                                  mLocalStoredValues[i], result[0], result[1], k, de.GetBestCost(), altPmax, altPmaxSlope);
 
                 }
 
@@ -716,8 +734,11 @@ void CalculationWorker::working()
 
                     result = de.GetBestAgent();
 
+                    double altPmax = NULL;
+                    double altPmaxSlope = NULL;
+
                     SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], result[2], de.GetBestCost());
+                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], result[2], de.GetBestCost(), altPmax, altPmaxSlope);
                 }
                 else
                 {
@@ -739,8 +760,11 @@ void CalculationWorker::working()
 
                     result = de.GetBestAgent();
 
+                    double altPmax = NULL;
+                    double altPmaxSlope = NULL;
+
                     SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], k, de.GetBestCost());
+                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], k, de.GetBestCost(), altPmax, altPmaxSlope);
 
                 }
 
@@ -939,12 +963,28 @@ void CalculationWorker::working()
             }
             else if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
+                double altPmax = NULL;
+                double altPmaxSlope = NULL;
+
+                if (calculationSettings.settingsAlternativePmax)
+                {
+                    altPmax = mObj->ExactSolutionPmax(mObj->GetState().c[0],
+                            mObj->GetState().c[1],
+                            (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0));
+
+                    altPmaxSlope = mObj->GetBootStrapPmaxExponentialSlope(mObj->GetState().c[0],
+                            mObj->GetState().c[1],
+                            (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0),
+                            altPmax);
+                }
+
                 SuccessfulExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
                                                            mObj->GetState().c[0], mObj->GetReport().errpar[0],
                                                            mObj->GetState().c[1], mObj->GetReport().errpar[1],
                                                            (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0),
                                                            (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetReport().errpar[2] : -1,
-                                                           mObj->GetReport().avgerror, mObj->GetReport().r2);
+                                                           mObj->GetReport().avgerror, mObj->GetReport().r2,
+                                                           altPmax, altPmaxSlope);
             }
             else
             {
@@ -1026,7 +1066,7 @@ void CalculationWorker::working()
 
                     failed = false;
                 }
-                catch (alglib::ap_error err)
+                catch (alglib::ap_error *)
                 {
                     failed = true;
                 }
@@ -1105,12 +1145,28 @@ void CalculationWorker::working()
             }
             else if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
+                double altPmax = NULL;
+                double altPmaxSlope = NULL;
+
+                if (calculationSettings.settingsAlternativePmax)
+                {
+                    altPmax = mObj->ExactSolutionPmax(mObj->GetState().c[0],
+                            mObj->GetState().c[1],
+                            (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0));
+
+                    altPmaxSlope = mObj->GetBootStrapPmaxExponentialSlope(mObj->GetState().c[0],
+                            mObj->GetState().c[1],
+                            (calculationSettings.settingsK == BehaviorK::Fit) ? mObj->GetState().c[2] : mParams.at(0),
+                            altPmax);
+                }
+
                 SuccessfulExponentialExponentiatedLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
                                                            mObj->GetState().c[0], mObj->GetReport().errpar[0],
                                                            mObj->GetState().c[1], mObj->GetReport().errpar[1],
                                                            (calculationSettings.settingsK == BehaviorK::Fit ? mObj->GetState().c[2] : mParams[0]),
                                                            (calculationSettings.settingsK == BehaviorK::Fit ? mObj->GetReport().errpar[2] : -1),
-                                                           mObj->GetReport().avgerror, mObj->GetReport().r2);
+                                                           mObj->GetReport().avgerror, mObj->GetReport().r2,
+                                                           altPmax, altPmaxSlope);
             }
             else
             {
@@ -1128,12 +1184,11 @@ void CalculationWorker::working()
 
             if ((int) mObj->GetInfo() == 2 || (int) mObj->GetInfo() == 5)
             {
-                SuccessfulLinearLMOutput(&mTempHolder, i, &calculationSettings, mLocalStoredValues[i],
+                SuccessfulLinearLMOutput(&mTempHolder, i, mLocalStoredValues[i],
                                          mObj->GetState().c[2], mObj->GetReport().errpar[2],
                                          mObj->GetState().c[0], mObj->GetReport().errpar[0],
                                          mObj->GetState().c[1], mObj->GetReport().errpar[1],
-                                         mObj->GetReport().avgerror, mObj->GetReport().r2,
-                                         (int) mObj->GetInfo());
+                                         mObj->GetReport().r2, (int) mObj->GetInfo());
             }
             else
             {
