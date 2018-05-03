@@ -91,7 +91,6 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
 
     plotResiduals(0);
     plotQQResiduals(0);
-
 }
 
 /*  Build main plots
@@ -99,54 +98,35 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
  */
 void chartwindow::buildPlot()
 {
-    QString mTitleDescription = (showStandardized) ? "Standardized " : "";
+    chart->legend->setVisible(true);
+    chart->yAxis->setLabel("Overall Consumption");
+    chart->yAxis->setScaleType(QCPAxis::stLogarithmic);
+    chart->yAxis->setBasePen(QPen(Qt::black));
+
+    chart->xAxis->setScaleType(QCPAxis::stLogarithmic);
+    chart->xAxis->setLabel("Unit Price");
 
     if (modelType == DemandModel::Linear)
     {
-        setWindowTitle(QString("%1Linear Demand Model Plots").arg(mTitleDescription));
-
-        chart->legend->setVisible(true);
+        setWindowTitle(QString("%1Linear Demand Model Plots").arg((showStandardized) ? "Standardized " : ""));
 
         chart->yAxis->setRangeLower(0.001);
-        chart->yAxis->setLabel("Overall Consumption");
-        chart->yAxis->setBasePen(QPen(Qt::black));
-        chart->yAxis->setScaleType(QCPAxis::stLogarithmic);
-
-        chart->xAxis->setScaleType(QCPAxis::stLogarithmic);
-        chart->xAxis->setLabel("Unit Price");
 
         buildLinearPlot();
     }
     else if (modelType == DemandModel::Exponential)
     {
-        setWindowTitle(QString("%1Exponential Demand Model Plots").arg(mTitleDescription));
-
-        chart->legend->setVisible(true);
+        setWindowTitle(QString("%1Exponential Demand Model Plots").arg((showStandardized) ? "Standardized " : ""));
 
         chart->yAxis->setRangeLower(0.001);
-        chart->yAxis->setLabel("Overall Consumption");
-        chart->yAxis->setBasePen(QPen(Qt::black));
-        chart->yAxis->setScaleType(QCPAxis::stLogarithmic);
-
-        chart->xAxis->setScaleType(QCPAxis::stLogarithmic);
-        chart->xAxis->setLabel("Unit Price");
 
         buildExponentialPlot();
     }
     else if (modelType == DemandModel::Exponentiated)
     {
-        setWindowTitle(QString("%1Exponentiated Demand Model Plots").arg(mTitleDescription));
-
-        chart->legend->setVisible(true);
+        setWindowTitle(QString("%1Exponentiated Demand Model Plots").arg((showStandardized) ? "Standardized " : ""));
 
         chart->yAxis->setRangeLower(0);
-        chart->yAxis->setLabel("Overall Consumption");
-        chart->yAxis->setBasePen(QPen(Qt::black));
-        chart->yAxis->setScaleType(QCPAxis::stLinear);
-
-        chart->xAxis->setScaleType(QCPAxis::stLogarithmic);
-        chart->xAxis->setLabel("Unit Price");
-
 
         buildExponentiatedPlot();
     }
@@ -449,10 +429,37 @@ void chartwindow::plotLinearSeries(int index)
     chart->graph(1)->setData(projX, projY);
     chart->graph(2)->setData(pMaxX, pMaxY);
 
-    chart->yAxis->setRangeUpper(highestConsumption * 2.0);
+    int getXLabel = GetAxisMaxLog10(rawX);
+    int getYLabel = GetAxisMaxLog10(highestConsumption * 2.0);
 
-    chart->xAxis->setRangeLower(0.0001);
-    chart->xAxis->setRangeUpper(highestPrice * 2);
+    chartXTicks.clear();
+    chartXLabels.clear();
+
+    for (int i = -3; i <= getXLabel; i++)
+    {
+        chartXTicks.append(pow(10, i));
+        chartXLabels.append(QString("%1").arg(pow(10, i)));
+    }
+
+    for (int i = -3; i <= getYLabel; i++)
+    {
+        chartYTicks.append(pow(10, i));
+        chartYLabels.append(QString("%1").arg(pow(10, i)));
+    }
+
+    chart->xAxis->setRangeLower(0.001);
+    chart->xAxis->setRangeUpper(pow(10, getXLabel));
+
+    chart->yAxis->setRangeLower(0.001);
+    chart->yAxis->setRangeUpper(pow(10, getYLabel) + (showStandardized ? pow(10, getYLabel) * 0.1 : 0));
+
+    QSharedPointer<QCPAxisTickerText> chartTicker(new QCPAxisTickerText);
+    chartTicker->addTicks(chartXTicks, chartXLabels);
+    chart->xAxis->setTicker(chartTicker);
+
+    QSharedPointer<QCPAxisTickerText> chartTicker2(new QCPAxisTickerText);
+    chartTicker2->addTicks(chartYTicks, chartYLabels);
+    chart->yAxis->setTicker(chartTicker2);
 
     chart->replot();
 }
@@ -618,10 +625,6 @@ void chartwindow::plotExponentialSeries(int index)
     }
 
     chart->graph(0)->setData(rawX, rawY);
-    chart->yAxis->setRangeUpper(highestConsumption * 2.0);
-
-    chart->xAxis->setRangeLower(0.0001);
-    chart->xAxis->setRangeUpper(highestPrice * 2);
 
     projX.clear();
     projY.clear();
@@ -683,6 +686,38 @@ void chartwindow::plotExponentialSeries(int index)
 
     chart->graph(1)->setData(projX, projY);
     chart->graph(2)->setData(pMaxX, pMaxY);
+
+    int getXLabel = GetAxisMaxLog10(rawX);
+    int getYLabel = GetAxisMaxLog10(highestConsumption * 2.0);
+
+    chartXTicks.clear();
+    chartXLabels.clear();
+
+    for (int i = -3; i <= getXLabel; i++)
+    {
+        chartXTicks.append(pow(10, i));
+        chartXLabels.append(QString("%1").arg(pow(10, i)));
+    }
+
+    for (int i = -3; i <= getYLabel; i++)
+    {
+        chartYTicks.append(pow(10, i));
+        chartYLabels.append(QString("%1").arg(pow(10, i)));
+    }
+
+    chart->xAxis->setRangeLower(0.001);
+    chart->xAxis->setRangeUpper(pow(10, getXLabel));
+
+    chart->yAxis->setRangeLower(0.001);
+    chart->yAxis->setRangeUpper(pow(10, getYLabel) + (showStandardized ? pow(10, getYLabel) * 0.1 : 0));
+
+    QSharedPointer<QCPAxisTickerText> chartTicker(new QCPAxisTickerText);
+    chartTicker->addTicks(chartXTicks, chartXLabels);
+    chart->xAxis->setTicker(chartTicker);
+
+    QSharedPointer<QCPAxisTickerText> chartTicker2(new QCPAxisTickerText);
+    chartTicker2->addTicks(chartYTicks, chartYLabels);
+    chart->yAxis->setTicker(chartTicker2);
 
     chart->replot();
 }
@@ -796,7 +831,6 @@ void chartwindow::plotExponentiatedSeries(int index)
     pMaxX.append(derivedPmax);
     pMaxY.append(0.001);
 
-
     if (showStandardized)
     {
         pMaxX.append(derivedPmax);
@@ -909,6 +943,38 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     chart->graph(1)->setData(projX, projY);
     chart->graph(2)->setData(pMaxX, pMaxY);
+
+    int getXLabel = GetAxisMaxLog10(rawX);
+    int getYLabel = GetAxisMaxLog10(highestConsumption * 2.0);
+
+    chartXTicks.clear();
+    chartXLabels.clear();
+
+    for (int i = -3; i <= getXLabel; i++)
+    {
+        chartXTicks.append(pow(10, i));
+        chartXLabels.append(QString("%1").arg(pow(10, i)));
+    }
+
+    for (int i = -3; i <= getYLabel; i++)
+    {
+        chartYTicks.append(pow(10, i));
+        chartYLabels.append(QString("%1").arg(pow(10, i)));
+    }
+
+    chart->xAxis->setRangeLower(0.001);
+    chart->xAxis->setRangeUpper(pow(10, getXLabel));
+
+    chart->yAxis->setRangeLower(0.001);
+    chart->yAxis->setRangeUpper(pow(10, getYLabel) + (showStandardized ? pow(10, getYLabel) * 0.1 : 0));
+
+    QSharedPointer<QCPAxisTickerText> chartTicker(new QCPAxisTickerText);
+    chartTicker->addTicks(chartXTicks, chartXLabels);
+    chart->xAxis->setTicker(chartTicker);
+
+    QSharedPointer<QCPAxisTickerText> chartTicker2(new QCPAxisTickerText);
+    chartTicker2->addTicks(chartYTicks, chartYLabels);
+    chart->yAxis->setTicker(chartTicker2);
 
     chart->replot();
 }

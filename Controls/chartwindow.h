@@ -88,6 +88,12 @@ private:
     QCPTextElement *titleError;
     QCPTextElement *titleQQ;
 
+    QVector<double> chartXTicks;
+    QVector<QString> chartXLabels;
+
+    QVector<double> chartYTicks;
+    QVector<QString> chartYLabels;
+
     QVector<double> chartErrorTicks;
     QVector<QString> chartErrorLabels;
 
@@ -199,6 +205,33 @@ private:
 
     double StdDevResiduals() {
         return sqrt(VarianceResiduals());
+    }
+
+    int GetAxisMaxLog10(QVector<double> curr)
+    {
+        int lower = -3;
+
+        for (int i = 0; i < curr.length(); i++)
+        {
+            while (pow(10, lower) < curr[i])
+            {
+                lower++;
+            }
+        }
+
+        return lower;
+    }
+
+    int GetAxisMaxLog10(double curr)
+    {
+        int lower = -3;
+
+        while (pow(10, lower) < curr)
+        {
+            lower++;
+        }
+
+        return lower;
     }
 };
 
