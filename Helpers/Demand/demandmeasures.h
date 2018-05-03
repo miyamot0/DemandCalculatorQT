@@ -123,6 +123,7 @@ void SuccessfulExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i
                  << "---"
                  << QString::number(q0)
                  << "---"
+                 << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
                  << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
                  << QString::number(EV)
                  << getIntensityString(fittingData.ConsumptionValues, fittingData.PriceValues)
@@ -164,6 +165,7 @@ void FailedExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i, Ca
         << "---"
         << "---"
         << "---"
+        << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
         << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
         << "---"
         << getIntensityString(fittingData.ConsumptionValues, fittingData.PriceValues)
@@ -210,8 +212,8 @@ void SuccessfulExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i
                  << QString::number(alphase)
                  << QString::number(q0)
                  << QString::number(q0se)
-                 << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
                  << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
+                 << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
                  << QString::number(EV)
                  << getIntensityString(fittingData.ConsumptionValues, fittingData.PriceValues)
                  << QString::number(k)
@@ -279,8 +281,8 @@ void SuccessfulLinearDEOutput(QStringList * mTempHolder, int i,
     mTempHolder->clear();
     *mTempHolder << QString::number(i + 1)
                 << "Linear"
-                << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
+                << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << getOmaxEString(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << getPmaxEString(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << QString::number(L)
@@ -343,8 +345,8 @@ void FailedLinearLMOutput(QStringList * mTempHolder, int i, FittingData fittingD
     mTempHolder->clear();
     *mTempHolder << QString::number(i + 1)
                 << "Linear"
-                << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << getBP1String(fittingData.ConsumptionValues, fittingData.PriceValues)
+                << getBP0String(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << getOmaxEString(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << getPmaxEString(fittingData.ConsumptionValues, fittingData.PriceValues)
                 << "---"

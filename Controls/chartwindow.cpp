@@ -32,6 +32,8 @@
 
 #include "Utilities/qcustomplot.h"
 
+#include <QDebug>
+
 chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, bool alternativePmax, QWidget *parent)
 {
     mDisplayData = stringList;
@@ -92,6 +94,9 @@ chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardi
 
 }
 
+/*  Build main plots
+ *
+ */
 void chartwindow::buildPlot()
 {
     QString mTitleDescription = (showStandardized) ? "Standardized " : "";
@@ -134,7 +139,7 @@ void chartwindow::buildPlot()
 
         chart->legend->setVisible(true);
 
-        chart->yAxis->setRangeLower(0.001);
+        chart->yAxis->setRangeLower(0);
         chart->yAxis->setLabel("Overall Consumption");
         chart->yAxis->setBasePen(QPen(Qt::black));
         chart->yAxis->setScaleType(QCPAxis::stLinear);
@@ -147,6 +152,9 @@ void chartwindow::buildPlot()
     }
 }
 
+/*  Build residual plots (sequential)
+ *
+ */
 void chartwindow::buildResidualPlot()
 {
     titleError = new QCPTextElement(chartError, "test", QFont("sans", 12, QFont::Bold));
@@ -181,6 +189,9 @@ void chartwindow::buildResidualPlot()
     chartError->graph(1)->setPen(QPen(Qt::black));
 }
 
+/*  Build residual plots (distributed)
+ *
+ */
 void chartwindow::buildResidualQQPlot()
 {
     titleQQ = new QCPTextElement(chartQQ, "test", QFont("sans", 12, QFont::Bold));
@@ -217,62 +228,56 @@ void chartwindow::buildResidualQQPlot()
     chartQQ->graph(1)->setPen(QPen(Qt::black));
 }
 
+/*  Build linear figure
+ *
+ */
 void chartwindow::buildLinearPlot()
 {
-    /*
+    titleMainChart = new QCPTextElement(chart, "test", QFont("sans", 12, QFont::Bold));
 
-    chart->addAxis(axisX, Qt::AlignBottom);
-    chart->addAxis(axisY, Qt::AlignLeft);
+    chart->plotLayout()->insertRow(0);
+    chart->plotLayout()->addElement(0, 0, titleMainChart);
 
-    dataPoints = new QScatterSeries();
-    dataPoints->setName("Raw Data");
-    dataPoints->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-    dataPoints->setPen(QPen(Qt::black));
-    dataPoints->setBrush(QBrush(Qt::black));
-    dataPoints->setMarkerSize(10);
-        chart->addSeries(dataPoints);
+    // Add Points
+    chart->addGraph();
+    chart->graph(0)->setLineStyle(QCPGraph::lsNone);
+    chart->graph(0)->setName("Raw Data");
+    chart->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle,
+                                                     Qt::blue,
+                                                     Qt::white,
+                                                     7));
 
-        dataPoints->attachAxis(axisX);
-        dataPoints->attachAxis(axisY);
+    chart->addGraph();
+    chart->graph(1)->setLineStyle(QCPGraph::lsLine);
+    chart->graph(1)->setName("Linear Demand");
+    chart->graph(1)->setPen(QPen(Qt::black));
 
-    demandCurve = new QLineSeries();
-    demandCurve->setName("Linear Demand");
-    demandCurve->setPen(QPen(Qt::black));
-        chart->addSeries(demandCurve);
-
-        demandCurve->attachAxis(axisX);
-        demandCurve->attachAxis(axisY);
-
-    pmaxLine = new QLineSeries();
-    pmaxLine->setName("pMax");
-    pmaxLine->setPen(QPen(Qt::red));
-        chart->addSeries(pmaxLine);
-
-        pmaxLine->attachAxis(axisX);
-        pmaxLine->attachAxis(axisY);
+    chart->addGraph();
+    chart->graph(2)->setLineStyle(QCPGraph::lsLine);
+    chart->graph(2)->setName("Pmax");
+    chart->graph(2)->setPen(QPen(Qt::red));
 
     plotLinearSeries(0);
-
-    */
 }
 
+/*  Plot linear series
+ *  TODO Fix
+ */
 void chartwindow::plotLinearSeries(int index)
 {
     mList = mDisplayData.at(index);
 
-    //demandCurve->clear();
-    //dataPoints->clear();
-
-    /*
-
     if (mList[6].contains("---", Qt::CaseInsensitive))
     {
-        chart->setTitle(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
-        pmaxLine->clear();
-        pmaxLine->setName("pMax");
+        titleMainChart->setText(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
+
+        pMaxX.clear();
+        pMaxY.clear();
 
         return;
     }
+
+    titleMainChart->setText(QString("Participant #%1").arg(QString::number(currentIndexShown + 1)));
 
     rawPrices = mList.at(19);
 
@@ -287,7 +292,8 @@ void chartwindow::plotLinearSeries(int index)
 
     QList<QString> rawValuesSplit = rawValues.split(",");
 
-    chart->setTitle(QString("Participant #%1").arg(QString::number(currentIndexShown + 1)));
+    pMaxX.clear();
+    pMaxY.clear();
 
     bool checkValue;
 
@@ -329,24 +335,24 @@ void chartwindow::plotLinearSeries(int index)
 
     double scaling = 100 / exp(highestConsumption);
 
-    pmaxLine->clear();
-
-    *pmaxLine << QPointF(derivedPmax, 0.001);
+    pMaxX.append(derivedPmax);
+    pMaxY.append(0.001);
 
     if (showStandardized)
     {
-        *pmaxLine << QPointF(derivedPmax, qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)) * scaling);
+        pMaxX.append(derivedPmax);
+        pMaxY.append(qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)) * scaling);
     }
     else
     {
-        *pmaxLine << QPointF(derivedPmax, qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)));
+        pMaxX.append(derivedPmax);
+        pMaxY.append(qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)));
     }
 
-    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
+    chart->graph(2)->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
 
-    axisX->setMax(highestPrice * 2.0);
-
-    axisY->setMin(0.001);
+    rawX.clear();
+    rawY.clear();
 
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
@@ -370,13 +376,17 @@ void chartwindow::plotLinearSeries(int index)
 
         if (showStandardized)
         {
-            *dataPoints << QPointF(param1, (param2) * scaling);
+            rawX.append(param1);
+            rawY.append(param2 * scaling);
         }
         else
         {
-            *dataPoints << QPointF(param1, (param2));
+            rawX.append(param1);
+            rawY.append(param2);
         }
     }
+
+    chart->graph(0)->setData(rawX, rawY);
 
     for (double i = 0.001; i <= highestPrice * 10; )
     {
@@ -386,11 +396,13 @@ void chartwindow::plotLinearSeries(int index)
         {
             if (showStandardized)
             {
-                *demandCurve << QPointF(i, exp(projectedValue) * scaling);
+                projX.append(i);
+                projY.append(exp(projectedValue) * scaling);
             }
             else
             {
-                *demandCurve << QPointF(i, exp(projectedValue));
+                projX.append(i);
+                projY.append(exp(projectedValue));
             }
         }
 
@@ -429,21 +441,20 @@ void chartwindow::plotLinearSeries(int index)
         }
     }
 
-    if (showStandardized)
-    {
-        axisY->setMax(200);
-    }
-    else
-    {
-        axisY->setMax(highestConsumption * 2);
-    }
+    chart->graph(1)->setData(projX, projY);
+    chart->graph(2)->setData(pMaxX, pMaxY);
 
-    axisX->setMax(highestPrice * 2);
-    axisX->setMin(0.01);
+    chart->yAxis->setRangeUpper(highestConsumption * 2.0);
 
-    */
+    chart->xAxis->setRangeLower(0.0001);
+    chart->xAxis->setRangeUpper(highestPrice * 2);
+
+    chart->replot();
 }
 
+/*  Build exponential figure
+ *
+ */
 void chartwindow::buildExponentialPlot()
 {
     titleMainChart = new QCPTextElement(chart, "test", QFont("sans", 12, QFont::Bold));
@@ -473,6 +484,9 @@ void chartwindow::buildExponentialPlot()
     plotExponentialSeries(0);
 }
 
+/*  Plot exponential series
+ *
+ */
 void chartwindow::plotExponentialSeries(int index)
 {
     mList = mDisplayData.at(index);
@@ -489,13 +503,13 @@ void chartwindow::plotExponentialSeries(int index)
 
     titleMainChart->setText(QString("Participant #%1").arg(QString::number(currentIndexShown + 1)));
 
-    rawPrices = mList.at(21);
+    rawPrices = mList.at(22);
     rawPrices = rawPrices.replace(QString("["), QString(""));
     rawPrices = rawPrices.replace(QString("]"), QString(""));
 
     QList<QString> rawPricesSplit = rawPrices.split(",");
 
-    rawValues = mList.at(22);
+    rawValues = mList.at(23);
     rawValues = rawValues.replace(QString("["), QString(""));
     rawValues = rawValues.replace(QString("]"), QString(""));
 
@@ -514,11 +528,11 @@ void chartwindow::plotExponentialSeries(int index)
 
     if (!checkValue) return;
 
-    exponentialK = mList[9].toDouble(&checkValue);
+    exponentialK = mList[10].toDouble(&checkValue);
 
     if (!checkValue) return;
 
-    derivedPmax = mList[13].toDouble(&checkValue);
+    derivedPmax = mList[14].toDouble(&checkValue);
 
     if (!checkValue) return;
 
@@ -602,7 +616,7 @@ void chartwindow::plotExponentialSeries(int index)
     chart->yAxis->setRangeUpper(highestConsumption * 2.0);
 
     chart->xAxis->setRangeLower(0.0001);
-    chart->xAxis->setRangeUpper(highestPrice);
+    chart->xAxis->setRangeUpper(highestPrice * 2);
 
     projX.clear();
     projY.clear();
@@ -668,61 +682,56 @@ void chartwindow::plotExponentialSeries(int index)
     chart->replot();
 }
 
+/*  Build exponentiated figure
+ *
+ */
 void chartwindow::buildExponentiatedPlot()
 {
-    /*
+    titleMainChart = new QCPTextElement(chart, "test", QFont("sans", 12, QFont::Bold));
 
-    demandCurve = new QLineSeries();
-    demandCurve->setName("Exponentiated Demand");
-    demandCurve->setPen(QPen(Qt::black));
-        chart->addSeries(demandCurve);
+    chart->plotLayout()->insertRow(0);
+    chart->plotLayout()->addElement(0, 0, titleMainChart);
 
-    dataPoints = new QScatterSeries();
-    dataPoints->setName("Raw Data");
-    dataPoints->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-    dataPoints->setPen(QPen(Qt::black));
-    dataPoints->setBrush(QBrush(Qt::black));
-    dataPoints->setMarkerSize(10);
-        chart->addSeries(dataPoints);
+    // Add Points
+    chart->addGraph();
+    chart->graph(0)->setLineStyle(QCPGraph::lsNone);
+    chart->graph(0)->setName("Raw Data");
+    chart->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle,
+                                                     Qt::blue,
+                                                     Qt::white,
+                                                     7));
 
-    pmaxLine = new QLineSeries();
-    pmaxLine->setName("pMax");
-    pmaxLine->setPen(QPen(Qt::red));
-        chart->addSeries(pmaxLine);
+    chart->addGraph();
+    chart->graph(1)->setLineStyle(QCPGraph::lsLine);
+    chart->graph(1)->setName("Exponentiated Demand");
+    chart->graph(1)->setPen(QPen(Qt::black));
+
+    chart->addGraph();
+    chart->graph(2)->setLineStyle(QCPGraph::lsLine);
+    chart->graph(2)->setName("Pmax");
+    chart->graph(2)->setPen(QPen(Qt::red));
 
     plotExponentiatedSeries(0);
-
-    chart->setAxisX(axisX, demandCurve);
-    chart->setAxisY(axisY2, demandCurve);
-
-    chart->setAxisX(axisX, dataPoints);
-    chart->setAxisY(axisY2, dataPoints);
-
-    chart->setAxisX(axisX, pmaxLine);
-    chart->setAxisY(axisY2, pmaxLine);
-
-    */
 }
 
+/*  Plot exponential series
+ *
+ */
 void chartwindow::plotExponentiatedSeries(int index)
 {
     mList = mDisplayData.at(index);
 
-    //demandCurve->clear();
-    //dataPoints->clear();
-
-    /*
-
     if (mList[2].contains("---", Qt::CaseInsensitive))
     {
-        chart->setTitle(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
-        pmaxLine->clear();
-        pmaxLine->setName("pMax");
+        titleMainChart->setText(QString("Participant #%1: Dropped").arg(QString::number(currentIndexShown + 1)));
+
+        pMaxX.clear();
+        pMaxY.clear();
 
         return;
     }
 
-    chart->setTitle(QString("Participant #%1").arg(QString::number(currentIndexShown + 1)));
+    titleMainChart->setText(QString("Participant #%1").arg(QString::number(currentIndexShown + 1)));
 
     bool checkValue;
 
@@ -756,8 +765,6 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     double highestPrice = rawPricesSplit[rawPricesSplit.count() - 1].toDouble();
 
-    axisX->setMax(highestPrice * 2.0);
-
     double highestConsumption = -1;
 
     for (int i = 0; i < rawPricesSplit.length(); i++)
@@ -778,20 +785,28 @@ void chartwindow::plotExponentiatedSeries(int index)
 
     double scaling = 100 / highestConsumption;
 
-    pmaxLine->clear();
+    pMaxX.clear();
+    pMaxY.clear();
 
-    *pmaxLine << QPointF(derivedPmax, 0.001);
+    pMaxX.append(derivedPmax);
+    pMaxY.append(0.001);
+
 
     if (showStandardized)
     {
-        *pmaxLine << QPointF(derivedPmax, (exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1)))) * scaling);
+        pMaxX.append(derivedPmax);
+        pMaxY.append(pow(10, (exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1)))) * scaling));
     }
     else
     {
-        *pmaxLine << QPointF(derivedPmax, exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
+        pMaxX.append(derivedPmax);
+        pMaxY.append(exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1))));
     }
 
-    pmaxLine->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
+    chart->graph(2)->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
+
+    rawX.clear();
+    rawY.clear();
 
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
@@ -815,13 +830,24 @@ void chartwindow::plotExponentiatedSeries(int index)
 
         if (showStandardized)
         {
-            *dataPoints << QPointF(param1, param2 * scaling);
+            rawX.append(param1);
+            rawY.append((param2) * scaling);
         }
         else
         {
-            *dataPoints << QPointF(param1, param2);
+            rawX.append(param1);
+            rawY.append(param2);
         }
     }
+
+    chart->graph(0)->setData(rawX, rawY);
+    chart->yAxis->setRangeUpper(highestConsumption + 1);
+
+    chart->xAxis->setRangeLower(0);
+    chart->xAxis->setRangeUpper(highestPrice + 1);
+
+    projX.clear();
+    projY.clear();
 
     for (double i = 0.001; i < highestPrice * 2; )
     {
@@ -831,11 +857,13 @@ void chartwindow::plotExponentiatedSeries(int index)
         {
             if (showStandardized)
             {
-                *demandCurve << QPointF(i, projectedValue * scaling);
+                projX.append(i);
+                projY.append((projectedValue) * scaling);
             }
             else
             {
-                *demandCurve << QPointF(i, projectedValue);
+                projX.append(i);
+                projY.append(projectedValue);
             }
         }
 
@@ -874,22 +902,15 @@ void chartwindow::plotExponentiatedSeries(int index)
         }
     }
 
-    if (showStandardized)
-    {
-        axisY2->setMax(101);
-        axisY2->setMin(0);
-    }
-    else
-    {
-        axisY2->setMax(highestConsumption * 1.2);
-        axisY2->setMin(0);
-    }
+    chart->graph(1)->setData(projX, projY);
+    chart->graph(2)->setData(pMaxX, pMaxY);
 
-    axisX->setMax(highestPrice * 2);
-    axisX->setMin(0.001);
-    */
+    chart->replot();
 }
 
+/*  Plot residual series
+ *
+ */
 void chartwindow::plotResiduals(int index)
 {
     mList = mDisplayData.at(index);
@@ -1016,6 +1037,9 @@ void chartwindow::plotResiduals(int index)
     chartError->replot();
 }
 
+/*  Plot residual series (distributed)
+ *
+ */
 void chartwindow::plotQQResiduals(int index)
 {
     mList = mDisplayData.at(index);
@@ -1158,6 +1182,8 @@ void chartwindow::plotQQResiduals(int index)
     //chartErrorQQ.setTitle(QString("Participant #%1: Probability Plot").arg(QString::number(currentIndexShown + 1)));
     chartQQ->replot();
 }
+
+// Helpers
 
 bool chartwindow::eventFilter(QObject *, QEvent *e)
 {

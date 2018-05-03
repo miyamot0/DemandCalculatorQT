@@ -29,7 +29,7 @@ DEFINES  += "VERSION_MAJOR=$$VERSION_MAJOR"\
             "VERSION_BUILD=$$VERSION_BUILD"\
             "VERSION_TESTING=$$TEST_FEATURES"
 
-QT       += core gui widgets xlsx charts network xml printsupport
+QT       += core gui widgets xlsx network xml printsupport
 
 TARGET   = DemandCalculatorQt
 
