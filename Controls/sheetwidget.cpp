@@ -318,9 +318,13 @@ void SheetWidget::buildMenus()
     openLicenseMathNet->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseMathNet, &QAction::triggered, this, &SheetWidget::showMathNetLicenseWindow);
 
-    openLicenseDifferentialEvolution = new QAction("Differential-Evolution License (...)", this);
+    openLicenseDifferentialEvolution = new QAction("Differential-Evolution License", this);
     openLicenseDifferentialEvolution->setIcon(QIcon(":/images/format-justify-center.png"));
     connect(openLicenseDifferentialEvolution, &QAction::triggered, this, &SheetWidget::showDifferentialEvolutionLicenseWindow);
+
+    openLicenseQCustomPlot = new QAction("QCustomPlot (GPLv3)", this);
+    openLicenseQCustomPlot->setIcon(QIcon(":/images/format-justify-center.png"));
+    connect(openLicenseQCustomPlot, &QAction::triggered, this, &SheetWidget::showQCustomPlot);
 
     openAbout = new QAction("Credits", this);
     openAbout->setIcon(QIcon(":/images/format-justify-center.png"));
@@ -401,6 +405,7 @@ void SheetWidget::buildMenus()
     sheetLicensesMenu->addAction(openLicenseGSL);
     sheetLicensesMenu->addAction(openLicenseMathNet);
     sheetLicensesMenu->addAction(openLicenseDifferentialEvolution);
+    sheetLicensesMenu->addAction(openLicenseQCustomPlot);
     sheetLicensesMenu->addAction(openAbout);
 
     QMenu *sheetAboutMenu = menuBar()->addMenu(tr("&Help"));
@@ -947,6 +952,25 @@ void SheetWidget::showDifferentialEvolutionLicenseWindow()
 
     licenseDialog = new LicenseDialog(mFilePath, this);
     licenseDialog->setWindowTitle("Differential-Evolution License (...)");
+    licenseDialog->setModal(true);
+    licenseDialog->show();
+}
+
+void SheetWidget::showQCustomPlot()
+{
+    QString mFilePath = "";
+
+    #ifdef _WIN32
+            mFilePath = "License_QCustomPlot.txt";
+    #elif TARGET_OS_MAC
+            QDir runDirectory = QDir(QCoreApplication::applicationDirPath());
+            runDirectory.cdUp();
+            runDirectory.cd("Resources");
+            mFilePath = runDirectory.filePath("License_QCustomPlot.txt");
+    #endif
+
+    licenseDialog = new LicenseDialog(mFilePath, this);
+    licenseDialog->setWindowTitle("QCustomPlot License (GPLv3)");
     licenseDialog->setModal(true);
     licenseDialog->show();
 }

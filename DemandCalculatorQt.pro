@@ -20,7 +20,7 @@ TEST_FEATURES = 0
 
 VERSION_MAJOR = 1
 VERSION_MINOR = 5
-VERSION_BUILD = 6
+VERSION_BUILD = 8
 
 CONFIG   += c++11
 
@@ -146,6 +146,7 @@ win32 {
                       License_GSL.txt \
                       License_Math.NET.txt \
                       License_Qt.txt \
+                      License_QCustomPlot.txt \
                       License_Tango.txt \
                       COPYING \
                       SNS.ico
@@ -178,6 +179,7 @@ macx {
                       License_GSL.txt \
                       License_Math.NET.txt \
                       License_Qt.txt \
+                      License_QCustomPlot.txt \
                       License_Tango.txt \
                       COPYING \
                       SNS.icns
@@ -189,13 +191,14 @@ macx {
 
 DISTFILES += \
     License_ALGLIB.txt \
-    License_Tango.txt \
     License_Beezdemand.txt \
+    License_differential-evolution.txt \
+    License_GSL.txt \
     License_Qt.txt \
-    COPYING \
-    README.md \
+    License_QCustomPlot.txt \
+    License_Math.NET.txt \
+    License_Tango.txt \
     SNS.ico \
     SNS.icns \
-    License_GSL.txt \
-    License_Math.NET.txt \
-    License_differential-evolution.txt
+    README.md \
+    COPYING

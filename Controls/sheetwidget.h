@@ -161,6 +161,7 @@ public slots:
     void showGSLLicenseWindow();
     void showMathNetLicenseWindow();
     void showDifferentialEvolutionLicenseWindow();
+    void showQCustomPlot();
 
     bool isToolWindowShown();
 
@@ -214,6 +215,7 @@ private:
     QAction *openLicenseGSL;
     QAction *openLicenseMathNet;
     QAction *openLicenseDifferentialEvolution;
+    QAction *openLicenseQCustomPlot;
 
     QAction *openAbout;
     QAction *openFAQ;

@@ -32,8 +32,6 @@
 
 #include "Utilities/qcustomplot.h"
 
-#include <QDebug>
-
 chartwindow::chartwindow(QList<QStringList> stringList, bool showChartsStandardized, DemandModel mModel, bool alternativePmax, QWidget *parent)
 {
     mDisplayData = stringList;
