@@ -5,14 +5,19 @@ Small N Stats Demand Curve Analyzer is a Qt-based application that communicates 
 Features include:
   - Non-linear model fittings (John Nash's modified LM optimizer, specificially suited for BE models)
   - Multiple Models available (Hursh & Silberberg's Exponential Model, Koffarnus et. al.'s Exponentiated model)
-  - R-based graphical output in appropriate log space(s)
   - Easily imports common file formats into the application's spreadsheet (.xlsx)
   - Full range of BE outcome metrics (empirical and derived), saveable in common spreadsheet file formats
 
 ### Version
-1.4.0.0
+1.5.8.0
 
 ### Changelog
+ * 1.5.8.0 - QCustomPlot for better plotting performance
+ * 1.5.6.0 - Bug fixes
+ * 1.5.4.0 - Optimizer options - Differential Evolution
+ * 1.5.3.0 - Developer options
+ * 1.5.2.0 - Add residual/QQ plotting
+ * 1.5.1.0 - Bugfixes with hessians
  * 1.4.0.0 - Update to global regression k
  ...
  * 1.0.0.0 - alpha build
@@ -20,9 +25,13 @@ Features include:
 ### Referenced Works (F/OSS software)
 The Small N Stats Demand Calculator uses a number of open source projects to work properly:
 * ALGLIB (3.11.0) - GPLv3 Licensed. Copyright 1994-2017 ALGLIB Project. [Site](http://www.alglib.net/)
+* Differential Evolution - Copyright 2017 Milos Stojanovic Stojke. [Github](https://github.com/milsto/differential-evolution)
 * Qt Framework (5.8) - LGPL 3.0 (GPL 3.0 Licensed). Copyright (C). Qt Team [Site](https://www.qt.io/)
 * Qt Examples (Spreadsheet, Recent Files) - BSD-3 Clause. Copyright (C). Qt Team [Site](https://www.qt.io/)
 * Tango icon set - Public Domain Licensed. Copyright (C) 2009, "Tango Desktop Project" [Site](http://tango.freedesktop.org/Tango_Desktop_Project)
+* GNU Scientific Library - GPLv2+ Licensed. Copyright (C) 1996-2018. GNU Project [Site](https://www.gnu.org/software/gsl/)
+* Math.NET Numerics - MIT Licensed. Copyright (C) 2002-2015. Math.NET [Github](https://github.com/mathnet/mathnet-numerics)
+* QCustomPlot - GPLv3 Licensed. Copyright (C) 2011-2018. Emanuel Eichhammer [Site}(www.qcustomplot.com)
 
 ### Referenced Works (R packages/scripts)
 * beezdemand R package - GPLv2+ Licensed. Copyright (c) 2016, Brent Kaplan [Github](https://github.com/brentkaplan/beezdemand)

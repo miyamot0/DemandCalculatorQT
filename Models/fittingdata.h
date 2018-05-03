@@ -21,23 +21,27 @@
 
   */
 
-#include <QApplication>
+#ifndef FITTINGDATA_H
+#define FITTINGDATA_H
 
-#include "Controls/sheetwidget.h"
+#include <QObject>
 
-//#include "Utilities/qcustomplot.h"
-//#include "testchart.h"
-
-int main(int argc, char *argv[])
+class FittingData
 {
-    QApplication app(argc, argv);
+public:
+    FittingData();
 
-    SheetWidget mNewSheet;
-    mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
-    mNewSheet.show();
+    FittingData(QString _Prices, QString _Consumption, QString _Weights, QList<double> _PriceValues, QList<double> _ConsumptionValues, double _localMin, double _localMax);
 
-//    TestChart tChart;
-//    tChart.show();
+    QString Prices;
+    QString Consumption;
+    QString Weights;
 
-    return app.exec();
-}
+    QList<double> PriceValues;
+    QList<double> ConsumptionValues;
+
+    double LocalMin;
+    double LocalMax;
+};
+
+#endif // FITTINGDATA_H

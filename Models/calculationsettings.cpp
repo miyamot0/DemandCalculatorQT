@@ -21,23 +21,9 @@
 
   */
 
-#include <QApplication>
+#include "calculationsettings.h"
 
-#include "Controls/sheetwidget.h"
-
-//#include "Utilities/qcustomplot.h"
-//#include "testchart.h"
-
-int main(int argc, char *argv[])
+CalculationSettings::CalculationSettings()
 {
-    QApplication app(argc, argv);
 
-    SheetWidget mNewSheet;
-    mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
-    mNewSheet.show();
-
-//    TestChart tChart;
-//    tChart.show();
-
-    return app.exec();
 }

@@ -21,23 +21,22 @@
 
   */
 
-#include <QApplication>
+#include "fittingdata.h"
 
-#include "Controls/sheetwidget.h"
-
-//#include "Utilities/qcustomplot.h"
-//#include "testchart.h"
-
-int main(int argc, char *argv[])
+FittingData::FittingData()
 {
-    QApplication app(argc, argv);
 
-    SheetWidget mNewSheet;
-    mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
-    mNewSheet.show();
+}
 
-//    TestChart tChart;
-//    tChart.show();
+FittingData::FittingData(QString _Prices, QString _Consumption, QString _Weights, QList<double> _PriceValues, QList<double> _ConsumptionValues, double _localMin, double _localMax)
+{
+    Prices = _Prices;
+    Consumption = _Consumption;
+    Weights = _Weights;
 
-    return app.exec();
+    PriceValues = _PriceValues;
+    ConsumptionValues = _ConsumptionValues;
+
+    LocalMin = _localMin;
+    LocalMax = _localMax;
 }

@@ -1,0 +1,6 @@
+/**
+ * \file DifferentialEvolution.h
+ * \author Milos Stojanovic Stojke (milsto)
+ *
+ * Implementation of Differential evolution algorithm.
+ */

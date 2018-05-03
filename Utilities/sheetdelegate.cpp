@@ -21,23 +21,29 @@
 
   */
 
-#include <QApplication>
+#include <QtWidgets>
+#include <QTableWidgetItem>
 
 #include "Controls/sheetwidget.h"
+#include "sheetdelegate.h"
+#include "Utilities/commanding.h"
 
-//#include "Utilities/qcustomplot.h"
-//#include "testchart.h"
-
-int main(int argc, char *argv[])
+SheetDelegate::SheetDelegate()
 {
-    QApplication app(argc, argv);
 
-    SheetWidget mNewSheet;
-    mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
-    mNewSheet.show();
+}
 
-//    TestChart tChart;
-//    tChart.show();
+void SheetDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+    QLineEdit *edit = qobject_cast<QLineEdit *>(editor);
 
-    return app.exec();
+    if (edit) {
+
+        SheetWidget *temp = qobject_cast <SheetWidget *>(model->parent()->parent());
+        QString mNew = edit->text();
+        temp->undoStack->push(new UpdateCommand(&index, model->data(index, Qt::EditRole).toString(), mNew));
+        model->setData(index, edit->text(), Qt::EditRole);
+
+        return;
+    }
 }
