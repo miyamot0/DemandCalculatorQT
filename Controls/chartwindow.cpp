@@ -568,7 +568,7 @@ void chartwindow::plotExponentialSeries(int index)
         }
     }
 
-    double scaling = 100 / highestConsumption;
+    double scaling = 100 / pow(10, log10(exponentialQ0) + exponentialK * (exp(-exponentialAlpha * exponentialQ0 * 0.001) - 1));
 
     pMaxX.clear();
     pMaxY.clear();
@@ -688,7 +688,7 @@ void chartwindow::plotExponentialSeries(int index)
     chart->graph(2)->setData(pMaxX, pMaxY);
 
     int getXLabel = GetAxisMaxLog10(rawX);
-    int getYLabel = GetAxisMaxLog10(highestConsumption * 2.0);
+    int getYLabel = GetAxisMaxLog10(showStandardized ? 100 : highestConsumption * 2.0);
 
     chartXTicks.clear();
     chartXLabels.clear();
@@ -709,7 +709,7 @@ void chartwindow::plotExponentialSeries(int index)
     chart->xAxis->setRangeUpper(pow(10, getXLabel));
 
     chart->yAxis->setRangeLower(0.001);
-    chart->yAxis->setRangeUpper(pow(10, getYLabel) + (showStandardized ? pow(10, getYLabel) * 0.1 : 0));
+    chart->yAxis->setRangeUpper(pow(10, getYLabel) * 1.1);
 
     QSharedPointer<QCPAxisTickerText> chartTicker(new QCPAxisTickerText);
     chartTicker->addTicks(chartXTicks, chartXLabels);
@@ -823,7 +823,7 @@ void chartwindow::plotExponentiatedSeries(int index)
         }
     }
 
-    double scaling = 100 / highestConsumption;
+    double scaling = 100 / (exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * 0.001) - 1))));
 
     pMaxX.clear();
     pMaxY.clear();
@@ -834,7 +834,7 @@ void chartwindow::plotExponentiatedSeries(int index)
     if (showStandardized)
     {
         pMaxX.append(derivedPmax);
-        pMaxY.append(pow(10, (exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1)))) * scaling));
+        pMaxY.append((exponentiatedQ0 * pow(10, (exponentiatedK * (exp(-exponentiatedAlpha * exponentiatedQ0 * derivedPmax) - 1)))) * scaling);
     }
     else
     {
@@ -945,7 +945,7 @@ void chartwindow::plotExponentiatedSeries(int index)
     chart->graph(2)->setData(pMaxX, pMaxY);
 
     int getXLabel = GetAxisMaxLog10(rawX);
-    int getYLabel = GetAxisMaxLog10(highestConsumption * 2.0);
+    int getYLabel = GetAxisMaxLog10(showStandardized ? 100 : highestConsumption * 2.0);
 
     chartXTicks.clear();
     chartXLabels.clear();
@@ -966,7 +966,7 @@ void chartwindow::plotExponentiatedSeries(int index)
     chart->xAxis->setRangeUpper(pow(10, getXLabel));
 
     chart->yAxis->setRangeLower(0.001);
-    chart->yAxis->setRangeUpper(pow(10, getYLabel) + (showStandardized ? pow(10, getYLabel) * 0.1 : 0));
+    chart->yAxis->setRangeUpper(pow(10, getYLabel) * 1.1);
 
     QSharedPointer<QCPAxisTickerText> chartTicker(new QCPAxisTickerText);
     chartTicker->addTicks(chartXTicks, chartXLabels);
