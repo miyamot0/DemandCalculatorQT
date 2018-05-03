@@ -313,7 +313,7 @@ void chartwindow::plotLinearSeries(int index)
         }
     }
 
-    double scaling = 100 / exp(highestConsumption);
+    double scaling = 100 / exp(log(linearL) + (linearb * log(0.001)) - lineara * (0.001));
 
     pMaxX.append(derivedPmax);
     pMaxY.append(0.001);
@@ -321,12 +321,12 @@ void chartwindow::plotLinearSeries(int index)
     if (showStandardized)
     {
         pMaxX.append(derivedPmax);
-        pMaxY.append(qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)) * scaling);
+        pMaxY.append(exp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)) * scaling);
     }
     else
     {
         pMaxX.append(derivedPmax);
-        pMaxY.append(qExp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)));
+        pMaxY.append(exp(log(linearL) + (linearb * log(derivedPmax)) - lineara * (derivedPmax)));
     }
 
     chart->graph(2)->setName(QString("pMax: %1").arg(QString::number(derivedPmax)));
@@ -430,7 +430,7 @@ void chartwindow::plotLinearSeries(int index)
     chart->graph(2)->setData(pMaxX, pMaxY);
 
     int getXLabel = GetAxisMaxLog10(rawX);
-    int getYLabel = GetAxisMaxLog10(highestConsumption * 2.0);
+    int getYLabel = GetAxisMaxLog10(showStandardized ? 100 : highestConsumption * 2.0);
 
     chartXTicks.clear();
     chartXLabels.clear();
@@ -451,7 +451,7 @@ void chartwindow::plotLinearSeries(int index)
     chart->xAxis->setRangeUpper(pow(10, getXLabel));
 
     chart->yAxis->setRangeLower(0.001);
-    chart->yAxis->setRangeUpper(pow(10, getYLabel) + (showStandardized ? pow(10, getYLabel) * 0.1 : 0));
+    chart->yAxis->setRangeUpper(pow(10, getYLabel) * 1.1);
 
     QSharedPointer<QCPAxisTickerText> chartTicker(new QCPAxisTickerText);
     chartTicker->addTicks(chartXTicks, chartXLabels);
