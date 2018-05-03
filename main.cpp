@@ -25,6 +25,9 @@
 
 #include "Controls/sheetwidget.h"
 
+//#include "Utilities/qcustomplot.h"
+//#include "testchart.h"
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
@@ -32,6 +35,9 @@ int main(int argc, char *argv[])
     SheetWidget mNewSheet;
     mNewSheet.setWindowIcon(QPixmap(":/images/applications-other.png"));
     mNewSheet.show();
+
+//    TestChart tChart;
+//    tChart.show();
 
     return app.exec();
 }

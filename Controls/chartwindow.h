@@ -34,10 +34,13 @@
 #include <QDialog>
 #include <QFile>
 #include <QTextStream>
-#include <QtCharts>
+//#include <QtCharts>
+#include <QVector>
 
 #include "Models/calculationsettings.h"
 #include "Libraries/numerics/numericsport.h"
+
+#include "Utilities/qcustomplot.h"
 
 class chartwindow : public QMainWindow
 {
@@ -68,31 +71,22 @@ private slots:
     void saveSVGasPNG();
 
 private:
-    QChart *chart;
-    QChartView *chartView;
-    QLogValueAxis *axisX;
-    QLogValueAxis *axisY;
-    QValueAxis *axisY2;
+    QVector<double> rawX, rawY;
+    QVector<double> projX, projY;
+    QVector<double> pMaxX, pMaxY;
 
-    // residuals
+    QVector<double> qqX, qqY;
 
-    QChart chartError;
-    QChartView *chartViewError;
-    QValueAxis axisXerror;
-    QValueAxis axisYerror;
-    QLineSeries errSeries;
-    QScatterSeries errDataPoints;
+    QVector<double> errPointX, errPointY;
+    QVector<double> qqPointX, qqPointY;
 
-    // qq plot
+    QCustomPlot *chart;
+    QCustomPlot *chartError;
+    QCustomPlot *chartQQ;
 
-    QChart chartErrorQQ;
-    QChartView *chartViewErrorQQ;
-    QValueAxis axisXerrorQQ;
-    QValueAxis axisYerrorQQ;
-    QLineSeries errSeriesQQ;
-    QScatterSeries errDataPointsQQ;
-
-    //
+    QCPTextElement *titleMainChart;
+    QCPTextElement *titleError;
+    QCPTextElement *titleQQ;
 
     bool isAlternativePmaxUsed;
 
@@ -116,10 +110,6 @@ private:
 
     QString rawPrices;
     QString rawValues;
-
-    QLineSeries *pmaxLine;
-    QLineSeries *demandCurve;
-    QScatterSeries *dataPoints;
 
     DemandModel modelType;
 

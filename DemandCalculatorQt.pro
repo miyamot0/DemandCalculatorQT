@@ -29,7 +29,7 @@ DEFINES  += "VERSION_MAJOR=$$VERSION_MAJOR"\
             "VERSION_BUILD=$$VERSION_BUILD"\
             "VERSION_TESTING=$$TEST_FEATURES"
 
-QT       += core gui widgets xlsx charts network xml
+QT       += core gui widgets xlsx charts network xml printsupport
 
 TARGET   = DemandCalculatorQt
 
@@ -77,6 +77,7 @@ SOURCES += \
     Models/lambertresult.cpp \
     Utilities/commanding.cpp \
     Utilities/sheetdelegate.cpp \
+    Utilities/qcustomplot.cpp \
     main.cpp
 
 HEADERS  += \
@@ -114,7 +115,8 @@ HEADERS  += \
     Modeling/demandmodeling.h \
     Utilities/commanding.h \
     Utilities/sheetdelegate.h \
-    Utilities/tags.h
+    Utilities/tags.h \
+    Utilities/qcustomplot.h
 
 FORMS    += \
     Dialogs/aboutdialog.ui \
