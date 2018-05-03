@@ -1,3 +1,26 @@
+/**
+   Copyright 2017 Shawn Gilroy
+
+   This file is part of Demand Curve Analyzer, Qt port.
+
+   Demand Curve Analyzer is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, version 3.
+
+   Demand Curve Analyzer is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Demand Curve Analyzer.  If not, see http://www.gnu.org/licenses/.
+
+   The Demand Curve Analyzer is a tool to assist researchers in behavior economics.
+
+   Email: shawn(dot)gilroy(at)temple.edu
+
+  */
+
 #ifndef DEMANDMEASURES_H
 #define DEMANDMEASURES_H
 
@@ -24,52 +47,54 @@ QString getBP0String(QList<double> &yValues, QList<double> &xValues);
 QString getBP1String(QList<double> &yValues, QList<double> &xValues);
 double getPbar(QList<double> &yValues);
 
-/*
- * Math from Hursh
- *
+/**
+ * @brief CalculateHurshPmax
+ * @param q0
+ * @param alpha
+ * @param k
+ * @return
  */
-
 double CalculateHurshPmax(double q0, double alpha, double k)
 {
     return 1/(q0 * alpha * pow(k, 1.5)) * (0.083 * k + 0.65);
 }
 
+/**
+ * @brief CalculateHurshOmax
+ * @param q0
+ * @param alpha
+ * @param k
+ * @param pmaxd
+ * @return
+ */
 double CalculateHurshOmax(double q0, double alpha, double k, double pmaxd)
 {
     return (pow(10, (log10(q0) + (k * (exp(-alpha * q0 * pmaxd) - 1))))) * pmaxd;
 }
 
+/**
+ * @brief CalculateHurshEV
+ * @param alpha
+ * @param k
+ * @return
+ */
 double CalculateHurshEV(double alpha, double k)
 {
     return 1/(alpha * pow(k, 1.5) * 100);
 }
 
 /*
-QList<double> SplitWeights(QString value)
-{
-    QString temp = value.replace("[", "");
-    QString temp2 = temp.replace("]", "");
-
-    QStringList tempList = temp2.split(",");
-
-    QList<double> returnList;
-
-    double num;
-    foreach (QString str, tempList) {
-        num = str.toDouble();
-
-        returnList << num;
-    }
-
-    return returnList;
-}
-*/
-
-/*
  * Output for sheet
  *
  */
 
+/**
+ * @brief FailedExponentialExponentiatedDEOutput
+ * @param mTempHolder
+ * @param i
+ * @param calculationSettings
+ * @param fittingData
+ */
 void FailedExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings, FittingData fittingData)
 {
     mTempHolder->clear();
@@ -106,6 +131,17 @@ void FailedExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i, Ca
     }
 }
 
+/**
+ * @brief SuccessfulExponentialExponentiatedDEOutput
+ * @param mTempHolder
+ * @param i
+ * @param calculationSettings
+ * @param fittingData
+ * @param q0
+ * @param alpha
+ * @param k
+ * @param avgerr
+ */
 void SuccessfulExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings,
                                               FittingData fittingData, double q0, double alpha, double k, double avgerr)
 {
@@ -154,6 +190,13 @@ void SuccessfulExponentialExponentiatedDEOutput(QStringList * mTempHolder, int i
     }
 }
 
+/**
+ * @brief FailedExponentialExponentiatedLMOutput
+ * @param mTempHolder
+ * @param i
+ * @param calculationSettings
+ * @param fittingData
+ */
 void FailedExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings, FittingData fittingData)
 {
     mTempHolder->clear();
@@ -191,6 +234,21 @@ void FailedExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i, Ca
     }
 }
 
+/**
+ * @brief SuccessfulExponentialExponentiatedLMOutput
+ * @param mTempHolder
+ * @param i
+ * @param calculationSettings
+ * @param fittingData
+ * @param q0
+ * @param q0se
+ * @param alpha
+ * @param alphase
+ * @param k
+ * @param kse
+ * @param avgerr
+ * @param r2
+ */
 void SuccessfulExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings,
                                                 FittingData fittingData, double q0, double q0se,
                                                 double alpha, double alphase,
@@ -243,6 +301,12 @@ void SuccessfulExponentialExponentiatedLMOutput(QStringList * mTempHolder, int i
     }
 }
 
+/**
+ * @brief FailedLinearDEOutput
+ * @param mTempHolder
+ * @param i
+ * @param fittingData
+ */
 void FailedLinearDEOutput(QStringList * mTempHolder, int i, FittingData fittingData)
 {
     mTempHolder->clear();
@@ -270,6 +334,15 @@ void FailedLinearDEOutput(QStringList * mTempHolder, int i, FittingData fittingD
                 << fittingData.Consumption;
 }
 
+/**
+ * @brief SuccessfulLinearDEOutput
+ * @param mTempHolder
+ * @param i
+ * @param fittingData
+ * @param L
+ * @param a
+ * @param b
+ */
 void SuccessfulLinearDEOutput(QStringList * mTempHolder, int i,
                               FittingData fittingData, double L, double a, double b)
 {
@@ -303,6 +376,22 @@ void SuccessfulLinearDEOutput(QStringList * mTempHolder, int i,
 
 }
 
+/**
+ * @brief SuccessfulLinearLMOutput
+ * @param mTempHolder
+ * @param i
+ * @param calculationSettings
+ * @param fittingData
+ * @param L
+ * @param Lse
+ * @param a
+ * @param ase
+ * @param b
+ * @param bse
+ * @param avgerr
+ * @param r2
+ * @param code
+ */
 void SuccessfulLinearLMOutput(QStringList * mTempHolder, int i, CalculationSettings * calculationSettings,
                               FittingData fittingData, double L, double Lse,
                               double a, double ase,
@@ -340,6 +429,13 @@ void SuccessfulLinearLMOutput(QStringList * mTempHolder, int i, CalculationSetti
 
 }
 
+/**
+ * @brief FailedLinearLMOutput
+ * @param mTempHolder
+ * @param i
+ * @param fittingData
+ * @param code
+ */
 void FailedLinearLMOutput(QStringList * mTempHolder, int i, FittingData fittingData, int code)
 {
     mTempHolder->clear();
@@ -363,6 +459,13 @@ void FailedLinearLMOutput(QStringList * mTempHolder, int i, FittingData fittingD
                 << fittingData.Consumption;
 }
 
+/**
+ * @brief GetDerivedK
+ * @param calculationSettings
+ * @param fittingData
+ * @param savedGlobalFits
+ * @return
+ */
 double GetDerivedK(CalculationSettings * calculationSettings, FittingData fittingData, real_1d_array savedGlobalFits)
 {
     if (calculationSettings->settingsK == BehaviorK::Individual)
@@ -387,6 +490,11 @@ double GetDerivedK(CalculationSettings * calculationSettings, FittingData fittin
     }
 }
 
+/**
+ * @brief getFittingAlgorithm
+ * @param calculationSettings
+ * @return
+ */
 QString getFittingAlgorithm(CalculationSettings * calculationSettings)
 {
     QString mWeightTag = calculationSettings->WeightSetting == WeightingMode::Weighted ? "-w)" : ")";

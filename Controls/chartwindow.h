@@ -34,8 +34,8 @@
 #include <QDialog>
 #include <QFile>
 #include <QTextStream>
-//#include <QtCharts>
 #include <QVector>
+#include <QSharedPointer>
 
 #include "Models/calculationsettings.h"
 #include "Libraries/numerics/numericsport.h"
@@ -87,6 +87,9 @@ private:
     QCPTextElement *titleMainChart;
     QCPTextElement *titleError;
     QCPTextElement *titleQQ;
+
+    QVector<double> chartErrorTicks;
+    QVector<QString> chartErrorLabels;
 
     bool isAlternativePmaxUsed;
 

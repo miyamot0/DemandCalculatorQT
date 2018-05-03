@@ -52,11 +52,19 @@ ResultsDialog::ResultsDialog(QWidget *parent) :
     addAction(copyAction);
 }
 
+/**
+ * @brief ResultsDialog::setOptions
+ * @param showPmax
+ */
 void ResultsDialog::setOptions(bool showPmax)
 {
     showAlternativePmax = showPmax;
 }
 
+/**
+ * @brief ResultsDialog::setResults
+ * @param mData
+ */
 void ResultsDialog::setResults(QList<QStringList> mData)
 {
     auto mTags = getExponentiatedKeys();
@@ -78,6 +86,10 @@ void ResultsDialog::setResults(QList<QStringList> mData)
     ui->tableWidget->viewport()->update();
 }
 
+/**
+ * @brief ResultsDialog::getLinearKeys
+ * @return
+ */
 QStringList ResultsDialog::getLinearKeys()
 {
     QStringList mReturnKeys;
@@ -106,6 +118,10 @@ QStringList ResultsDialog::getLinearKeys()
     return mReturnKeys;
 }
 
+/**
+ * @brief ResultsDialog::getExponentialKeys
+ * @return
+ */
 QStringList ResultsDialog::getExponentialKeys()
 {
     QStringList mReturnKeys;
@@ -143,6 +159,10 @@ QStringList ResultsDialog::getExponentialKeys()
     return mReturnKeys;
 }
 
+/**
+ * @brief ResultsDialog::getExponentiatedKeys
+ * @return
+ */
 QStringList ResultsDialog::getExponentiatedKeys()
 {
     QStringList mReturnKeys;
@@ -180,6 +200,10 @@ QStringList ResultsDialog::getExponentiatedKeys()
     return mReturnKeys;
 }
 
+/**
+ * @brief ResultsDialog::setResultsType
+ * @param mModel
+ */
 void ResultsDialog::setResultsType(DemandModel mModel)
 {
     QStringList mColumns;
@@ -206,11 +230,17 @@ void ResultsDialog::setResultsType(DemandModel mModel)
     }
 }
 
+/**
+ * @brief ResultsDialog::~ResultsDialog
+ */
 ResultsDialog::~ResultsDialog()
 {
     delete ui;
 }
 
+/**
+ * @brief ResultsDialog::copy
+ */
 void ResultsDialog::copy()
 {
     QList<QTableWidgetSelectionRange> range = ui->tableWidget->selectedRanges();
@@ -244,6 +274,9 @@ void ResultsDialog::copy()
     QApplication::clipboard()->setText(str);
 }
 
+/**
+ * @brief ResultsDialog::on_pushButton_2_clicked
+ */
 void ResultsDialog::on_pushButton_2_clicked()
 {
     QString selFilter="Spreadsheet (*.xlsx)";

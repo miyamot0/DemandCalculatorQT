@@ -212,6 +212,8 @@ void chartwindow::buildResidualQQPlot()
     chartQQ->xAxis->setScaleType(QCPAxis::stLinear);
     chartQQ->xAxis->setRangeLower(-2);
     chartQQ->xAxis->setRangeUpper(2);
+    //chartQQ->xAxis->setAutoTickStep(false);
+    //chartQQ->xAxis->setTickStep(1);
 
     chartQQ->addGraph();
     chartQQ->graph(0)->setLineStyle(QCPGraph::lsNone);
@@ -966,6 +968,9 @@ void chartwindow::plotResiduals(int index)
 
     yValuesTempHolder.clear();
 
+    chartErrorTicks.clear();
+    chartErrorLabels.clear();
+
     for (int j = 0; j < mSplitX.length() && j < mSplitY.length(); j++)
     {
         tempX = mSplitX[j].toDouble(&canConvertX);
@@ -1015,6 +1020,9 @@ void chartwindow::plotResiduals(int index)
             xErr.append(j+1);
             yErr.append(0);
 
+            chartErrorTicks.append(j+1);
+            chartErrorLabels.append(QString::number(j+1));
+
             yValuesTempHolder.append((tempY - tempFitY));
         }
     }
@@ -1033,6 +1041,10 @@ void chartwindow::plotResiduals(int index)
 
     chartError->graph(0)->setData(errPointX, errPointY);
     chartError->graph(1)->setData(xErr, yErr);
+
+    QSharedPointer<QCPAxisTickerText> chartErrorTicker(new QCPAxisTickerText);
+    chartErrorTicker->addTicks(chartErrorTicks, chartErrorLabels);
+    chartError->xAxis->setTicker(chartErrorTicker);
 
     chartError->replot();
 }
@@ -1185,6 +1197,11 @@ void chartwindow::plotQQResiduals(int index)
 
 // Helpers
 
+/**
+ * @brief chartwindow::eventFilter
+ * @param e
+ * @return
+ */
 bool chartwindow::eventFilter(QObject *, QEvent *e)
 {
     if (e->type() == QEvent::ShortcutOverride)
@@ -1222,6 +1239,9 @@ bool chartwindow::eventFilter(QObject *, QEvent *e)
     return false;
 }
 
+/**
+ * @brief chartwindow::saveSVGasPNG
+ */
 void chartwindow::saveSVGasPNG()
 {
     QString file_name;
@@ -1246,10 +1266,25 @@ void chartwindow::saveSVGasPNG()
 
     if(!file_name.trimmed().isEmpty())
     {
-        stackedWidget.currentWidget()->grab().save(file_name, "PNG", 9);
+        switch (stackedWidget.currentIndex()) {
+        case 0:
+            chart->savePng(file_name);
+            break;
+        case 1:
+            chartError->savePng(file_name);
+            break;
+        case 2:
+            chartQQ->savePng(file_name);
+            break;
+        default:
+            break;
+        }
     }
 }
 
+/**
+ * @brief chartwindow::on_NextButton_clicked
+ */
 void chartwindow::on_NextButton_clicked()
 {
     if (currentIndexShown >= mDisplayData.count() - 1)
@@ -1276,6 +1311,9 @@ void chartwindow::on_NextButton_clicked()
     plotQQResiduals(currentIndexShown);
 }
 
+/**
+ * @brief chartwindow::on_PreviousButton_clicked
+ */
 void chartwindow::on_PreviousButton_clicked()
 {
     if (currentIndexShown <= 0)
