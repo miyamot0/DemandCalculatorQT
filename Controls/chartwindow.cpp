@@ -212,8 +212,6 @@ void chartwindow::buildResidualQQPlot()
     chartQQ->xAxis->setScaleType(QCPAxis::stLinear);
     chartQQ->xAxis->setRangeLower(-2);
     chartQQ->xAxis->setRangeUpper(2);
-    //chartQQ->xAxis->setAutoTickStep(false);
-    //chartQQ->xAxis->setTickStep(1);
 
     chartQQ->addGraph();
     chartQQ->graph(0)->setLineStyle(QCPGraph::lsNone);
@@ -356,6 +354,11 @@ void chartwindow::plotLinearSeries(int index)
     rawX.clear();
     rawY.clear();
 
+    projX.clear();
+    projY.clear();
+
+    double projectedValue;
+
     for (int i = 0; i < rawPricesSplit.length(); i++)
     {
         param1 = rawPricesSplit[i].toDouble(&checkValue1);
@@ -392,9 +395,9 @@ void chartwindow::plotLinearSeries(int index)
 
     for (double i = 0.001; i <= highestPrice * 10; )
     {
-        double projectedValue = log(linearL) + (linearb * log(i)) - lineara * (i);
+        projectedValue = log(linearL) + (linearb * log(i)) - lineara * (i);
 
-        if (projectedValue > 0)
+        if (exp(projectedValue) > 0)
         {
             if (showStandardized)
             {
@@ -408,9 +411,9 @@ void chartwindow::plotLinearSeries(int index)
             }
         }
 
-        if (projectedValue > highestConsumption)
+        if (exp(projectedValue) > highestConsumption)
         {
-            highestConsumption = projectedValue;
+            highestConsumption = exp(projectedValue);
         }
 
         if (i <= 0.1)
@@ -963,8 +966,8 @@ void chartwindow::plotResiduals(int index)
 
     mSplitY = yValues.split(',');
 
-    canConvertY = false;
     canConvertX = false;
+    canConvertY = false;
 
     yValuesTempHolder.clear();
 
@@ -976,8 +979,6 @@ void chartwindow::plotResiduals(int index)
         tempX = mSplitX[j].toDouble(&canConvertX);
         tempY = mSplitY[j].toDouble(&canConvertY);
 
-        //tempX = (tempX == 0) ? 0.01 : tempX;
-
         if (modelType == DemandModel::Exponential || modelType == DemandModel::Exponentiated)
         {
             tempA = mList[2].toDouble();
@@ -985,12 +986,11 @@ void chartwindow::plotResiduals(int index)
 
             if (modelType == DemandModel::Exponential)
             {
-                tempK = mList[9].toDouble();
+                tempK = mList[10].toDouble();
 
                 tempFitY = log10(tempQ0) + tempK * (exp(-tempA * tempQ0 * tempX) - 1);
-                tempFitY = pow(10, tempFitY);
 
-                tempY = tempY;
+                tempY = log10(tempY);
             }
             else if (modelType == DemandModel::Exponentiated)
             {
@@ -1017,13 +1017,24 @@ void chartwindow::plotResiduals(int index)
             errPointX.append(j+1);
             errPointY.append(tempY - tempFitY);
 
-            xErr.append(j+1);
+            xErr.append(j + 1);
             yErr.append(0);
 
             chartErrorTicks.append(j+1);
             chartErrorLabels.append(QString::number(j+1));
 
-            yValuesTempHolder.append((tempY - tempFitY));
+            if (tempY > tempFitY)
+            {
+                yValuesTempHolder.append(abs(tempY) - abs(tempFitY));
+            }
+            else if (tempY < tempFitY)
+            {
+                yValuesTempHolder.append(abs(tempFitY) - abs(tempY));
+            }
+            else
+            {
+                yValuesTempHolder.append(0);
+            }
         }
     }
 
