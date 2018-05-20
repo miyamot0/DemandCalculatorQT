@@ -10,21 +10,20 @@
 
 using namespace de;
 
-class LinearDemand : public IOptimizable
+enum FittingScale
+{
+    Normal,
+    Log,
+    Log10
+};
+
+class BaseModel : public IOptimizable
 {
 public:
-    LinearDemand(QList<double> prices, QList<double> consumption, double upperBound)
+    BaseModel(QList<double> prices, QList<double> consumption)
     {
-        m_dim = 3;
-
-        upperLBound = upperBound;
-
-        storedData.clear();
-
-        for (int i = 0; i < prices.length(); i++)
-        {
-            storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
-        }
+        _prices = prices;
+        _consumption = consumption;
     }
 
     void SetWeights(QString customWeights)
@@ -52,30 +51,38 @@ public:
         return returnList;
     }
 
+    /**
+     * @brief CostFunction
+     *
+     * @param inputs Prospective parameters
+     * @param delay point in time
+     *
+     * @return Subjective value at delay
+     */
+    virtual double CostFunction(std::vector<double> inputs, double price) const = 0;
+
+    /**
+     * @brief EvaluteCost
+     *
+     * Return cost function by way of MSE, and inherited cost function
+     *
+     * @param inputs parameters
+     * @return
+     */
     double EvaluteCost(std::vector<double> inputs) const override
     {
         double val = 0.0;
 
-        double L = inputs[0];
-        double a = inputs[1];
-        double b = inputs[2];
-
-        double tempPrice, tempConsumption;
+        double tempDelay, tempValue;
 
         double temp;
 
-        // hack
-        if (L <= 0)
+        for (int j = 0; j < _prices.length(); j++)
         {
-            return 1e7;
-        }
+            tempDelay = _prices[j];
+            tempValue = _consumption[j];
 
-        for (int j = 0; j < (int) storedData.size(); j++)
-        {
-            tempPrice = std::get<0>(storedData.at(j));
-            tempConsumption = std::get<1>(storedData.at(j));
-
-            temp = log(tempConsumption) - (log(L) + (b * log(tempPrice)) - a * tempPrice);
+            temp = ScaleVariable(tempValue) - CostFunction(inputs, tempDelay);
 
             if (isWeighted)
             {
@@ -87,9 +94,26 @@ public:
             }
         }
 
-        val = val / (double) storedData.size();
+        val = val / (double) _prices.length();
 
         return val;
+    }
+
+    double ScaleVariable(double value) const
+    {
+        switch (fittingMethod) {
+        case FittingScale::Normal:
+            return value;
+
+        case FittingScale::Log:
+            return log(value);
+
+        case FittingScale::Log10:
+            return log10(value);
+
+        default:
+            return 0;
+        }
     }
 
     unsigned int NumberOfParameters() const override
@@ -97,12 +121,51 @@ public:
         return m_dim;
     }
 
+    Constraints DefaultConstraints() const
+    {
+        return Constraints(-100, 100, true);
+    }
+
+    std::vector<Constraints> GetConstraints() const override
+    {
+        std::vector<Constraints> constr(1);
+
+        constr[0] = DefaultConstraints();
+
+        return constr;
+    }
+
+    unsigned int m_dim = 3;
+
+    FittingScale fittingMethod;
+
+private:
+    QList<double> _prices, _consumption, weights;
+    bool isWeighted;
+};
+
+class LinearDemand : public BaseModel
+{
+public:
+    LinearDemand(QList<double> prices, QList<double> consumption, double upperLBound) : BaseModel(prices, consumption)
+    {
+        m_dim = 3;
+        _upperLBound = upperLBound;
+
+        fittingMethod = FittingScale::Log;
+    }
+
+    double CostFunction(std::vector<double> inputs, double price) const override
+    {
+        return (log(inputs[0]) + (inputs[2] * log(price)) - inputs[1] * price);
+    }
+
     std::vector<Constraints> GetConstraints() const override
     {
         std::vector<Constraints> constr(3);
 
         // L
-        constr[0] = Constraints(0.01, upperLBound, true);
+        constr[0] = Constraints(0.01, _upperLBound, true);
 
         // a
         constr[1] = Constraints(-10, 10, true);
@@ -112,16 +175,10 @@ public:
 
         return constr;
     }
-private:
-    unsigned int m_dim = 3;
 
-    vector<tuple<double, double>> storedData;
-
-    QList<double> weights;
-    bool isWeighted;
-
-    double upperLBound;
+    double _upperLBound = 0;
 };
+
 
 class ExponentialDemand : public IOptimizable
 {
