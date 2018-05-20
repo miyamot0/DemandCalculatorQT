@@ -112,7 +112,7 @@ public:
             return log10(value);
 
         default:
-            return 0;
+            return value;
         }
     }
 
@@ -164,14 +164,9 @@ public:
     {
         std::vector<Constraints> constr(3);
 
-        // L
-        constr[0] = Constraints(0.01, _upperLBound, true);
-
-        // a
-        constr[1] = Constraints(-10, 10, true);
-
-        // b
-        constr[2] = Constraints(-10, 10, true);
+        constr[0] = Constraints(0.01, _upperLBound, true);  // L
+        constr[1] = Constraints(-10, 10, true);             // a
+        constr[2] = Constraints(-10, 10, true);             // b
 
         return constr;
     }
@@ -179,347 +174,133 @@ public:
     double _upperLBound = 0;
 };
 
-
-class ExponentialDemand : public IOptimizable
+class ExponentialDemand : public BaseModel
 {
 public:
-    ExponentialDemand(QList<double> prices, QList<double> consumption, double kValue, double upperQ0Limit)
+    ExponentialDemand(QList<double> prices, QList<double> consumption, double kValue, double upperQ0Limit) : BaseModel(prices, consumption)
     {
         m_dim = 2;
-
         k = kValue;
-
         upperQ0Bound = upperQ0Limit;
 
-        storedData.clear();
-
-        for (int i = 0; i < prices.length(); i++)
-        {
-            storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
-        }
+        fittingMethod = FittingScale::Log10;
     }
 
-    void SetWeights(QString customWeights)
+    double CostFunction(std::vector<double> inputs, double price) const override
     {
-        weights = SplitWeights(customWeights);
-        isWeighted = true;
-    }
-
-    QList<double> SplitWeights(QString value)
-    {
-        QString temp = value.replace("[", "");
-        QString temp2 = temp.replace("]", "");
-
-        QStringList tempList = temp2.split(",");
-
-        QList<double> returnList;
-
-        double num;
-        foreach (QString str, tempList) {
-            num = str.toDouble();
-
-            returnList << num;
-        }
-
-        return returnList;
-    }
-
-    double EvaluteCost(std::vector<double> inputs) const override
-    {
-        double val = 0.0;
-
-        double q0 = inputs[0];
-        double a = inputs[1];
-
-        double tempPrice, tempConsumption;
-
-        double temp;
-
-        // hack
-        if (q0 <= 0)
-        {
-            return 1e7;
-        }
-
-        for (int j = 0; j < (int) storedData.size(); j++)
-        {
-            tempPrice = std::get<0>(storedData.at(j));
-            tempConsumption = std::get<1>(storedData.at(j));
-
-            temp = log10(tempConsumption) - (log10(q0) + k * (exp(-a * q0 * tempPrice) - 1));
-
-            if (isWeighted)
-            {
-                val = val + (temp * temp) * weights[j];
-            }
-            else
-            {
-                val = val + (temp * temp);
-            }
-        }
-
-        val = val / (double) storedData.size();
-
-        return val;
-    }
-
-    unsigned int NumberOfParameters() const override
-    {
-        return m_dim;
+        return (log10(inputs[0]) + k * (exp(-inputs[1] * inputs[0] * price) - 1));
     }
 
     std::vector<Constraints> GetConstraints() const override
     {
         std::vector<Constraints> constr(2);
 
-        // Q0
-        constr[0] = Constraints(0.01, upperQ0Bound, true);
-
-        // A
-        constr[1] = Constraints(-0.1, 1, true);
+        constr[0] = Constraints(0.01, upperQ0Bound, true);  // Q0
+        constr[1] = Constraints(-0.1, 1, true);             // A
 
         return constr;
     }
-private:
-    unsigned int m_dim = 2;
 
-    vector<tuple<double, double>> storedData;
-
-    QList<double> weights;
-    bool isWeighted;
-
-    double upperQ0Bound;
-
-    double k;
+    double k = 0;
+    double upperQ0Bound = 0;
 };
 
-class ExponentialDemandFitK : public IOptimizable
+class ExponentialDemandFitK : public BaseModel
 {
 public:
-    ExponentialDemandFitK(QList<double> prices, QList<double> consumption, double upperQ0Limit, double upperKLimit)
+    ExponentialDemandFitK(QList<double> prices, QList<double> consumption, double upperQ0Limit, double upperKLimit) : BaseModel(prices, consumption)
     {
         m_dim = 3;
-
+        upperKBound = upperKLimit;
         upperQ0Bound = upperQ0Limit;
 
-        upperKBound = upperKLimit;
-
-        storedData.clear();
-
-        for (int i = 0; i < prices.length(); i++)
-        {
-            storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
-        }
+        fittingMethod = FittingScale::Log10;
     }
 
-    void SetWeights(QString customWeights)
+    double CostFunction(std::vector<double> inputs, double price) const override
     {
-        weights = SplitWeights(customWeights);
-        isWeighted = true;
-    }
-
-    QList<double> SplitWeights(QString value)
-    {
-        QString temp = value.replace("[", "");
-        QString temp2 = temp.replace("]", "");
-
-        QStringList tempList = temp2.split(",");
-
-        QList<double> returnList;
-
-        double num;
-        foreach (QString str, tempList) {
-            num = str.toDouble();
-
-            returnList << num;
-        }
-
-        return returnList;
-    }
-
-    double EvaluteCost(std::vector<double> inputs) const override
-    {
-        double val = 0.0;
-
-        double q0 = inputs[0];
-        double a = inputs[1];
-        double k = inputs[2];
-
-        double tempPrice, tempConsumption;
-
-        double temp;
-
-        // hack
-        if (q0 <= 0)
-        {
-            return 1e7;
-        }
-
-        for (int j = 0; j < (int) storedData.size(); j++)
-        {
-            tempPrice = std::get<0>(storedData.at(j));
-            tempConsumption = std::get<1>(storedData.at(j));
-
-            temp = log10(tempConsumption) - (log10(q0) + k * (exp(-a * q0 * tempPrice) - 1));
-
-            if (isWeighted)
-            {
-                val = val + (temp * temp) * weights[j];
-            }
-            else
-            {
-                val = val + (temp * temp);
-            }
-        }
-
-        return val;
-    }
-
-    unsigned int NumberOfParameters() const override
-    {
-        return m_dim;
+        return (log10(inputs[0]) + inputs[2] * (exp(-inputs[1] * inputs[0] * price) - 1));
     }
 
     std::vector<Constraints> GetConstraints() const override
     {
         std::vector<Constraints> constr(3);
 
-        // Q0
-        constr[0] = Constraints(1, upperQ0Bound, true);
-
-        // A
-        constr[1] = Constraints(-1, 1, true);
-
-        // K
-        constr[2] = Constraints(0.5, upperKBound, true);
+        constr[0] = Constraints(1, upperQ0Bound, true);     // Q0
+        constr[1] = Constraints(-1, 1, true);               // A
+        constr[2] = Constraints(0.5, upperKBound, true);    // K
 
         return constr;
     }
-private:
-    unsigned int m_dim = 3;
 
-    vector<tuple<double, double>> storedData;
-
-    QList<double> weights;
-    bool isWeighted;
-
-    double upperQ0Bound;
-    double upperKBound;
+    double upperKBound = 0;
+    double upperQ0Bound = 0;
 };
 
-class ExponentiatedDemand : public IOptimizable
+class ExponentiatedDemand : public BaseModel
 {
 public:
-    ExponentiatedDemand(QList<double> prices, QList<double> consumption, double kValue, double upperQ0Limit)
+    ExponentiatedDemand(QList<double> prices, QList<double> consumption, double kValue, double upperQ0Limit) : BaseModel(prices, consumption)
     {
         m_dim = 2;
-
         k = kValue;
-
         upperQ0Bound = upperQ0Limit;
 
-        storedData.clear();
-
-        for (int i = 0; i < prices.length(); i++)
-        {
-            storedData.push_back(tuple<double, double>(prices[i], consumption[i]));
-        }
+        fittingMethod = FittingScale::Normal;
     }
 
-    void SetWeights(QString customWeights)
+    double CostFunction(std::vector<double> inputs, double price) const override
     {
-        weights = SplitWeights(customWeights);
-        isWeighted = true;
-    }
-
-    QList<double> SplitWeights(QString value)
-    {
-        QString temp = value.replace("[", "");
-        QString temp2 = temp.replace("]", "");
-
-        QStringList tempList = temp2.split(",");
-
-        QList<double> returnList;
-
-        double num;
-        foreach (QString str, tempList) {
-            num = str.toDouble();
-
-            returnList << num;
-        }
-
-        return returnList;
-    }
-
-    double EvaluteCost(std::vector<double> inputs) const override
-    {
-        // hack
-        if (inputs[0] <= 0)
-        {
-            return 1e7;
-        }
-
-        double val = 0.0;
-
-        double q0 = pow(10, inputs[0]);
-        double a = inputs[1];
-
-        double tempPrice, tempConsumption;
-
-        double temp;
-
-
-
-        for (int j = 0; j < (int) storedData.size(); j++)
-        {
-            tempPrice = std::get<0>(storedData.at(j));
-            tempConsumption = std::get<1>(storedData.at(j));
-
-            temp = tempConsumption - (q0 * pow(10, (k * (exp(-a * q0 * tempPrice) - 1))));
-
-            if (isWeighted)
-            {
-                val = val + (temp * temp) * weights[j];
-            }
-            else
-            {
-                val = val + (temp * temp);
-            }
-        }
-
-        return val;
-    }
-
-    unsigned int NumberOfParameters() const override
-    {
-        return m_dim;
+        return (exp(inputs[0]) * pow(10, (k * (exp(-inputs[1] * exp(inputs[0]) * price) - 1))));
     }
 
     std::vector<Constraints> GetConstraints() const override
     {
         std::vector<Constraints> constr(2);
 
-        // Q0
-        constr[0] = Constraints(-3, log10(upperQ0Bound) * 2, true);
-
-        // A
-        constr[1] = Constraints(-0.1, 0.1, true);
+        constr[0] = Constraints(-10, log(upperQ0Bound * 2) + 1, true);      // Q0
+        constr[1] = Constraints(-0.1, 0.1, true);                           // A
 
         return constr;
     }
-private:
-    unsigned int m_dim = 2;
 
-    vector<tuple<double, double>> storedData;
-
-    QList<double> weights;
-    bool isWeighted;
-
-    double upperQ0Bound;
-
-    double k;
+    double k = 0;
+    double upperQ0Bound = 0;
 };
 
+class ExponentiatedDemandFitK : public BaseModel
+{
+public:
+    ExponentiatedDemandFitK(QList<double> prices, QList<double> consumption, double upperQ0Limit, double upperKLimit) : BaseModel(prices, consumption)
+    {
+        m_dim = 3;
+        upperKBound = upperKLimit;
+        upperQ0Bound = upperQ0Limit;
+
+        fittingMethod = FittingScale::Normal;
+    }
+
+    double CostFunction(std::vector<double> inputs, double price) const override
+    {
+        return (exp(inputs[0]) * pow(10, (inputs[2] * (exp(-inputs[1] * exp(inputs[0]) * price) - 1))));
+    }
+
+    std::vector<Constraints> GetConstraints() const override
+    {
+        std::vector<Constraints> constr(3);
+
+        constr[0] = Constraints(-10, log(upperQ0Bound * 2) + 1, true);  // Q0
+        constr[1] = Constraints(-0.1, 0.1, true);                       // A
+        constr[2] = Constraints(0.5, upperKBound, true);                // K
+
+        return constr;
+    }
+
+    double upperKBound = 0;
+    double upperQ0Bound = 0;
+};
+
+/*
 class ExponentiatedDemandFitK : public IOptimizable
 {
 public:
@@ -633,5 +414,6 @@ private:
     double upperQ0Bound;
     double upperKBound;
 };
+*/
 
 #endif // EVOLUTIONFUNCTIONS_H

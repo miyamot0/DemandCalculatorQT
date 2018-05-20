@@ -738,7 +738,13 @@ void CalculationWorker::working()
                     double altPmaxSlope = NULL;
 
                     SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], result[2], de.GetBestCost(), altPmax, altPmaxSlope);
+                                                                  mLocalStoredValues[i],
+                                                                  exp(result[0]),
+                                                                  result[1],
+                                                                  result[2],
+                                                                  de.GetBestCost(),
+                                                                  altPmax,
+                                                                  altPmaxSlope);
                 }
                 else
                 {
@@ -763,8 +769,16 @@ void CalculationWorker::working()
                     double altPmax = NULL;
                     double altPmaxSlope = NULL;
 
-                    SuccessfulExponentialExponentiatedDEOutput(&mTempHolder, i, &calculationSettings,
-                                                                  mLocalStoredValues[i], pow(10, result[0]), result[1], k, de.GetBestCost(), altPmax, altPmaxSlope);
+                    SuccessfulExponentialExponentiatedDEOutput(&mTempHolder,
+                                                               i,
+                                                               &calculationSettings,
+                                                               mLocalStoredValues[i],
+                                                               exp(result[0]),
+                                                               result[1],
+                                                               k,
+                                                               de.GetBestCost(),
+                                                               altPmax,
+                                                               altPmaxSlope);
 
                 }
 
