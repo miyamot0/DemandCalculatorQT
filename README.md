@@ -55,6 +55,7 @@ The Demand Curve Analyzer must be installed and will automatically update as the
 All downloads, if/when posted, will be hosted at [Small N Stats](http://www.smallnstats.com).
 
 [Windows Installer](http://www.smallnstats.com/downloads/DemandCurveAnalyzerInstall.exe)
+
 [OSX Installer](http://www.smallnstats.com/downloads/DemandCurveAnalyzerInstall.dmg)
 
 ### Development
