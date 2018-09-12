@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/91203795.svg)](https://zenodo.org/badge/latestdoi/91203795)
+
 # Small N Stats Demand Curve Analyzer (Qt)
 
 Small N Stats Demand Curve Analyzer is a Qt-based application that communicates with R to easily facilitate complex calculations required of behavior economic (BE) scientists.
